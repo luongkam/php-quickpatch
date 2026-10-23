@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-007
+title: Wireframe SCR-007 — Rollback & lịch sử thay đổi (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, rollback, manifest, site-switch, history, scr-007, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-ENV-001
+  - FR-CON-RBK-001
+  - FR-PTCH-RBK-002
+  - FR-UPG-RBK-001
+  - FR-UPG-ACK-001
+  - UC-PTCH-004
+  - UC-UPG-004
+related_diagrams:
+  - DIAG-STATE-QP-ENV-002
+  - DIAG-STATE-QP-ENV-003
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-007: Rollback &amp; lịch sử thay đổi — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}.btn.danger{border:2px solid var(--err-line);color:var(--err);font-weight:600}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.s-PASSED{background:#111827;color:#fff;border-color:#111827}.s-ROLLED_BACK{background:var(--muted)}.s-ROLLBACK_FAILED,.s-HC_FAILED_KEPT{border:2px solid var(--err-line);color:var(--err)}
+.warnline{border:1px dashed #111827;font-size:11px;padding:0 5px;border-radius:4px}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}[data-panel]{display:none}[data-panel].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line2);margin-bottom:10px}
+.tabs button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:none;cursor:pointer}
+.tabs button[aria-selected=true]{border-color:var(--line2);background:#fff;font-weight:600;margin-bottom:-1px}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.root-reason{display:none;font-size:11.5px;color:var(--sub)}body.no-root .root-reason{display:inline}
+input{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input.wide{width:100%}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}
+input:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:780px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}.pv th{width:170px;background:#fff}.pv ul,.pv ol{margin-left:18px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html" aria-current="page"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-007 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-007 Rollback &amp; lịch sử thay đổi — UC-PTCH-004, UC-UPG-004 (PER-01, PER-02)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-RBK-001, FR-PTCH-RBK-002, FR-UPG-RBK-001. Liên quan: FR-PTCH-RBK-001 (manifest), FR-UPG-RBK-002, FR-UPG-RMV-001, FR-CON-SAFE-001, FR-UPG-SEQ-001, FR-UPG-ACK-001 (xác nhận đã xử lý lượt chuyển lỗi — đề xuất <code>CR-FR-01</code>, chờ PO duyệt)</td></tr>
+      <tr><th>BR</th><td>BR-PTCH-008, BR-SCN-014, BR-SCN-017, BR-ENV-003, BR-ENV-005, BR-ENV-006, BR-ENV-008, BR-UPG-003, BR-CON-005, BR-CON-010, BR-AUD-001, BR-SEC-006</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-PTCH-404-01, ERR-ENV-410-01, ERR-ENV-500-03, ERR-HC-500-02, ERR-UPG-423-01, ERR-UPG-409-03, ERR-UPG-409-04 (đề xuất <code>CR-FR-01</code>), ERR-CON-404-01, ERR-CON-422-01, ERR-JOB-428-01, ERR-CLI-403-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/backup-runs</code>, <code>GET /api/v1/backup-runs/{run_id}</code>, <code>GET /api/v1/switches</code>, <code>POST /api/v1/rollbacks</code> (<code>kind=run|site</code>, dry-run + 1 xác nhận), <code>POST /api/v1/switches/{run_id}/acknowledgements</code> <code>{"reason": "..."}</code> (hành động <code>switch_ack</code>, loại <code>control</code>, đề xuất <code>CR-FR-01</code>)</td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Định dạng manifest <code>ACTION&lt;TAB&gt;ARG1&lt;TAB&gt;ARG2</code> và thứ tự ghi của lượt chuyển theo environment-playbooks.md §5.3–§5.4; bước R1–R7 theo §5.2. Các lượt 2025-11 là lịch sử minh hoạ (khớp SCR-006); lượt 20261022-131500 (example.com, <code>HC_FAILED_KEPT</code>) khớp SCR-002, SCR-006, SCR-009; lượt 20261022-150210 (<code>ROLLBACK_FAILED</code>) chỉ có ở trạng thái mô phỏng "Lỗi"; mã job, kích thước file, mốc giờ xác nhận là minh hoạ.</td></tr>
+      <tr><th>Ghi chú</th><td>Rollback site dùng 1 xác nhận sau khi xem danh sách hành động sẽ phát lại (FR-CON-RBK-001); <code>--purge-pool</code> mới xoá pool đích (dòng <code>created</code>). "Xác nhận đã xử lý" là thao tác điều khiển đồng bộ: không qua dry-run, timeout 30 s, ô lý do 20–500 ký tự không chứa ký tự điều khiển; chỉ ghi <code>acknowledged_at</code>, <code>acknowledged_by</code>, <code>ack_reason</code>, không đổi trạng thái lượt (T-SW-19). Xác nhận kép khi lượt lỗi là site canary: chờ PO (Q-ST-07). CSS/JS inline chỉ để wireframe tự chứa (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md 1.0.1 §7, §8.1, §9, §15.1–§15.2 (<code>FR-UPG-ACK-001</code>, <code>ERR-UPG-409-04</code>, <code>CR-FR-01</code>); environment-playbooks.md §5.2–§5.4; environment-playbooks-os.md (pool <code>qp-&lt;site_key&gt;</code>); states.md 1.0.2 §4 (<code>T-SW-18</code>, <code>T-SW-19</code>, <code>T-PLN-08</code>); spec.md 1.1.0 §3.3.3–§3.3.4; error-matrix.md 1.1.0 §3.11; api/api-spec.md §2.14; api/api-spec-jobs.md §5; erd-console-ops.md §9; rules/13 §2 (bảng màu xám)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-007: danh sách lượt chạy + manifest, lượt chuyển site, rollback lượt/site qua dry-run, cảnh báo gói không hạ cấp và runtime cũ đã gỡ</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: thêm cột và nút "Xác nhận đã xử lý" (ô lý do 20–500 ký tự, hộp thoại, hiển thị <code>acknowledged_at</code>/<code>acknowledged_by</code> khi đã xác nhận) cho lượt chuyển <code>ROLLED_BACK</code>/<code>HC_FAILED_KEPT</code>/<code>ROLLBACK_FAILED</code> theo FR-CON-RBK-001 1.0.1 và FR-UPG-ACK-001 (đề xuất <code>CR-FR-01</code>); thêm trạng thái mô phỏng "Lượt lỗi chờ xác nhận" (lượt 20261022-131500), nút xác nhận cho lượt <code>ROLLBACK_FAILED</code> ở cảnh báo ERR-HC-500-02, mô phỏng ERR-UPG-409-04 và ERR-CON-422-01; bổ sung FR/BR/ERR/API vào khối thông tin; đổi màu lỗi đỏ sang bảng xám (rules/13 §2), nhấn lỗi bằng viền đậm và nhãn chữ "LỖI"</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="ack">Lượt lỗi chờ xác nhận</button>
+    <button type="button" data-set="removed">Runtime cũ đã gỡ</button>
+    <button type="button" data-set="empty">Chưa có lượt nào</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Rollback &amp; lịch sử thay đổi <span class="fr">FR-CON-RBK-001</span></h1>
+      <p class="hint"><code>STATE_DIR/backups/</code>: 4 lượt · 41,2 KiB · không tự xoá ở Phase 1, cảnh báo khi &gt; 1 GiB (NFR-CAP-003). Lượt <code>--dry-run</code> không ghi manifest (FR-PTCH-RBK-001).</p>
+    </div>
+  </div>
+
+  <section data-state="removed">
+    <div class="alert" role="status"><b>Runtime cũ đã gỡ:</b> PHP 7.4 được gỡ bằng <code>migrate remove-old</code> ngày 2026-11-20 (mô phỏng). Mọi lượt chuyển dùng 7.4 có <code>rollback_available = false</code>; nút rollback bị vô hiệu kèm lý do (BR-SCN-014, T-SW-16).</div>
+  </section>
+
+  <section data-state="ack">
+    <div class="alert" role="status"><b>Lượt lỗi chờ xác nhận:</b> lượt 20261022-131500 (example.com, site canary của PLN-20261022-110351-4c7e) ở <code>HC_FAILED_KEPT</code>, chưa xác nhận đã xử lý → chuyển site kế tiếp của kế hoạch bị chặn (ERR-UPG-409-03, BR-UPG-003, T-PLN-08). Rollback site hoặc xử lý nguyên nhân, rồi bấm <b>Xác nhận đã xử lý</b> ở tab "Lượt chuyển site" <span class="fr">FR-UPG-ACK-001</span></div>
+  </section>
+
+  <div data-state="data removed ack">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="runs" aria-selected="true">Lượt chạy (backup manifest)</button>
+      <button type="button" role="tab" data-tab="sw" aria-selected="false">Lượt chuyển site</button>
+    </div>
+
+    <div data-panel="runs" class="show">
+      <section class="card" aria-labelledby="runs-h">
+        <h2 id="runs-h">Lượt chạy có manifest <span class="fr">FR-PTCH-RBK-002</span></h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>run_id</th><th>Thời điểm (UTC)</th><th>Actor / job</th><th>Hành động trong manifest</th><th>Site</th><th>Rollback gần nhất</th><th>Cảnh báo</th><th></th></tr></thead>
+          <tbody>
+            <tr data-sim="ack" hidden><td class="mono">20261022-131500</td><td>2026-10-22 13:15:00</td><td>console:root · JOB-20261022-131458-a7f0</td><td>reload 1 · switch 1 · copy 1 · created 1</td><td>example.com</td><td>—</td><td><span class="warnline">HC_FAILED_KEPT · chưa xác nhận</span></td>
+              <td class="row"><button class="btn sm" type="button" data-view="r5">Xem manifest</button><button class="btn sm primary" type="button" data-act="site2" data-root>Rollback lượt</button><span class="hint">Lượt có dòng <code>switch</code> → quy trình R1–R7</span></td></tr>
+            <tr><td class="mono">20261021-221530</td><td>2026-10-21 22:15:30</td><td>cli:root (ngoài console)</td><td>created 4 · note 1</td><td>—</td><td>—</td><td><span class="warnline">Gói nâng qua package manager không bị hạ cấp</span></td>
+              <td class="row"><button class="btn sm" type="button" data-view="r1">Xem manifest</button><button class="btn sm primary" type="button" data-act="run1" data-root>Rollback lượt</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01 (thay đổi của root)</span></td></tr>
+            <tr><td class="mono">20261015-093012</td><td>2026-10-15 09:30:12</td><td>console:root · JOB-20261015-093010-4b21</td><td>composer-install 1 · copy 2</td><td>blog.example.com</td><td>—</td><td>—</td>
+              <td class="row"><button class="btn sm" type="button" data-view="r2">Xem manifest</button><button class="btn sm primary" type="button" data-act="run2" data-root>Rollback lượt</button></td></tr>
+            <tr><td class="mono">20251118-150512</td><td>2025-11-18 15:05:12</td><td>console:root · JOB-20251118-150510-4e7a</td><td>reload 1 · switch 1 · copy 1 · created 1</td><td>shop.example.com</td><td>Tự rollback 2025-11-18 15:07:41 (HC-C7)</td><td>—</td>
+              <td class="row"><button class="btn sm" type="button" data-view="r3">Xem manifest</button><button class="btn sm" type="button" disabled title="Lượt đã ROLLED_BACK">Rollback lượt</button></td></tr>
+            <tr><td class="mono">20251118-142005</td><td>2025-11-18 14:20:05</td><td>console:root · JOB-20251118-142003-7b21</td><td>reload 1 · switch 1 · copy 1 · created 1</td><td>blog.example.com</td><td>—</td><td class="rm-warn">—</td>
+              <td class="row"><button class="btn sm" type="button" data-view="r4">Xem manifest</button><button class="btn sm primary rm-dis" type="button" data-act="site1" data-root>Rollback lượt</button><span class="hint">Lượt có dòng <code>switch</code> → quy trình R1–R7</span></td></tr>
+          </tbody></table></div>
+      </section>
+      <section class="card" aria-labelledby="man-h">
+        <h2 id="man-h">Manifest <span class="mono" id="man-id"></span> <span class="fr">FR-PTCH-RBK-001</span></h2>
+        <p class="hint">Phát lại theo thứ tự ngược (<code>tac</code>): dòng ghi sau cùng chạy đầu tiên. <code>note</code> chỉ in cảnh báo; gói đã nâng qua package manager không bị hạ cấp (BR-PTCH-008).</p>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>#</th><th>Hành động</th><th>ARG1</th><th>ARG2</th><th>Khi rollback</th></tr></thead>
+          <tbody id="man-body"></tbody></table></div>
+      </section>
+    </div>
+
+    <div data-panel="sw">
+      <section class="card" aria-labelledby="sw-h">
+        <h2 id="sw-h">Lượt chuyển site <span class="fr">FR-UPG-RBK-001</span></h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>run_id</th><th>Site</th><th>Kế hoạch</th><th>Từ → tới</th><th>Trạng thái</th><th>Bắt đầu / kết thúc HC</th><th>rollback_reason</th><th>Runtime cũ</th><th>Xác nhận đã xử lý <span class="fr">FR-UPG-ACK-001</span></th><th></th></tr></thead>
+          <tbody>
+            <tr data-sim="ack" hidden><td class="mono">20261022-131500</td><td>example.com (canary)</td><td class="mono">PLN-20261022-110351-4c7e (in_progress)</td><td>7.4 → 8.5</td><td><span class="badge s-HC_FAILED_KEPT">HC_FAILED_KEPT</span></td><td>13:15:00 / 13:25:30</td><td>— (HC-C4 không đạt, tự rollback tắt)</td><td>còn (/usr/bin/php7.4)</td>
+              <td id="ack-sw1"><b>Chưa xác nhận</b><div class="row" style="margin-top:4px"><button class="btn sm primary" type="button" data-ack="sw1" data-root>Xác nhận đã xử lý</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span></div></td>
+              <td class="row"><button class="btn sm danger" type="button" data-act="site2" data-root>Rollback site</button><a class="btn sm" href="jobs-log.html">Báo cáo HC</a><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span></td></tr>
+            <tr><td class="mono">20251118-150512</td><td>shop.example.com</td><td class="mono">PLN-20251118-135502-71aa (rolled_back)</td><td>7.4 → 8.2</td><td><span class="badge s-ROLLED_BACK">ROLLED_BACK</span></td><td>15:05:12 / 15:07:41</td><td>HC-C7</td><td>còn</td>
+              <td>2025-11-18 15:31:47 UTC · console:root<div class="hint">acknowledged_at · acknowledged_by</div></td><td><a class="btn sm" href="jobs-log.html">Báo cáo HC</a></td></tr>
+            <tr><td class="mono">20251118-142005</td><td>blog.example.com</td><td class="mono">PLN-20251118-135502-71aa (rolled_back)</td><td>7.4 → 8.2</td><td><span class="badge s-PASSED">PASSED</span></td><td>14:20:05 / 14:31:22</td><td>—</td><td class="rm-cell">còn (/usr/bin/php7.4)</td>
+              <td class="muted">Không áp dụng (<code>PASSED</code>)</td>
+              <td class="row"><button class="btn sm danger rm-dis" type="button" data-act="site1" data-root>Rollback site</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span><span class="hint rm-note" hidden>ERR-ENV-410-01 — Không thể hoàn tác blog.example.com: PHP 7.4 đã được gỡ khỏi máy chủ.</span></td></tr>
+          </tbody></table></div>
+        <p class="hint" style="margin-top:6px">Chỉ lượt <code>PASSED</code> hoặc <code>HC_FAILED_KEPT</code> rollback thủ công được; <code>ABORTED</code>, <code>ROLLED_BACK</code>, <code>ROLLBACK_FAILED</code> là trạng thái kết thúc (DIAG-STATE-QP-ENV-002). Rollback 1 site ≤ 60 s P95 (NFR-ENV-02). Lượt <code>ROLLED_BACK</code>, <code>HC_FAILED_KEPT</code>, <code>ROLLBACK_FAILED</code> chưa có <code>acknowledged_at</code> hiện nút "Xác nhận đã xử lý" (T-SW-19): chỉ ghi <code>acknowledged_at</code>, <code>acknowledged_by</code>, <code>ack_reason</code>, không đổi trạng thái lượt; gỡ chặn ERR-UPG-409-03 của kế hoạch, gỡ khoá ERR-UPG-423-01 khi máy chủ không còn lượt <code>ROLLBACK_FAILED</code> chưa xác nhận (FR-UPG-ACK-001, đề xuất <code>CR-FR-01</code>).</p>
+      </section>
+    </div>
+  </div>
+
+  <section data-state="empty"><div class="empty"><h2>Chưa có lượt chạy nào có manifest</h2><p style="margin-top:8px">Manifest được ghi trước thay đổi đầu tiên của mỗi lượt <code>fix</code>, <code>migrate</code>, <code>plan run</code> (FR-PTCH-RBK-001). Lượt <code>--dry-run</code> không ghi manifest.</p></div></section>
+  <section data-state="loading" aria-busy="true"><div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/backup-runs</code> và <code>GET /api/v1/switches</code>…</p></div></section>
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-PTCH-404-01</b> — No backup run found in /var/lib/php-quickpatch/backups (run_id 20260901-101010 không có thư mục hoặc thiếu file manifest).</div>
+    <div class="alert error" role="alert"><b>ERR-ENV-500-03</b> (kết quả job rollback) — Hoàn tác blog.example.com chưa áp dụng: cấu hình khôi phục không hợp lệ (<code>nginx -t</code> lỗi); chưa reload, cấu hình đang chạy giữ nguyên.</div>
+    <div class="alert error" role="alert"><b>ERR-HC-500-02</b> — Không hoàn tác được shop.example.com về PHP 7.4 (lượt 20261022-150210, <span class="badge s-ROLLBACK_FAILED">ROLLBACK_FAILED</span>, mô phỏng): trang chủ trả 502 sau rollback. Mọi lệnh chuyển site bị khoá (<b>ERR-UPG-423-01</b>) tới khi xử lý thủ công theo manifest và xác nhận đã xử lý (FR-UPG-ACK-001).
+      <div class="row" id="ack-sw2" style="margin-top:6px"><b>Chưa xác nhận</b><button class="btn sm primary" type="button" data-ack="sw2" data-root>Xác nhận đã xử lý</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span></div></div>
+    <div class="alert error" role="alert"><b>ERR-CON-404-01</b> — Không có site <code>legacy.example.com</code> trong scan gần nhất và không có lượt chuyển nào.</div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr">FR-CON-RBK-001</span><span class="fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <h3>Hành động sẽ phát lại (thứ tự thực thi)</h3>
+    <ol id="act-replay" class="hint" style="margin-left:18px"></ol>
+    <div id="purge-wrap" hidden style="margin-top:6px"><label><input type="checkbox" id="purge"> Xoá pool đích đã tạo (<code>--purge-pool</code>)</label></div>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code>)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px"></p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng ERR-JOB-428-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn" type="button" id="act-dry">Dry-run</button><button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="ack-modal" role="dialog" aria-modal="true" aria-labelledby="ack-title">
+  <div class="modal">
+    <div class="row"><h2 id="ack-title">Xác nhận đã xử lý lượt chuyển</h2><span class="fr">FR-CON-RBK-001</span><span class="fr">FR-UPG-ACK-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <table class="pv" style="margin-top:8px">
+      <tr><th>Lượt chuyển</th><td id="ack-run"></td></tr>
+      <tr><th>Trạng thái lượt</th><td id="ack-status"></td></tr>
+      <tr><th>Tác dụng sau xác nhận</th><td id="ack-effect"></td></tr>
+      <tr><th>Không thay đổi</th><td>Gói, dịch vụ, cấu hình web server, site và trạng thái lượt (T-SW-19). Chỉ ghi <code>acknowledged_at</code> (UTC), <code>acknowledged_by</code>, <code>ack_reason</code> vào <code>backups/&lt;run_id&gt;/switch.json</code> (ghi tạm + <code>rename</code>), nối 1 dòng <code>switches/index.tsv</code>, audit "intent" và "result" (BR-AUD-001).</td></tr>
+    </table>
+    <h3><label for="ack-reason">Lý do / cách đã xử lý (bắt buộc, 20–500 ký tự, không chứa ký tự điều khiển)</label></h3>
+    <input class="wide" type="text" id="ack-reason" maxlength="500" autocomplete="off" aria-describedby="ack-count ack-ferr">
+    <p class="hint" id="ack-count">0/500 ký tự (tối thiểu 20)</p>
+    <div class="field-err" id="ack-ferr">ERR-CON-422-01 — Lý do phải dài 20–500 ký tự và không chứa ký tự điều khiển.</div>
+    <h3>Lệnh sẽ chạy (điều khiển đồng bộ, argv cố định, <code>shell=False</code>, timeout 30 s, không qua dry-run)</h3>
+    <pre class="cmd" id="ack-cmd"></pre>
+    <p class="hint" style="margin-top:6px">Lý do được che bí mật trước khi ghi audit (BR-SEC-006). Giữ khoá <code>STATE_DIR/.lock</code> như lệnh ghi; khoá bận → ERR-CLI-423-01. Xác nhận kép khi lượt lỗi là site canary: chờ PO (Q-ST-07).</p>
+    <div class="alert error" id="ack-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="ack-sim">Mô phỏng ERR-UPG-409-04</button>
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn primary" type="button" id="ack-ok">Xác nhận đã xử lý</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var B = '/var/lib/php-quickpatch/backups/';
+  var MAN = {
+    r1: ['20261021-221530', [['note', 'apt-get --only-upgrade php8.2-*: no newer candidate than 8.2.34; interim mitigation applied (packages are not downgraded by rollback)', '', 'warn — in cảnh báo'], ['created', '/etc/php/7.4/fpm/conf.d/zz-php-quickpatch-mitigation.ini', '', 'remove'], ['created', '/etc/php/7.4/cli/conf.d/zz-php-quickpatch-mitigation.ini', '', 'remove'], ['created', '/etc/php/8.2/fpm/conf.d/zz-php-quickpatch-mitigation.ini', '', 'remove'], ['created', '/etc/php/8.2/cli/conf.d/zz-php-quickpatch-mitigation.ini', '', 'remove']]],
+    r2: ['20261015-093012', [['composer-install', '/var/www/blog', '', 'reinstall — composer install sau khi khôi phục lockfile'], ['copy', '/var/www/blog/composer.json', B + '20261015-093012/files/var/www/blog/composer.json', 'restore'], ['copy', '/var/www/blog/composer.lock', B + '20261015-093012/files/var/www/blog/composer.lock', 'restore']]],
+    r3: ['20251118-150512', [['reload', 'nginx', '', 'reload — nginx -t rồi graceful reload'], ['switch', 'shop.example.com', '7.4>8.2', 'switch_back — đánh dấu lượt'], ['copy', '/etc/nginx/sites-available/shop.example.com', B + '20251118-150512/files/etc/nginx/sites-available/shop.example.com', 'restore'], ['created', '/etc/php/8.2/fpm/pool.d/shop.example.com.conf', '', 'remove — chỉ khi --purge-pool']]],
+    r4: ['20251118-142005', [['reload', 'nginx', '', 'reload — nginx -t rồi graceful reload'], ['switch', 'blog.example.com', '7.4>8.2', 'switch_back — đánh dấu lượt'], ['copy', '/etc/nginx/sites-available/blog.example.com', B + '20251118-142005/files/etc/nginx/sites-available/blog.example.com', 'restore'], ['created', '/etc/php/8.2/fpm/pool.d/blog.example.com.conf', '', 'remove — chỉ khi --purge-pool']]],
+    r5: ['20261022-131500', [['reload', 'nginx', '', 'reload — nginx -t rồi graceful reload'], ['switch', 'example.com', '7.4>8.5', 'switch_back — đánh dấu lượt'], ['copy', '/etc/nginx/sites-available/example.com', B + '20261022-131500/files/etc/nginx/sites-available/example.com', 'restore'], ['created', '/etc/php/8.5/fpm/pool.d/qp-example.com.conf', '', 'remove — chỉ khi --purge-pool']]]
+  };
+  var ACT = {
+    run1: {title: 'Rollback lượt chạy 20261021-221530', desc: 'Phát lại manifest ngược: xoá 4 file mitigation, in cảnh báo note; restart dịch vụ như v0.1 (FR-PTCH-RBK-002).',
+      replay: ['created → xoá /etc/php/8.2/cli/conf.d/zz-php-quickpatch-mitigation.ini', 'created → xoá /etc/php/8.2/fpm/conf.d/zz-php-quickpatch-mitigation.ini', 'created → xoá /etc/php/7.4/cli/conf.d/zz-php-quickpatch-mitigation.ini', 'created → xoá /etc/php/7.4/fpm/conf.d/zz-php-quickpatch-mitigation.ini', 'note → in cảnh báo "gói đã nâng không bị hạ cấp"', 'restart php7.4-fpm.service, php8.2-fpm.service'],
+      dry: 'php-quickpatch.sh rollback 20261021-221530 --json --dry-run', exec: 'php-quickpatch.sh rollback 20261021-221530 --json', job: 'JOB-20261022-123012-4f0a', execJob: 'JOB-20261022-123040-91be', purge: false,
+      changes: ['file delete 4 file zz-php-quickpatch-mitigation.ini (7.4 và 8.2, fpm + cli)', 'service restart php7.4-fpm.service, php8.2-fpm.service', 'CẢNH BÁO: PHP 7.4.33 và 8.2.34 mất mitigation tạm cho CVE-2026-109618, CVE-2026-109619 (Critical, chưa vá)'],
+      affected: 'runtime php:7c41d09e2a15, php:3f9a0c1d2e4b · site example.com, shop.example.com, blog.example.com', disruption: 'Phạm vi runtime: restart 2 dịch vụ FPM, request đang xử lý bị ngắt; expected_s = null (chưa ước tính được)', revert: 'Chạy lại fix --only php để ghi lại mitigation (lượt mới)'},
+    run2: {title: 'Rollback lượt chạy 20261015-093012', desc: 'Khôi phục composer.json/composer.lock của /var/www/blog rồi composer install (dòng composer-install).',
+      replay: ['copy → khôi phục /var/www/blog/composer.lock', 'copy → khôi phục /var/www/blog/composer.json', 'composer-install → composer install --no-interaction (user blog)'],
+      dry: 'php-quickpatch.sh rollback 20261015-093012 --json --dry-run', exec: 'php-quickpatch.sh rollback 20261015-093012 --json', job: 'JOB-20261022-123110-0c3d', execJob: 'JOB-20261022-123131-5ea2', purge: false,
+      changes: ['file restore 2 file lockfile', 'composer install trên /var/www/blog', 'Package quay về phiên bản trước lượt 2026-10-15 (có thể có lại advisory đã sửa)'], affected: 'dự án 0f9e8d7c6b5a (/var/www/blog) · site blog.example.com', disruption: 'Không restart dịch vụ; vendor/ thay đổi trong lúc chạy', revert: 'Đầy đủ ở mức lockfile — chạy lại fix --only composer'},
+    site1: {title: 'Rollback site blog.example.com (lượt 20251118-142005)', desc: 'Đưa blog.example.com từ PHP 8.2 về PHP 7.4 theo R1–R7 (FR-UPG-RBK-001). Lưu ý: PHP 7.4 đã EOL (2022-11-28) — rollback làm site quay về runtime rủi ro R 70 CRITICAL.',
+      replay: ['R1 tìm lượt 20251118-142005 (switch blog.example.com 7.4>8.2, PASSED)', 'R2 kiểm tra /usr/bin/php7.4 còn tồn tại', 'R3 lấy khoá flock STATE_DIR/.lock', 'R4 copy → khôi phục /etc/nginx/sites-available/blog.example.com (fastcgi_pass → php7.4-fpm.sock)', 'R5 reload → nginx -t, graceful reload nginx', 'R6 xác minh lớp gán trỏ về 7.4 và trang chủ trả mã baseline', 'R7 ghi ROLLED_BACK (rollback_reason MANUAL), audit'],
+      dry: 'php-quickpatch.sh migrate rollback blog.example.com 20251118-142005 --yes --json --dry-run', exec: 'php-quickpatch.sh migrate rollback blog.example.com 20251118-142005 --yes --json', job: 'JOB-20261022-123205-b81e', execJob: 'JOB-20261022-123233-2fd9', purge: true, pool: '/etc/php/8.2/fpm/pool.d/blog.example.com.conf',
+      changes: ['site_binding: fastcgi_pass unix:/run/php/php8.2-fpm-blog.sock → unix:/run/php/php7.4-fpm.sock', 'nginx -t, graceful reload nginx', 'pool /etc/php/8.2/fpm/pool.d/blog.example.com.conf: giữ (xoá khi chọn --purge-pool)'],
+      affected: 'site blog.example.com · runtime PHP 8.2.34 và PHP 7.4.33', disruption: 'Phạm vi site; R1–R6 ≤ 60 s P95 (NFR-ENV-02); graceful reload, 0 phản hồi 5xx (NFR-ENV-04)', revert: 'Đầy đủ — chuyển lại sang 8.x bằng lượt mới thuộc kế hoạch (BR-UPG-005)'},
+    site2: {title: 'Rollback site example.com (lượt 20261022-131500, HC_FAILED_KEPT)', desc: 'Đưa example.com từ PHP 8.5 về PHP 7.4 theo R1–R7 (FR-UPG-RBK-001); lượt chuyển sang ROLLED_BACK. Sau rollback vẫn cần "Xác nhận đã xử lý" để mở lại chuyển site của kế hoạch (BR-UPG-003, FR-UPG-ACK-001).',
+      replay: ['R1 tìm lượt 20261022-131500 (switch example.com 7.4>8.5, HC_FAILED_KEPT)', 'R2 kiểm tra /usr/bin/php7.4 còn tồn tại', 'R3 lấy khoá flock STATE_DIR/.lock', 'R4 copy → khôi phục /etc/nginx/sites-available/example.com (fastcgi_pass → php7.4-fpm.sock)', 'R5 reload → nginx -t, graceful reload nginx', 'R6 xác minh lớp gán trỏ về 7.4 và trang chủ trả mã baseline', 'R7 ghi ROLLED_BACK (rollback_reason MANUAL), audit'],
+      dry: 'php-quickpatch.sh migrate rollback example.com 20261022-131500 --yes --json --dry-run', exec: 'php-quickpatch.sh migrate rollback example.com 20261022-131500 --yes --json', job: 'JOB-20261022-133010-a2b4', execJob: 'JOB-20261022-133044-58cd', purge: true, pool: '/etc/php/8.5/fpm/pool.d/qp-example.com.conf',
+      changes: ['site_binding: fastcgi_pass unix:/run/php/qp-example.com-8.5.sock → unix:/run/php/php7.4-fpm.sock', 'nginx -t, graceful reload nginx', 'pool /etc/php/8.5/fpm/pool.d/qp-example.com.conf: giữ (xoá khi chọn --purge-pool)'],
+      affected: 'site example.com · runtime PHP 8.5 và PHP 7.4.33', disruption: 'Phạm vi site; R1–R6 ≤ 60 s P95 (NFR-ENV-02); graceful reload, 0 phản hồi 5xx (NFR-ENV-04)', revert: 'Đầy đủ — chuyển lại sang 8.5 bằng lượt mới thuộc kế hoạch sau khi xác nhận đã xử lý (BR-UPG-005, FR-UPG-ACK-001)'}
+  };
+  var ACK = {
+    sw1: {run: '20261022-131500', site: 'example.com (canary)', plan: 'PLN-20261022-110351-4c7e', st: 'HC_FAILED_KEPT', cell: 'ack-sw1', at: '2026-10-22 13:41:07 UTC', lock: 'false', next: 'example.com, shop.example.com',
+      effect: 'Gỡ chặn ERR-UPG-409-03 của PLN-20261022-110351-4c7e: được chuyển lại example.com bằng lượt mới hoặc chuyển site kế tiếp (FR-UPG-SEQ-001). Xác nhận KHÔNG rollback: example.com vẫn chạy PHP 8.5 và không đạt HC-C4 cho tới khi rollback hoặc sửa.'},
+    sw2: {run: '20261022-150210', site: 'shop.example.com', plan: 'PLN-20261022-110351-4c7e', st: 'ROLLBACK_FAILED', cell: 'ack-sw2', at: '2026-10-22 15:20:44 UTC', lock: 'true', next: 'shop.example.com',
+      effect: 'Gỡ khoá ERR-UPG-423-01 trên máy chủ khi không còn lượt ROLLBACK_FAILED nào chưa xác nhận. Kết quả kèm lớp gán hiện tại của site (binding_now, FR-SCAN-MAP-001) làm bằng chứng; kiểm trước khi chuyển tiếp.'}
+  };
+  function $(id) { return document.getElementById(id); }
+  function el(t, x, c) { var e = document.createElement(t); if (x !== undefined) { e.textContent = x; } if (c) { e.className = c; } return e; }
+  function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4200); }
+  function view(k) {
+    var m = MAN[k]; $('man-id').textContent = m[0]; var b = $('man-body'); b.textContent = '';
+    m[1].forEach(function (r, i) { var tr = el('tr'); tr.appendChild(el('td', String(i + 1))); tr.appendChild(el('td', r[0], 'mono')); tr.appendChild(el('td', r[1], 'mono')); tr.appendChild(el('td', r[2] || '—', 'mono')); tr.appendChild(el('td', r[3])); b.appendChild(tr); });
+  }
+  document.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { view(b.getAttribute('data-view')); }); });
+  function selTab(t) {
+    document.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-selected', String(x.getAttribute('data-tab') === t)); });
+    document.querySelectorAll('[data-panel]').forEach(function (p) { p.classList.toggle('show', p.getAttribute('data-panel') === t); });
+  }
+  document.querySelectorAll('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { selTab(b.getAttribute('data-tab')); }); });
+  var cur = null;
+  function closeModal() { document.querySelectorAll('.modal-bg').forEach(function (m) { m.classList.remove('open'); }); }
+  function cmdText() { var p = $('purge').checked && cur.purge ? ' --purge-pool' : ''; return 'Dry-run: ' + cur.dry + p; }
+  document.querySelectorAll('[data-act]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      cur = ACT[b.getAttribute('data-act')];
+      $('act-title').textContent = cur.title; $('act-desc').textContent = cur.desc;
+      var ol = $('act-replay'); ol.textContent = ''; cur.replay.forEach(function (r) { ol.appendChild(el('li', r)); });
+      $('purge-wrap').hidden = !cur.purge; $('purge').checked = false; $('act-cmd').textContent = cmdText();
+      $('act-status').textContent = 'Xem danh sách trên rồi chạy dry-run; 1 xác nhận (không cần gõ lại). Dry-run hợp lệ 15 phút (BR-CON-005).';
+      $('act-preview').hidden = true; $('act-err').hidden = true; $('act-exec').disabled = true; $('act-modal').classList.add('open'); $('act-dry').focus();
+    });
+  });
+  $('purge').addEventListener('change', function () { if (!cur) { return; } $('act-cmd').textContent = cmdText(); $('act-preview').hidden = true; $('act-exec').disabled = true; });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  $('act-dry').addEventListener('click', function () { if (!cur) { return; }
+    $('act-status').textContent = 'Đang chạy dry-run ' + cur.job + '…';
+    setTimeout(function () {
+      var ul = $('pv-changes'); ul.textContent = ''; cur.changes.forEach(function (c) { ul.appendChild(el('li', c)); });
+      if ($('purge').checked && cur.purge) { ul.appendChild(el('li', 'file delete ' + cur.pool + ' (dòng created, --purge-pool)')); }
+      $('pv-affected').textContent = cur.affected; $('pv-disruption').textContent = cur.disruption; $('pv-revert').textContent = cur.revert;
+      $('act-preview').hidden = false; $('act-exec').disabled = false;
+      $('act-cmd').textContent = cmdText() + '\nThực thi: ' + cur.exec + ($('purge').checked && cur.purge ? ' --purge-pool' : '') + '\n# POST /api/v1/rollbacks confirm_dry_run_job_id = ' + cur.job;
+      $('act-status').textContent = 'Dry-run ' + cur.job + ' kết thúc, có preview → hợp lệ 15 phút.';
+    }, 900);
+  });
+  $('act-exec').addEventListener('click', function () { if (!cur) { return; } closeModal(); toast('POST /api/v1/rollbacks → 202: ' + cur.execJob + ' QUEUED (write). Theo dõi log ở SCR-006.'); });
+  $('act-sim').addEventListener('click', function () {
+    var e = $('act-err'); e.hidden = false; $('act-exec').disabled = true; $('act-preview').hidden = true;
+    e.textContent = 'ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện. details.constraint = "other_session" (dry-run tạo ở phiên khác).';
+  });
+  var ack = null;
+  function ackValid(v) { return v.length >= 20 && v.length <= 500 && !/[\u0000-\u001F\u007F]/.test(v); }
+  document.querySelectorAll('[data-ack]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      ack = ACK[b.getAttribute('data-ack')];
+      $('ack-run').textContent = ack.run + ' · ' + ack.site + ' · ' + ack.plan;
+      $('ack-status').textContent = ack.st + ' (giữ nguyên sau xác nhận)';
+      $('ack-effect').textContent = ack.effect;
+      var r = $('ack-reason'); r.value = ''; r.classList.remove('invalid'); $('ack-ferr').classList.remove('show');
+      $('ack-count').textContent = '0/500 ký tự (tối thiểu 20)';
+      $('ack-cmd').textContent = 'php-quickpatch.sh migrate ack ' + ack.run + ' --reason <lý do> --json\n# POST /api/v1/switches/' + ack.run + '/acknowledgements {"reason": "<lý do>"} → hành động switch_ack (control, đề xuất CR-FR-01)';
+      $('ack-err').hidden = true; $('ack-ok').disabled = false; $('ack-modal').classList.add('open'); r.focus();
+    });
+  });
+  $('ack-reason').addEventListener('input', function () {
+    var v = this.value.trim(); $('ack-count').textContent = v.length + '/500 ký tự (tối thiểu 20)';
+    if (ackValid(v)) { this.classList.remove('invalid'); $('ack-ferr').classList.remove('show'); }
+  });
+  $('ack-ok').addEventListener('click', function () {
+    if (!ack) { return; }
+    var v = $('ack-reason').value.trim();
+    if (!ackValid(v)) { $('ack-reason').classList.add('invalid'); $('ack-ferr').classList.add('show'); $('ack-reason').focus(); return; }
+    closeModal();
+    var c = $(ack.cell); c.textContent = '';
+    c.appendChild(el('span', 'Đã xác nhận ' + ack.at + ' · console:root'));
+    c.appendChild(el('div', 'acknowledged_at · acknowledged_by; trạng thái lượt giữ ' + ack.st, 'hint'));
+    toast('POST /api/v1/switches/' + ack.run + '/acknowledgements → 200: switch_lock_released = ' + ack.lock + '; next_allowed_sites = [' + ack.next + '] (minh hoạ). Audit intent + result đã ghi.');
+  });
+  $('ack-sim').addEventListener('click', function () {
+    if (!ack) { return; }
+    var e = $('ack-err'); e.hidden = false; $('ack-ok').disabled = true;
+    e.textContent = 'ERR-UPG-409-04 (HTTP 409, mã đề xuất CR-FR-01) — Lượt chuyển ' + ack.run + ' đang ở ' + ack.st + ' hoặc đã được xác nhận lúc 2026-10-22 13:39:52 UTC; không cần xác nhận. (Mô phỏng: phiên khác đã xác nhận trước; xem migrate status.)';
+  });
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (x) { x.classList.toggle('show', x.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('[data-sim]').forEach(function (r) { r.hidden = r.getAttribute('data-sim') !== s; });
+    if (s === 'ack') { selTab('sw'); }
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+    var rm = s === 'removed';
+    document.querySelectorAll('.rm-dis').forEach(function (b) { b.disabled = rm || $('toggle-root').checked; b.title = rm ? 'ERR-ENV-410-01: runtime cũ đã gỡ, không rollback được' : ''; });
+    document.querySelectorAll('.rm-note').forEach(function (n) { n.hidden = !rm; });
+    document.querySelectorAll('.rm-cell').forEach(function (c) { c.textContent = rm ? 'đã gỡ 2026-11-20 · rollback_available = false' : 'còn (/usr/bin/php7.4)'; });
+    document.querySelectorAll('.rm-warn').forEach(function (c) { c.textContent = rm ? 'Runtime cũ đã gỡ' : '—'; });
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) {
+    document.body.classList.toggle('no-root', e.target.checked);
+    document.querySelectorAll('[data-root]').forEach(function (b) { b.disabled = e.target.checked; });
+  });
+  view('r1'); setState('data');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-001
+title: Wireframe SCR-001 — Đăng nhập token (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, auth, token, scr-001, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - FR-CON-AUTH-003
+  - FR-CON-AUTH-004
+  - FR-CON-AUTH-005
+  - UC-CON-001
+related_diagrams:
+  - DIAG-SEQ-QP-AUTH-001
+  - DIAG-STATE-QP-AUTH-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-001: Đăng nhập token — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+.sidebar .lock-note{font-size:11.5px;color:var(--sub);margin:8px;padding:6px;border:1px dashed var(--line2);border-radius:6px}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:16px;margin-bottom:14px}
+.card h2{margin-bottom:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%;justify-content:center;padding:11px}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:12px}
+.alert.error{border:2px solid var(--err-line);border-left:6px solid var(--err);background:var(--err-bg);color:var(--err)}
+.alert.error::before{content:"LỖI";display:inline-block;margin-right:6px;padding:0 6px;border:2px solid var(--err);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.05em}
+.alert .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}
+details.docinfo summary{cursor:pointer;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px}
+.login-wrap{max-width:460px;margin:8px auto}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+input[type=password],input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA;font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace}
+input:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}
+.field-err::before{content:"LỖI: ";font-weight:700}
+.hint{color:var(--sub);font-size:12px;margin-top:4px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all;margin:6px 0}
+.spinner{width:28px;height:28px;border:3px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.raw{background:#fff;border:2px solid var(--err-line);padding:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;white-space:pre-wrap}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:48px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:520px;width:100%;padding:18px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:420px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.muted{color:var(--sub)}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Chưa đăng nhập — máy chủ, thời điểm feed và số job chỉ hiển thị sau khi có phiên <span class="fr">FR-CON-AUTH-004</span></span>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <button class="btn sm" type="button" disabled title="Chưa có phiên để đăng xuất">Đăng xuất</button>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html" aria-current="page"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+  <p class="lock-note">Trên console thật, khi chưa đăng nhập chỉ trang này hiển thị; mọi màn hình khác yêu cầu phiên (spec §3.3.1). Wireframe giữ danh mục để điều hướng giữa các file.</p>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-001 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-001 Đăng nhập token — UC-CON-001 (PER-01, PER-02, PER-03)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-AUTH-003 (đăng nhập, cấp phiên), FR-CON-AUTH-004 (xác thực mọi request, đăng xuất, hết hạn), FR-CON-AUTH-005 (kiểm tra Host). Liên quan: FR-CON-AUTH-001/002 (lệnh <code>serve</code> in token), FR-CON-AUTH-006 (CSRF token nhận sau đăng nhập)</td></tr>
+      <tr><th>BR</th><td>BR-AUTH-001..006, BR-CON-001, BR-CON-003, BR-CON-007</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-AUTH-401-01, ERR-AUTH-401-02, ERR-AUTH-409-01, ERR-AUTH-429-01, ERR-CON-421-01, ERR-CON-400-01, ERR-CON-503-01</td></tr>
+      <tr><th>API</th><td><code>POST /api/v1/sessions</code>, <code>GET /api/v1/sessions/current</code>, <code>DELETE /api/v1/sessions/current</code></td></tr>
+      <tr><th>Ghi chú</th><td>SCR-001 không có thao tác thay đổi hệ thống nên không có hộp thoại dry-run; hộp thoại duy nhất là thông báo phiên hết hạn. Wireframe dùng CSS/JS inline để tự chứa (rules/13); bản cài đặt thật phục vụ CSS/JS từ <code>/static/</code> vì CSP cấm inline (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>spec.md §3.3.1, §4.1.3 (DIAG-SEQ-QP-AUTH-001); functional-requirements.md §9; business-rules.md (AUTH, CON); error-matrix.md; api/api-spec-core.md §2</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-001: form token, đăng nhập qua URL fragment, 7 trạng thái lỗi/biên, hộp thoại phiên hết hạn</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Bỏ màu đỏ cho trạng thái lỗi theo rules/13 §2 (bảng màu xám đơn sắc): --err #111827, --err-line #1E293B, --err-bg #F3F4F6; nhấn lỗi bằng viền 2 px/6 px và nhãn chữ "LỖI" trên banner, ô nhập và thông báo trường</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng trạng thái:</strong>
+    <button type="button" data-set="data">Mặc định</button>
+    <button type="button" data-set="fragment">Đăng nhập qua #t=</button>
+    <button type="button" data-set="loading">Đang xác thực</button>
+    <button type="button" data-set="e401">Token sai (401-01)</button>
+    <button type="button" data-set="e429">Khoá 60 s (429-01)</button>
+    <button type="button" data-set="e409">Đủ 5 phiên (409-01)</button>
+    <button type="button" data-set="expired">Phiên hết hạn (401-02)</button>
+    <button type="button" data-set="logout">Đã đăng xuất</button>
+    <button type="button" data-set="e421">Host sai (421-01)</button>
+    <button type="button" data-set="e503">Console đang dừng (503-01)</button>
+    <label style="display:inline;font-weight:400;margin-left:auto"><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="login-wrap">
+    <!-- Banner theo trạng thái -->
+    <div class="alert error" data-state="e401" role="alert"><span class="code">ERR-AUTH-401-01</span> — Token không hợp lệ hoặc phiên đã kết thúc. Nhập token in ra khi chạy serve.<br><small>HTTP 401 · <code>auth.token.invalid</code> · lần sai được ghi audit gộp theo phút (BR-AUTH-003). Định dạng sai cũng tính là 1 lần sai (api-spec-core §2.1).</small></div>
+    <div class="alert error" data-state="e429" role="alert"><span class="code">ERR-AUTH-429-01</span> — Nhập sai token quá nhiều lần. Thử lại sau <b id="retry-s">47</b> giây.<br><small>HTTP 429 · 5 lần sai trong 60 s → khoá mọi lần đăng nhập 60 s; header <code>Retry-After</code> (BR-AUTH-003). Nút Đăng nhập bị vô hiệu tới khi hết đếm ngược.</small></div>
+    <div class="alert error" data-state="e409" role="alert"><span class="code">ERR-AUTH-409-01</span> — Đã đạt tối đa 5 phiên đăng nhập. Đăng xuất một phiên khác hoặc chờ phiên hết hạn.<br><small>HTTP 409 · tối đa 5 phiên đồng thời (BR-AUTH-004). Phiên tự hết hạn sau 30 phút không hoạt động hoặc 12 giờ từ lúc đăng nhập.</small></div>
+    <div class="alert" data-state="expired" role="status"><b>Phiên đã kết thúc.</b> <span class="mono">ERR-AUTH-401-02</span> — Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại bằng token.<span class="fr">FR-CON-AUTH-004</span></div>
+    <div class="alert" data-state="logout" role="status"><b>Đã đăng xuất.</b> Cookie <code>qp_session</code> đã bị xoá (<code>DELETE /api/v1/sessions/current</code> → 200 <code>{"logged_out": true}</code>). Token <code>serve</code> vẫn dùng được tới khi tiến trình <code>serve</code> dừng.<span class="fr">FR-CON-AUTH-004</span></div>
+    <div class="alert error" data-state="e503" role="alert"><span class="code">ERR-CON-503-01</span> — Console đang dừng; không nhận yêu cầu mới.<br><small>HTTP 503 · đang chạy <code>serve --stop</code>; khi tiến trình dừng, mọi phiên mất hiệu lực (BR-AUTH-004).</small></div>
+
+    <!-- Form đăng nhập (mọi trạng thái trừ loading, fragment, e421) -->
+    <section class="card" data-state="data e401 e429 e409 expired logout e503" aria-labelledby="login-h">
+      <h1 id="login-h">Đăng nhập console <span class="fr">FR-CON-AUTH-003</span></h1>
+      <p class="muted" style="margin:6px 0 14px">Dán token in ra một lần ở terminal đã chạy <code>php-quickpatch.sh serve</code>. Token sinh mới mỗi lần chạy <code>serve</code>, không lưu trên đĩa (BR-AUTH-001).</p>
+      <form id="login-form" novalidate>
+        <label for="token">Token phiên serve</label>
+        <input type="password" id="token" name="token" autocomplete="off" spellcheck="false" maxlength="43" aria-describedby="token-hint token-err" placeholder="43 ký tự A–Z, a–z, 0–9, _ hoặc -">
+        <div class="field-err" id="token-err" role="alert"></div>
+        <div class="hint" id="token-hint">Độ dài đúng 43 ký tự (<code>secrets.token_urlsafe(32)</code>). Token không được gửi qua query string (BR-AUTH-005).</div>
+        <div class="row" style="margin:8px 0 14px">
+          <label style="display:inline;font-weight:400"><input type="checkbox" id="show-token"> Hiện token</label>
+          <button class="btn sm" type="button" id="fill-sample">Điền token mẫu (chỉ wireframe)</button>
+        </div>
+        <button class="btn primary block" type="submit" id="login-btn">Đăng nhập</button>
+      </form>
+      <p class="hint" style="margin-top:10px">Sau khi đăng nhập: cookie <code>qp_session</code> (<code>HttpOnly</code>, <code>SameSite=Strict</code>, <code>Path=/</code>), CSRF token giữ trong bộ nhớ JS, không lưu <code>localStorage</code> (BR-AUTH-004, BR-AUTH-005). Hết hạn sau 30 phút không hoạt động hoặc 12 giờ.<span class="fr">FR-CON-AUTH-004</span></p>
+    </section>
+
+    <!-- Đăng nhập tự động bằng fragment -->
+    <section class="card" data-state="fragment" style="text-align:center" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Đang đăng nhập bằng token trong URL…</h2>
+      <p class="muted" style="margin-top:6px">JS đọc <code>#t=…</code>, gọi <code>POST /api/v1/sessions</code>, rồi <code>history.replaceState</code> xoá fragment khỏi thanh địa chỉ. Fragment không được trình duyệt gửi lên máy chủ (BR-AUTH-006).<span class="fr">FR-CON-AUTH-003</span></p>
+      <p class="hint">Thanh địa chỉ sau khi xoá: <code>http://127.0.0.1:17321/</code></p>
+    </section>
+
+    <!-- Loading -->
+    <section class="card" data-state="loading" style="text-align:center" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Đang xác thực token…</h2>
+      <p class="muted">So khớp SHA-256 bằng <code>hmac.compare_digest</code> (BR-AUTH-002). Mục tiêu phản hồi API ghi P95 ≤ 1.500 ms (NFR-PERF-002).</p>
+    </section>
+
+    <!-- Host sai: máy chủ từ chối trước định tuyến, trình duyệt chỉ nhận phản hồi lỗi -->
+    <section data-state="e421">
+      <div class="raw" role="alert">HTTP/1.1 421 Misdirected Request
+Content-Type: application/json
+Cache-Control: no-store
+
+{"success": false, "data": null,
+ "error": {"code": "ERR-CON-421-01", "http": 421, "localization_key": "con.host.misdirected",
+           "message": "Địa chỉ truy cập không hợp lệ. Mở console qua http://127.0.0.1:17321."},
+ "meta": {"request_id": "4be19a0c77d2e1f3"}, "timestamp": "2026-10-22T12:13:05.120Z"}</div>
+      <div class="card" style="margin-top:12px">
+        <h2>Vì sao thấy lỗi này? <span class="fr">FR-CON-AUTH-005</span></h2>
+        <p>Header <code>Host</code> phải là <code>127.0.0.1:17321</code> hoặc <code>localhost:17321</code> (hoặc cổng khai báo bằng <code>--allow-local-port</code>, tối đa 3 cổng). Máy chủ kiểm tra Host trước định tuyến và trước xác thực, kể cả tài nguyên tĩnh và SSE (BR-CON-003). Thiếu Host → <code>ERR-CON-400-01</code> (HTTP 400).</p>
+        <p style="margin-top:6px">Cách xử lý: mở tunnel cùng cổng cục bộ <code>ssh -N -L 17321:127.0.0.1:17321 …</code>, hoặc chạy lại <code>serve --allow-local-port 8080</code> nếu tunnel dùng cổng 8080.</p>
+      </div>
+    </section>
+
+    <!-- Hướng dẫn mở console -->
+    <section class="card" data-state="data e401 e429 e409 expired logout e503 fragment loading" aria-labelledby="howto-h">
+      <h2 id="howto-h">Cách mở console qua SSH tunnel <span class="fr">FR-CON-AUTH-001</span><span class="fr">FR-CON-AUTH-002</span></h2>
+      <p class="muted">1) Trên máy chủ, terminal có TTY:</p>
+      <pre class="cmd">sudo php-quickpatch.sh serve
+# In 1 lần: http://127.0.0.1:17321/#t=&lt;token&gt;
+# và lệnh: ssh -N -L 17321:127.0.0.1:17321 &lt;user&gt;@&lt;host&gt;</pre>
+      <p class="muted">2) Trên máy của bạn:</p>
+      <pre class="cmd">ssh -N -L 17321:127.0.0.1:17321 admin@web01.example.com</pre>
+      <p class="muted">3) Mở URL đã in (có <code>#t=</code>) hoặc mở <code>http://127.0.0.1:17321/</code> rồi dán token.</p>
+      <ul class="hint" style="margin:8px 0 0 18px">
+        <li>Console chỉ lắng nghe <code>127.0.0.1</code>, cổng mặc định 17321, không tự đổi cổng khi bận (BR-CON-001, BR-CON-002).</li>
+        <li>Không có TTY → bắt buộc <code>--token-file PATH</code> (quyền 0600, xoá khi dừng), thiếu → <code>ERR-CON-412-01</code>.</li>
+        <li>Client không phải trình duyệt (curl, CI) dùng <code>Authorization: Bearer &lt;token&gt;</code>, không cần CSRF (BR-AUTH-005).</li>
+      </ul>
+    </section>
+  </div>
+</main>
+</div>
+
+<!-- Hộp thoại phiên hết hạn (mở khi đang làm việc ở màn hình khác và nhận 401-02 hoặc sự kiện SSE end session_expired) -->
+<div class="modal-bg" id="expired-modal" role="dialog" aria-modal="true" aria-labelledby="expired-h">
+  <div class="modal">
+    <h2 id="expired-h">Phiên làm việc đã hết hạn <span class="fr">FR-CON-AUTH-004</span></h2>
+    <p style="margin:8px 0"><span class="mono">ERR-AUTH-401-02</span> — Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại bằng token.</p>
+    <p class="hint">Nguyên nhân: 30 phút không có request (heartbeat SSE không gia hạn phiên) hoặc đã 12 giờ từ lúc đăng nhập. Job đang chạy không bị huỷ; sau khi đăng nhập lại, xem tiếp ở SCR-006.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn primary" type="button" id="expired-ok">Đăng nhập lại</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
+  var current = 'data';
+  function setState(s) {
+    current = s;
+    document.querySelectorAll('[data-state]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-state').split(' ').indexOf(s) >= 0);
+    });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s));
+    });
+    document.getElementById('login-btn').disabled = (s === 'e429' || s === 'e503');
+    if (s === 'expired') { document.getElementById('expired-modal').classList.add('open'); document.getElementById('expired-ok').focus(); }
+    if (s === 'e429') { countdown(47); }
+    if (s === 'fragment') { setTimeout(function () { if (current === 'fragment') { toast('Đăng nhập thành công (HTTP 200). Fragment #t= đã được xoá. Chuyển tới SCR-002.'); } }, 1500); }
+  }
+  var timer = null;
+  function countdown(n) {
+    clearInterval(timer);
+    var el = document.getElementById('retry-s'); el.textContent = String(n);
+    timer = setInterval(function () {
+      n -= 1; el.textContent = String(Math.max(n, 0));
+      if (n <= 0 || current !== 'e429') { clearInterval(timer); if (current === 'e429') { document.getElementById('login-btn').disabled = false; } }
+    }, 1000);
+  }
+  function toast(msg) {
+    var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block';
+    setTimeout(function () { t.style.display = 'none'; }, 3500);
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) {
+    b.addEventListener('click', function () { setState(b.getAttribute('data-set')); });
+  });
+  document.getElementById('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  document.getElementById('show-token').addEventListener('change', function (e) { document.getElementById('token').type = e.target.checked ? 'text' : 'password'; });
+  document.getElementById('fill-sample').addEventListener('click', function () {
+    document.getElementById('token').value = 'Zq3x8mJt0vH2bK9pLw4sN7cR1yT5uE6iO0aD3fG8hX2';
+  });
+  document.getElementById('expired-ok').addEventListener('click', function () {
+    document.getElementById('expired-modal').classList.remove('open'); document.getElementById('token').focus();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { document.getElementById('expired-modal').classList.remove('open'); } });
+  document.getElementById('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('token'), err = document.getElementById('token-err');
+    var v = input.value.trim(), msg = '';
+    if (v === '') { msg = 'Nhập token in ra khi chạy serve.'; }
+    else if (!TOKEN_RE.test(v)) { msg = 'Token phải gồm đúng 43 ký tự A–Z, a–z, 0–9, "_" hoặc "-" (hiện có ' + v.length + ' ký tự).'; }
+    input.classList.toggle('invalid', msg !== '');
+    input.setAttribute('aria-invalid', String(msg !== ''));
+    err.textContent = msg; err.classList.toggle('show', msg !== '');
+    if (msg) { input.focus(); return; }
+    setState('loading');
+    setTimeout(function () {
+      setState('data');
+      toast('POST /api/v1/sessions → 200: đã cấp phiên (session_expires_at 2026-10-23T00:13:05Z). Chuyển tới SCR-002 Tổng quan.');
+      setTimeout(function () { window.location.href = 'overview-dashboard.html'; }, 1800);
+    }, 900);
+  });
+  var h = window.location.hash;
+  if (h.indexOf('#t=') === 0) { setState('fragment'); history.replaceState(null, '', window.location.pathname); }
+  else if (h === '#logged-out') { setState('logout'); }
+  else if (h === '#expired') { setState('expired'); }
+  else { setState('data'); }
+})();
+</script>
+</body>
+</html>

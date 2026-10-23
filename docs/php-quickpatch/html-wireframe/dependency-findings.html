@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-005
+title: Wireframe SCR-005 — Findings thư viện / dependency (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, composer, npm, wordpress, osv, kev, malware, scr-005, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - FR-CON-DEP-001
+  - FR-ASMT-DEP-001
+  - FR-ASMT-DEP-002
+  - UC-ASMT-002
+  - UC-PTCH-002
+related_diagrams: []
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-005: Findings thư viện / dependency — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.chip{background:#fff;border:1px solid var(--line2);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--sub)}.chip b{display:block;font-size:20px;color:var(--text)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}.sev-l{color:#374151}
+.kev{border:2px solid #111827;color:#111827}.mal{background:#111827;color:#fff;border:2px dashed #fff;outline:2px solid #111827}.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left:6px solid var(--err);background:var(--err-bg);color:var(--err)}
+.alert.error::before{content:"LỖI";display:inline-block;margin-right:8px;padding:0 6px;border:2px solid var(--err);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.alert.error.crit::before{content:"NGHIÊM TRỌNG"}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+details.adv summary{cursor:pointer;color:var(--accent)}details.adv ul{margin:4px 0 0 16px;font-size:12.5px}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.root-reason{display:none;font-size:11.5px;color:var(--sub)}body.no-root .root-reason{display:inline}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}.pv th{width:170px;background:#fff}.pv ul{margin-left:16px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.hidden-row{display:none}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html" aria-current="page"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-005 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-005 Findings thư viện / dependency — UC-ASMT-002 (PER-01, PER-03), UC-PTCH-002 (PER-01..03)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-DEP-001, FR-ASMT-DEP-001, FR-ASMT-DEP-002. Liên quan: FR-FEED-OSV-001, FR-PTCH-DEP-001, FR-PTCH-DEP-002, FR-PTCH-WP-001, FR-PTCH-WP-002, FR-CON-SAFE-001</td></tr>
+      <tr><th>BR</th><td>BR-ASMT-005, BR-SEC-001, BR-SEC-004, BR-FEED-013, BR-FEED-025, BR-FEED-043, BR-PTCH-003, BR-PTCH-006, BR-PTCH-008, BR-CON-005, BR-CON-010</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-FEED-503-02, ERR-FEED-412-01, ERR-CON-500-01, ERR-PTCH-424-02, ERR-PTCH-424-03, ERR-PTCH-424-04, ERR-JOB-428-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/dependency-findings</code>, <code>GET /api/v1/projects</code>, <code>POST /api/v1/jobs</code> (<code>fix</code> với <code>only</code> + <code>path</code> thuộc <code>projects[].dir</code>)</td></tr>
+      <tr><th>Dữ liệu mẫu đã kiểm chứng</th><td>OSV <code>/v1/query</code> (2026-10-22): phpmailer/phpmailer 5.2.16 → 8 advisory (GHSA-5f37-gxvh-23v6/CVE-2016-10033 CRITICAL sửa 5.2.18; GHSA-4pc3-96mx-wwc8/CVE-2016-10045 CRITICAL sửa 5.2.20; …; bản cao nhất cần 6.5.0); phpunit/phpunit 5.6.2 → GHSA-r7c9-c69m-rph8/CVE-2017-9841 CRITICAL sửa 5.6.3, GHSA-vvj3-c3rp-c85p/CVE-2026-24765 HIGH sửa 8.5.52; guzzlehttp/guzzle 6.5.7 → 11 advisory, cao nhất HIGH (GHSA-25mq-v84q-4j7r, GHSA-q559-8m2m-g699 sửa 6.5.8; GHSA-v5mv-p594-2x33 sửa 7.15.2); lodash 4.17.20 → 5 advisory, cao nhất HIGH (GHSA-35jh-r3h4-6jhm sửa 4.17.21; GHSA-r5fr-rjxr-66jc sửa 4.18.0). CISA KEV catalogVersion 2026.10.21: CVE-2016-10033 (thêm 2025-07-07, hạn 2025-07-28), CVE-2017-9841 (2022-02-15, hạn 2022-08-15), CVE-2026-87902 WordPress Core (2026-09-25, hạn 2026-09-28; NVD CVSS 8.1, nhánh 7.0 sửa ở 7.0.6). min_patched WordPress 7.0 = 7.0.7 theo data-sources-merge-risk.md §6.4. Bản cuối nhánh trên Packagist: phpmailer 5.2.28, guzzle 6.5.8. Ràng buộc composer.json của dự án mẫu là giả định.</td></tr>
+      <tr><th>Ghi chú</th><td>Không có mã MAL-* thật trong dữ liệu mẫu; biến thể "Có MAL-*" dùng nhãn minh hoạ. CSS/JS inline chỉ để wireframe tự chứa (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §4.2, §7, §9; api/api-spec-core.md §5.4, §5.6; https://api.osv.dev/v1/query; https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json; https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-87902; https://repo.packagist.org/p2/ (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-005: findings nhóm theo dự án, KEV/MAL, WordPress core, cảnh báo yarn.lock, vá dự án qua dry-run</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Bỏ màu đỏ của trạng thái lỗi theo rule 13 §2 (bảng màu xám đơn sắc): --err #111827, --err-line #1E293B, --err-bg #F3F4F6; nhấn lỗi bằng viền đậm 2px/6px và nhãn chữ "LỖI" ("NGHIÊM TRỌNG" cho cảnh báo MAL-*)</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="mal">Có MAL-*</button>
+    <button type="button" data-set="empty">Không có dự án</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root (user deploy)</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Findings thư viện / dependency <span class="fr">FR-CON-DEP-001</span></h1>
+      <p class="hint">Từ scan 2026-10-22 10:05 UTC · OSV tra theo lockfile, cache kết quả ≤ 7 ngày (FR-FEED-OSV-001) · chỉ gửi tên + phiên bản package ra ngoài (BR-FEED-013)</p>
+    </div>
+    <div class="actions"><button class="btn" type="button" data-job="scan">Quét lại (only composer,npm,wp)</button></div>
+  </div>
+
+  <section data-state="mal">
+    <div class="alert error crit" role="alert"><b>CRITICAL — package mã độc trong lockfile</b>: <code>/srv/api/package-lock.json</code> chứa <code>MAL-…</code> (nhãn minh hoạ) cho package <code>mal-sample-pkg@1.0.3</code> (tên minh hoạ, không phải package thật). Xoá package, xoay vòng mọi secret trên máy chủ (token npm/GitHub, khoá SSH, <code>.env</code>) — BR-SEC-004. Tool không tự xoá; <code>MAL-*</code> luôn ở mức Critical (BR-ASMT-005).</div>
+  </section>
+
+  <section data-state="data mal">
+    <div class="chips">
+      <div class="chip"><b>5</b>Dự án (Composer 2 · npm 1 · WordPress 2 · yarn 1)</div>
+      <div class="chip"><b>4</b>Package có lỗ hổng</div>
+      <div class="chip"><b id="kev-count">3</b>Finding KEV (package 2 · WordPress core 1)</div>
+      <div class="chip"><b id="mal-count">0</b>Package mã độc MAL-*</div>
+      <div class="chip"><b>1</b>Lockfile chưa audit (yarn.lock)</div>
+      <div class="chip"><b>0</b>Lỗi OSV</div>
+    </div>
+    <div class="card row" style="padding:10px">
+      <label class="hint">Dự án <select id="f-prj"><option value="">Tất cả</option><option value="example">/var/www/example</option><option value="shop">/var/www/shop</option><option value="api">/srv/api</option><option value="blog">/var/www/blog</option></select></label>
+      <label class="hint">Hệ sinh thái <select id="f-eco"><option value="">Tất cả</option><option>Packagist</option><option>npm</option><option>WordPress</option></select></label>
+      <label class="hint">Mức <select id="f-sev"><option value="">Tất cả</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select></label>
+      <label class="hint"><input type="checkbox" id="f-kev"> Chỉ KEV</label>
+      <label class="hint"><input type="checkbox" id="f-mal"> Chỉ MAL-*</label>
+      <span class="hint">Sắp: MAL-* → KEV → mức → tên package</span>
+    </div>
+
+    <section class="card prj" data-prj="example" aria-labelledby="p1-h">
+      <h2 id="p1-h">/var/www/example <span class="muted" style="font-weight:400">· site example.com · chủ <code>example</code> · WordPress</span> <span class="fr">FR-ASMT-DEP-002</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Hệ sinh thái</th><th>Thành phần</th><th>Phiên bản</th><th>Mức</th><th>KEV</th><th>Advisory</th><th>Bản sửa / mốc vá</th></tr></thead>
+        <tbody>
+          <tr data-eco="WordPress" data-sev="critical" data-kev="1" data-mal="0"><td>WordPress</td><td>WordPress core</td><td>7.0.2</td><td><span class="badge sev-c">critical</span><br><span class="hint">nâng do KEV (BR-SEC-001); CVSS 8,1</span></td><td><span class="badge kev">KEV</span><br><span class="hint">thêm 2026-09-25 · hạn 2026-09-28 (quá hạn)</span></td>
+            <td><details class="adv"><summary>1 advisory</summary><ul><li>CVE-2026-87902 — include file .php cục bộ qua <code>get_page_template()</code>, có thể dẫn tới RCE (NVD, SRC-012)</li></ul></details></td><td>min_patched 7.0.7 (SRC-012, BR-FEED-025) · R 70 CRITICAL</td></tr>
+        </tbody></table></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-act="fix_wp" data-root data-owner="example">Cập nhật WordPress (dry-run)</button><span class="root-reason">Vô hiệu: thư mục thuộc user <code>example</code>, serve chạy bằng <code>deploy</code> (BR-PTCH-003)</span><span class="fr">FR-PTCH-WP-001</span><span class="fr">FR-PTCH-WP-002</span></div>
+    </section>
+
+    <section class="card prj" data-prj="shop" aria-labelledby="p2-h">
+      <h2 id="p2-h">/var/www/shop <span class="muted" style="font-weight:400">· site shop.example.com · chủ <code>shop</code> · composer.lock</span> <span class="fr">FR-ASMT-DEP-001</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Hệ sinh thái</th><th>Package</th><th>Phiên bản</th><th>Mức</th><th>KEV</th><th>Advisory</th><th>Bản sửa</th></tr></thead>
+        <tbody>
+          <tr data-eco="Packagist" data-sev="critical" data-kev="1" data-mal="0"><td>Packagist</td><td>phpmailer/phpmailer</td><td>5.2.16</td><td><span class="badge sev-c">critical</span></td><td><span class="badge kev">KEV</span><br><span class="hint">CVE-2016-10033 · hạn 2025-07-28</span></td>
+            <td><details class="adv"><summary>8 advisory</summary><ul><li>GHSA-5f37-gxvh-23v6 (CVE-2016-10033) CRITICAL — sửa 5.2.18</li><li>GHSA-4pc3-96mx-wwc8 (CVE-2016-10045) CRITICAL — sửa 5.2.20</li><li>GHSA-7w4p-72j7-v7c2 (CVE-2018-19296) HIGH — sửa 5.2.27</li><li>GHSA-77mr-wc79-m8j3 (CVE-2021-3603) HIGH — sửa 6.5.0</li><li>+ 4 advisory HIGH/MODERATE khác</li></ul></details></td><td>5.2.18 (KEV) · 6.5.0 (8/8 advisory)</td></tr>
+          <tr data-eco="Packagist" data-sev="critical" data-kev="1" data-mal="0"><td>Packagist</td><td>phpunit/phpunit</td><td>5.6.2</td><td><span class="badge sev-c">critical</span></td><td><span class="badge kev">KEV</span><br><span class="hint">CVE-2017-9841 · hạn 2022-08-15</span></td>
+            <td><details class="adv"><summary>2 advisory</summary><ul><li>GHSA-r7c9-c69m-rph8 (CVE-2017-9841) CRITICAL — sửa 5.6.3</li><li>GHSA-vvj3-c3rp-c85p (CVE-2026-24765) HIGH — sửa 8.5.52</li></ul></details></td><td>5.6.3 (KEV) · 8.5.52 (2/2)</td></tr>
+          <tr data-eco="Packagist" data-sev="high" data-kev="0" data-mal="0"><td>Packagist</td><td>guzzlehttp/guzzle</td><td>6.5.7</td><td><span class="badge sev-h">high</span></td><td class="muted">Không</td>
+            <td><details class="adv"><summary>11 advisory</summary><ul><li>GHSA-25mq-v84q-4j7r (CVE-2022-31090) HIGH — sửa 6.5.8</li><li>GHSA-q559-8m2m-g699 (CVE-2022-31091) HIGH — sửa 6.5.8</li><li>GHSA-v5mv-p594-2x33 (CVE-2026-69246) HIGH — sửa 7.15.2</li><li>+ 8 advisory MODERATE (sửa 7.12.1 – 7.15.2)</li></ul></details></td><td>6.5.8 (2/11) · 7.15.2 (11/11)</td></tr>
+        </tbody></table></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-act="fix_composer" data-root data-owner="shop">Vá dự án Composer (dry-run)</button><span class="root-reason">Vô hiệu: thư mục thuộc user <code>shop</code> (BR-PTCH-003)</span><span class="fr">FR-PTCH-DEP-001</span><span class="hint">Package cần đổi major (6.x, 7.x, 8.5.x) không tự nâng → issue high "cần nâng thủ công" (v0.1).</span></div>
+    </section>
+
+    <section class="card prj" data-prj="api" aria-labelledby="p3-h">
+      <h2 id="p3-h">/srv/api <span class="muted" style="font-weight:400">· ứng dụng app:pm2:api · chủ <code>deploy</code> · package-lock.json</span> <span class="fr">FR-ASMT-DEP-001</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Hệ sinh thái</th><th>Package</th><th>Phiên bản</th><th>Mức</th><th>KEV</th><th>Advisory</th><th>Bản sửa</th></tr></thead>
+        <tbody>
+          <tr data-eco="npm" data-sev="high" data-kev="0" data-mal="0"><td>npm</td><td>lodash</td><td>4.17.20</td><td><span class="badge sev-h">high</span></td><td class="muted">Không</td>
+            <td><details class="adv"><summary>5 advisory</summary><ul><li>GHSA-35jh-r3h4-6jhm (CVE-2021-23337) HIGH — sửa 4.17.21</li><li>GHSA-r5fr-rjxr-66jc (CVE-2026-4800) HIGH — sửa 4.18.0</li><li>+ 3 advisory MODERATE (sửa 4.17.21 – 4.18.0)</li></ul></details></td><td>4.18.0 (5/5)</td></tr>
+          <tr class="hidden-row" data-eco="npm" data-sev="critical" data-kev="0" data-mal="1" id="mal-row"><td>npm</td><td>mal-sample-pkg (tên minh hoạ)</td><td>1.0.3</td><td><span class="badge sev-c">critical</span></td><td><span class="badge mal">MAL-*</span></td><td>MAL-… (minh hoạ) — package độc hại</td><td>Xoá package; xoay vòng secret</td></tr>
+        </tbody></table></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-act="fix_npm" data-root-ok>Vá dự án npm (dry-run)</button><span class="fr">FR-PTCH-DEP-002</span><span class="hint">Thư mục thuộc <code>deploy</code> → chạy được cả khi serve không root.</span></div>
+    </section>
+
+    <section class="card prj" data-prj="blog" aria-labelledby="p4-h">
+      <h2 id="p4-h">/var/www/blog <span class="muted" style="font-weight:400">· site blog.example.com · chủ <code>blog</code> · WordPress + composer.lock</span></h2>
+      <p>Không có finding: WordPress 7.1.3 (= min_patched nhánh 7.1), composer.lock 12 package, 0 advisory. <span class="hint">OSV tra lúc 10:05 UTC.</span></p>
+    </section>
+
+    <section class="card" aria-labelledby="lw-h">
+      <h2 id="lw-h">Lockfile chưa audit <span class="fr">FR-ASMT-DEP-001</span></h2>
+      <table><thead><tr><th>Dự án</th><th>Lockfile</th><th>Thông báo</th><th>Lệnh gợi ý (chạy thủ công)</th></tr></thead>
+        <tbody><tr><td>/srv/web</td><td class="mono">/srv/web/yarn.lock</td><td>Chưa audit yarn.lock (giữ hành vi v0.1)</td><td><code>yarn npm audit</code></td></tr></tbody></table>
+    </section>
+  </section>
+
+  <section data-state="empty">
+    <div class="empty"><h2>Không tìm thấy dự án Composer, npm hoặc WordPress</h2><p style="margin-top:8px">Phạm vi tìm theo BR-SCAN-003 (docroot của site và thư mục khai báo bằng <code>--path</code>). Thêm thư mục bằng CLI: <code>php-quickpatch.sh scan --path /srv/app --json</code>.</p></div>
+  </section>
+  <section data-state="loading" aria-busy="true"><div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/dependency-findings</code> (P95 ≤ 500 ms, NFR-PERF-001)…</p></div></section>
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-FEED-503-02</b> — Bỏ qua kiểm tra thư viện /srv/api/package-lock.json: không tra được OSV (không có kết quả cache ≤ 7 ngày). Kết quả dự án khác vẫn hiển thị (BR-FEED-008).</div>
+    <div class="alert error" role="alert"><b>ERR-FEED-412-01</b> — Dữ liệu dùng để đánh giá đã cũ 9 ngày (nguồn: SRC-007, SRC-012).</div>
+    <div class="alert error" role="alert"><b>ERR-PTCH-424-02</b> (kết quả job fix) — composer update thất bại, đã khôi phục composer.json/composer.lock và chạy composer install. <a href="jobs-log.html">Xem log</a></div>
+    <div class="alert error" role="alert"><b>ERR-PTCH-424-04</b> (kết quả job fix) — <code>wp core verify-checksums</code> báo lệch ở /var/www/example; kiểm tra khả năng bị can thiệp (BR-SEC-003, không tự xoá file).</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 0e7d31aa).</div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code>; <code>path</code> phải bằng 1 <code>projects[].dir</code> — BR-CON-008)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px"></p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng ERR-JOB-428-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn" type="button" id="act-dry">Dry-run</button><button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+    <p class="hint" style="margin-top:8px">Bản đầy đủ: <a href="dry-run-confirm-dialog.html">SCR-011</a>.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var ACT = {
+    fix_wp: {title: 'Cập nhật WordPress — /var/www/example', desc: 'fix --only wp: wp-cli.phar kiểm SHA-512, cập nhật core trong nhánh và plugin bản patch dưới quyền chủ site (FR-PTCH-WP-001), sau đó kiểm toàn vẹn (FR-PTCH-WP-002).',
+      dry: 'php-quickpatch.sh fix --json --only wp --path /var/www/example --dry-run', exec: 'php-quickpatch.sh fix --json --only wp --path /var/www/example', job: 'JOB-20261022-122230-61aa', execJob: 'JOB-20261022-122301-0f4e',
+      changes: ['file copy (sao lưu) /var/www/example/wp-includes/version.php vào manifest', 'wp core update --minor --skip-plugins --skip-themes: 7.0.2 → 7.0.7 (≥ min_patched 7.0.7)', 'wp plugin update --all --patch', 'wp core verify-checksums; wp plugin verify-checksums --all (lệch core → issue high)'],
+      affected: 'site example.com · dự án 5d1e7a90c3b2 (/var/www/example)', disruption: 'WordPress bật maintenance mode trong lúc cập nhật core; expected_s = null (chưa ước tính được)', revert: 'Một phần — manifest chỉ sao lưu wp-includes/version.php (hành vi v0.1); file core đã cập nhật không bị hạ cấp'},
+    fix_composer: {title: 'Vá dự án Composer — /var/www/shop', desc: 'fix --only composer: sao lưu composer.json/lock, composer update các package có lỗ hổng trong ràng buộc hiện có (FR-PTCH-DEP-001). Ràng buộc composer.json ~5.2 / ~5.6 / ~6.5 là giả định của dữ liệu mẫu.',
+      dry: 'php-quickpatch.sh fix --json --only composer --path /var/www/shop --dry-run', exec: 'php-quickpatch.sh fix --json --only composer --path /var/www/shop', job: 'JOB-20261022-122340-9e12', execJob: 'JOB-20261022-122412-b7c3',
+      changes: ['file copy (sao lưu) /var/www/shop/composer.json, /var/www/shop/composer.lock; dòng manifest composer-install', 'composer update phpmailer/phpmailer phpunit/phpunit guzzlehttp/guzzle --with-all-dependencies --no-interaction --no-progress (user shop)', 'phpmailer/phpmailer 5.2.16 → 5.2.28 (sửa 5/8, gồm KEV CVE-2016-10033); còn 3 advisory cần ≥ 6.5.0', 'phpunit/phpunit 5.6.2 → 5.6.8 (sửa KEV CVE-2017-9841); còn GHSA-vvj3-c3rp-c85p cần ≥ 8.5.52', 'guzzlehttp/guzzle 6.5.7 → 6.5.8 (sửa 2/11); còn 9 advisory cần ≥ 7.15.2', 'Tra lại OSV; package còn lỗ hổng → issue high'],
+      affected: 'dự án a1b2c3d4e5f6 (/var/www/shop) · site shop.example.com', disruption: 'Không restart dịch vụ; file vendor/ thay đổi trong lúc chạy (expected_s = null)', revert: 'Đầy đủ ở mức lockfile — rollback khôi phục composer.json/lock rồi composer install (dòng composer-install)'},
+    fix_npm: {title: 'Vá dự án npm — /srv/api', desc: 'fix --only npm: sao lưu package.json/package-lock.json, npm audit fix --no-fund (không --force) dưới quyền chủ thư mục (FR-PTCH-DEP-002).',
+      dry: 'php-quickpatch.sh fix --json --only npm --path /srv/api --dry-run', exec: 'php-quickpatch.sh fix --json --only npm --path /srv/api', job: 'JOB-20261022-122455-2ad8', execJob: 'JOB-20261022-122520-c90b',
+      changes: ['file copy (sao lưu) /srv/api/package.json, /srv/api/package-lock.json; dòng manifest npm-ci', 'npm audit fix --no-fund (user deploy): lodash 4.17.20 → ≥ 4.18.0 trong dải semver hiện có', 'Tra lại OSV'],
+      affected: 'dự án c3d4e5f6a7b8 (/srv/api) · ứng dụng app:pm2:api (chưa restart)', disruption: 'Không restart ứng dụng; cần restart pm2 api để nạp thư viện mới (mục riêng)', revert: 'Đầy đủ ở mức lockfile — rollback khôi phục 2 file rồi npm ci'}
+  };
+  function $(id) { return document.getElementById(id); }
+  function el(t, x) { var e = document.createElement(t); e.textContent = x; return e; }
+  function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4200); }
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (x) { x.classList.toggle('show', x.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+    $('mal-row').classList.toggle('hidden-row', s !== 'mal'); $('mal-count').textContent = s === 'mal' ? '1' : '0';
+    filter();
+  }
+  function filter() {
+    var prj = $('f-prj').value, eco = $('f-eco').value, sev = $('f-sev').value, kev = $('f-kev').checked, mal = $('f-mal').checked;
+    document.querySelectorAll('.prj').forEach(function (c) {
+      var rows = c.querySelectorAll('tbody tr[data-eco]'), shown = 0;
+      rows.forEach(function (r) {
+        if (r.id === 'mal-row' && r.classList.contains('hidden-row')) { return; }
+        var ok = (!eco || r.dataset.eco === eco) && (!sev || r.dataset.sev === sev) && (!kev || r.dataset.kev === '1') && (!mal || r.dataset.mal === '1');
+        r.style.display = ok ? '' : 'none'; if (ok) { shown += 1; }
+      });
+      var noRows = rows.length === 0 && (eco || sev || kev || mal);
+      c.style.display = (prj && c.dataset.prj !== prj) || (rows.length && !shown) || noRows ? 'none' : '';
+    });
+  }
+  ['f-prj', 'f-eco', 'f-sev', 'f-kev', 'f-mal'].forEach(function (id) { $(id).addEventListener('change', filter); });
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) {
+    document.body.classList.toggle('no-root', e.target.checked);
+    document.querySelectorAll('[data-root]').forEach(function (b) { b.disabled = e.target.checked; b.title = e.target.checked ? 'serve không root: chỉ vá thư mục do user deploy sở hữu (spec §2.3, BR-PTCH-003)' : ''; });
+  });
+  document.querySelectorAll('[data-job]').forEach(function (b) { b.addEventListener('click', function () { toast('POST /api/v1/jobs {action: "scan", params: {only: ["composer","npm","wp"]}} → 202 QUEUED.'); }); });
+  var cur = null;
+  function closeModal() { $('act-modal').classList.remove('open'); }
+  document.querySelectorAll('[data-act]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      cur = ACT[b.getAttribute('data-act')];
+      $('act-title').textContent = cur.title; $('act-desc').textContent = cur.desc; $('act-cmd').textContent = 'Dry-run: ' + cur.dry;
+      $('act-status').textContent = 'Bước 1: dry-run (job đọc, không ghi manifest). Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005).';
+      $('act-preview').hidden = true; $('act-err').hidden = true; $('act-exec').disabled = true; $('act-modal').classList.add('open'); $('act-dry').focus();
+    });
+  });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  $('act-dry').addEventListener('click', function () { if (!cur) { return; }
+    $('act-status').textContent = 'Đang chạy dry-run ' + cur.job + '…';
+    setTimeout(function () {
+      var ul = $('pv-changes'); ul.textContent = ''; cur.changes.forEach(function (c) { ul.appendChild(el('li', c)); });
+      $('pv-affected').textContent = cur.affected; $('pv-disruption').textContent = cur.disruption; $('pv-revert').textContent = cur.revert;
+      $('act-preview').hidden = false; $('act-exec').disabled = false;
+      $('act-cmd').textContent = 'Dry-run: ' + cur.dry + '\nThực thi: ' + cur.exec + '\n# confirm_dry_run_job_id = ' + cur.job;
+      $('act-status').textContent = 'Dry-run ' + cur.job + ' kết thúc SUCCEEDED_WITH_ISSUES, có preview, errors rỗng → hợp lệ 15 phút.';
+    }, 900);
+  });
+  $('act-exec').addEventListener('click', function () { if (!cur) { return; } closeModal(); toast('POST /api/v1/jobs → 202: ' + cur.execJob + ' QUEUED (write). Theo dõi ở SCR-006.'); });
+  $('act-sim').addEventListener('click', function () {
+    var e = $('act-err'); e.hidden = false; $('act-exec').disabled = true; $('act-preview').hidden = true;
+    e.textContent = 'ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện. details.constraint = "params_mismatch" (path khác dry-run).';
+  });
+  setState('data');
+})();
+</script>
+</body>
+</html>

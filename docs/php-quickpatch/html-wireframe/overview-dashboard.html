@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-002
+title: Wireframe SCR-002 — Tổng quan (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, overview, ranking, deadline, feed-age, scr-002, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - FR-CON-OVW-001
+  - FR-ASMT-RANK-001
+  - FR-PLAN-DL-001
+  - FR-FEED-AGE-001
+  - UC-CON-002
+related_diagrams:
+  - DIAG-STATE-QP-FEED-001
+  - DIAG-STATE-QP-ENV-002
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-002: Tổng quan — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g-kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.kpi{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:12px;text-decoration:none;color:var(--text);display:block}
+.kpi b{display:block;font-size:24px}.kpi span{font-size:12px;color:var(--sub)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.danger{border:2px solid var(--err-line);color:var(--err);font-weight:700}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}.sev-l{color:#374151}
+.kev{border:2px solid #111827;color:#111827}.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left:6px solid var(--err);background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.root-reason{display:none;font-size:11.5px;color:var(--sub)}body.no-root .root-reason{display:inline}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}.field-err::before{content:"LỖI · ";font-weight:700}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:170px;background:#fff}.pv ul{margin-left:16px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html" aria-current="page"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-002 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-002 Tổng quan — UC-CON-002 (PER-01..04)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-OVW-001, FR-ASMT-RANK-001, FR-PLAN-DL-001, FR-FEED-AGE-001. Liên quan: FR-CON-SAFE-001 (hộp thoại dry-run), FR-PTCH-PHP-001, FR-PTCH-NODE-001, FR-UPG-RBK-001</td></tr>
+      <tr><th>BR</th><td>BR-SEC-001, BR-ASMT-004, BR-FEED-005, BR-FEED-040..042, BR-SCN-029, BR-SCN-049, BR-CON-005, BR-CON-010, BR-UPG-003</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-HC-500-01, ERR-HC-500-02, ERR-SCAN-409-01, ERR-FEED-412-01, ERR-SCN-503-01, ERR-FEED-503-01, ERR-CON-500-01, ERR-AUTH-401-02, ERR-JOB-428-01, ERR-CLI-403-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/overview</code>, <code>GET /api/v1/runtimes</code>, <code>POST /api/v1/jobs</code> (scan, feeds_update, fix), <code>POST /api/v1/rollbacks</code></td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Điểm R, số CVE theo data-sources-merge-risk.md §8.5 (ví dụ 3, 7, 8b, 11). KEV kiểm chứng trên CISA KEV JSON catalogVersion 2026.10.21 (tải 2026-10-22): CVE-2026-87902 (WordPress Core, thêm 2026-09-25, hạn 2026-09-28), CVE-2016-10033 (PHPMailer, thêm 2025-07-07, hạn 2025-07-28), CVE-2017-9841 (PHPUnit, thêm 2022-02-15, hạn 2022-08-15); CVE-2026-109618 không có trong KEV. Tên host, đường dẫn, mã job/kế hoạch là minh hoạ.</td></tr>
+      <tr><th>Ghi chú</th><td>"70*": SRS chưa định nghĩa công thức R cho package (BR-FEED-040 áp cho runtime và WordPress core); wireframe hiển thị sàn 70 theo BR-SEC-001 cho package có KEV và "—" cho package không KEV — câu hỏi mở cho PO/BA. CSS/JS inline chỉ để wireframe tự chứa; bản thật tuân BR-CON-007.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>spec.md §3.3; functional-requirements.md §4, §5, §9; api/api-spec-core.md §3.1; data-sources-merge-risk.md §8; states.md §4, §6.1; https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-002: KPI, xếp hạng R, hạn duyệt kế hoạch, độ tươi dữ liệu, dải cảnh báo lượt chuyển, vá cùng nhánh ≤ 3 thao tác</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Theo rules/13 §2 (bảng màu xám đơn sắc): bỏ màu đỏ của trạng thái lỗi (--err #111827, --err-line #1E293B, --err-bg #F3F4F6); nhấn lỗi bằng viền 2px/6px và nhãn chữ "LỖI ·" cho alert, field-err, input.invalid, nút danger</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="warn">Có cảnh báo lượt chuyển</button>
+    <button type="button" data-set="stale">Scan &gt; 24 giờ + dữ liệu STALE</button>
+    <button type="button" data-set="empty">Chưa có scan</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Tổng quan máy chủ <span class="fr">FR-CON-OVW-001</span></h1>
+      <p class="muted">web01.example.com · Ubuntu 22.04 (apt) · nginx · playbook PB-001 (provider), PB-005 (binding), PB-014, PB-018</p>
+      <p class="hint" data-state="data warn">Kết quả scan: 2026-10-22 10:05 UTC (2 giờ trước) · bundle <code>b-20261022T093000Z-3f2a9c1e</code> · catalog <code>2026.10.20-1</code></p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" data-job="scan" title="Job đọc, không cần dry-run (BR-JOB-003)">Quét lại</button>
+      <button class="btn" type="button" data-job="feeds_update" title="Job data, khoá feeds/.lock (BR-FEED-015)">Đồng bộ dữ liệu</button>
+    </div>
+  </div>
+
+  <!-- Dải cảnh báo đầu trang -->
+  <section data-state="warn" aria-label="Cảnh báo">
+    <div class="alert error" role="alert"><b>ERR-HC-500-01</b> — Site example.com không đạt kiểm tra (HC-C4 độ lệch nội dung) và đang chạy PHP 8.5. <small>(Mô phỏng sau khi kế hoạch PLN-20261022-110351-4c7e được duyệt; lượt chuyển 20261022-131500 ở <code>HC_FAILED_KEPT</code> vì tự rollback đã tắt có xác nhận kép.)</small>
+      <div class="row" style="margin-top:6px"><button class="btn sm danger" type="button" data-act="rollback_site" data-root>Rollback site example.com</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01 — serve không chạy bằng root</span><a class="btn sm" href="jobs-log.html">Xem báo cáo health check</a><span class="fr">FR-UPG-RBK-001</span></div></div>
+    <div class="alert error" role="alert"><b>ERR-HC-500-02</b> — Không hoàn tác được shop.example.com về PHP 7.4: kiểm tra cú pháp nginx sau khôi phục thất bại. Mọi lệnh chuyển site bị khoá (ERR-UPG-423-01) tới khi xử lý thủ công theo manifest. <a href="rollback-history.html">Mở manifest</a></div>
+    <div class="alert" role="status"><b>ERR-SCAN-409-01</b> — Gán site blog.example.com khác lượt chuyển gần nhất (mong đợi pool <code>php8.2-blog</code>, thực tế <code>php7.4-fpm.sock</code>): bị đổi ngoài tool. <a href="sites-runtime-map.html">Xem SCR-009</a></div>
+  </section>
+  <section data-state="stale" aria-label="Dữ liệu cũ">
+    <div class="alert error" role="alert"><b>ERR-FEED-412-01</b> — Dữ liệu dùng để đánh giá đã cũ 9 ngày (nguồn: SRC-004, SRC-006). Mọi kết quả trên trang kèm cảnh báo này (BR-DATA-001). Quá 90 ngày → ERR-SCN-503-01, tạm ngừng đề xuất nâng nhánh.</div>
+    <div class="alert" role="status">Kết quả scan đã 26 giờ (&gt; 24 giờ). <button class="btn sm" type="button" data-job="scan">Quét lại</button></div>
+  </section>
+
+  <!-- Nội dung chính -->
+  <section data-state="data warn stale">
+    <div class="grid g-kpi">
+      <a class="kpi" href="runtime-assessment.html"><b>3</b><span>Runtime (PHP 2 · Node.js 1)</span></a>
+      <a class="kpi" href="runtime-assessment.html"><b>2</b><span>vulnerable · eol 1 · ok 0 · ok-backport 0 · unknown 0</span></a>
+      <a class="kpi" href="upgrade-plan-checklist.html"><b>1</b><span>EOL ≤ 90 ngày (PHP 8.2: 70 ngày)</span></a>
+      <a class="kpi" href="dependency-findings.html"><b>3</b><span>Finding KEV (WordPress core 1 · package 2)</span></a>
+      <a class="kpi" href="dependency-findings.html"><b>4</b><span>Package có lỗ hổng · MAL-* 0</span></a>
+      <div class="kpi"><b>0</b><span>Dấu hiệu webshell (chỉ báo cáo, BR-SEC-003)</span></div>
+    </div>
+
+    <section class="card" aria-labelledby="rank-h">
+      <h2 id="rank-h">Xếp hạng ưu tiên xử lý <span class="fr">FR-ASMT-RANK-001</span><span class="muted" style="font-weight:400;font-size:12px">Sắp theo R giảm dần; cùng R: KEV → CVSS ≥ 9,0 → EOL → CVSS 7,0–8,9 → EOL ≤ 90 ngày; cùng hạng: object_ref tăng dần (BR-ASMT-004). Tối đa 10 dòng.</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>#</th><th>Đối tượng</th><th>object_ref</th><th>R</th><th>Mức</th><th>Lý do</th><th>Hành động</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>phpmailer/phpmailer 5.2.16 — /var/www/shop</td><td class="mono">dep:a1b2c3d4e5f6:phpmailer/phpmailer</td><td>70*</td><td><span class="badge sev-c">CRITICAL</span></td><td><span class="badge kev">KEV</span> CVE-2016-10033 (hạn CISA 2025-07-28) · CVSS_GE_9</td><td><a class="btn sm" href="dependency-findings.html">Findings</a></td></tr>
+          <tr><td>2</td><td>phpunit/phpunit 5.6.2 — /var/www/shop</td><td class="mono">dep:a1b2c3d4e5f6:phpunit/phpunit</td><td>70*</td><td><span class="badge sev-c">CRITICAL</span></td><td><span class="badge kev">KEV</span> CVE-2017-9841 (hạn 2022-08-15) · CVSS_GE_9</td><td><a class="btn sm" href="dependency-findings.html">Findings</a></td></tr>
+          <tr><td>3</td><td>WordPress 7.0.2 — example.com</td><td class="mono">wp:5d1e7a90c3b2</td><td>70</td><td><span class="badge sev-c">CRITICAL</span></td><td><span class="badge kev">KEV</span> CVE-2026-87902 (hạn 2026-09-28, đã quá hạn) · CVSS_7_TO_8_9 · min_patched 7.0.7</td><td><a class="btn sm" href="dependency-findings.html">Findings</a></td></tr>
+          <tr><td>4</td><td>PHP 7.4.33 <code>/usr/bin/php7.4</code> (2 site)</td><td class="mono">runtime:php:7c41d09e2a15</td><td>70</td><td><span class="badge sev-c">CRITICAL</span></td><td>CVSS_GE_9 (CVE-2026-109618, 9,8) · EOL từ 2022-11-28</td><td class="row"><a class="btn sm" href="runtime-assessment.html">Đánh giá</a><a class="btn sm" href="upgrade-plan-checklist.html">Kế hoạch</a></td></tr>
+          <tr><td>5</td><td>PHP 8.2.34 <code>/usr/bin/php8.2</code> (1 site)</td><td class="mono">runtime:php:3f9a0c1d2e4b</td><td>60</td><td><span class="badge sev-h">HIGH</span></td><td>CVSS_GE_9 · EOL_LE_90D (70 ngày) · bản vá 8.2.35</td><td class="row"><button class="btn sm primary" type="button" data-act="fix_php" data-root>Vá cùng nhánh</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span><span class="fr">NFR-USE-001</span></td></tr>
+          <tr><td>6</td><td>Node.js 22.23.3 <code>/usr/bin/node</code> (app:pm2:api)</td><td class="mono">runtime:node:9e8d7c6b5a41</td><td>47</td><td><span class="badge sev-h">HIGH</span></td><td>CVSS_7_TO_8_9 (proxy 8,0) · bản vá 22.23.4</td><td class="row"><button class="btn sm primary" type="button" data-act="fix_node" data-root>Vá cùng nhánh</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01</span></td></tr>
+          <tr><td>7</td><td>guzzlehttp/guzzle 6.5.7 — /var/www/shop</td><td class="mono">dep:a1b2c3d4e5f6:guzzlehttp/guzzle</td><td>—</td><td><span class="badge sev-h">HIGH</span></td><td>CVSS_7_TO_8_9 · 11 advisory</td><td><a class="btn sm" href="dependency-findings.html">Findings</a></td></tr>
+          <tr><td>8</td><td>lodash 4.17.20 — /srv/api</td><td class="mono">dep:c3d4e5f6a7b8:lodash</td><td>—</td><td><span class="badge sev-h">HIGH</span></td><td>CVSS_7_TO_8_9 · 5 advisory</td><td><a class="btn sm" href="dependency-findings.html">Findings</a></td></tr>
+        </tbody></table></div>
+      <p class="hint" style="margin-top:6px">R: 70–100 CRITICAL (xử lý ≤ 24 giờ) · 40–69 HIGH (≤ 7 ngày) · 20–39 MEDIUM · 0–19 LOW (BR-FEED-042). "70*" = sàn KEV theo BR-SEC-001 cho package (xem Thông tin tài liệu).</p>
+    </section>
+
+    <div class="grid g2">
+      <section class="card" aria-labelledby="dl-h">
+        <h2 id="dl-h">Hạn duyệt kế hoạch nâng cấp <span class="fr">FR-PLAN-DL-001</span></h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Runtime</th><th>EOL</th><th>Hạn duyệt</th><th>Còn</th><th>Kế hoạch</th></tr></thead>
+          <tbody>
+            <tr><td>PHP 8.2.34</td><td>2026-12-31</td><td><b>2026-12-01</b></td><td>40 ngày <span class="badge sev-h">Cảnh báo</span></td><td>Chưa có · <a class="btn sm" href="upgrade-plan-checklist.html">Lập kế hoạch</a></td></tr>
+            <tr><td>Node.js 22.23.3</td><td>2027-04-30</td><td>2027-03-31</td><td>160 ngày</td><td>Chưa có · <a class="btn sm" href="upgrade-plan-checklist.html">Lập kế hoạch</a></td></tr>
+            <tr><td>PHP 7.4.33</td><td>2022-11-28 (đã EOL)</td><td>Không áp dụng</td><td>—</td><td><a href="upgrade-plan-checklist.html" class="mono">PLN-20261022-110351-4c7e</a> <span class="badge">draft</span></td></tr>
+          </tbody></table></div>
+        <p class="hint" style="margin-top:6px">Hạn duyệt = EOL − 30 ngày cho nhánh SECURITY_ONLY/MAINTENANCE_LTS; cảnh báo từ EOL − 90 ngày; quá hạn chưa <code>approved</code> → cảnh báo mức high (BR-SCN-049, BR-SCN-029).</p>
+      </section>
+
+      <section class="card" aria-labelledby="feed-h">
+        <h2 id="feed-h">Độ tươi dữ liệu <span class="fr">FR-FEED-AGE-001</span></h2>
+        <table class="pv">
+          <tr><th>Bundle</th><td class="mono">b-20261022T093000Z-3f2a9c1e</td></tr>
+          <tr><th>Mức độ tươi</th><td><span class="badge stale">AGING</span> tuổi dữ liệu 12 giờ (nguồn cũ nhất được dùng)</td></tr>
+          <tr><th>Nguồn lỗi</th><td>SRC-008 GitHub Security Advisories — <b>ERR-FEED-503-01</b> (không truy cập được sau 3 lần thử); lần thành công cuối 2026-10-22 00:14 UTC; đang dùng dữ liệu cache (BR-FEED-006)</td></tr>
+          <tr><th>Ngưỡng</th><td>FRESH ≤ TTL (6 h/24 h) · AGING ≤ 168 h · STALE &gt; 168 h → ERR-FEED-412-01 · EXPIRED &gt; 2.160 h → ERR-SCN-503-01 (BR-FEED-005)</td></tr>
+        </table>
+        <div class="row" style="margin-top:8px"><a class="btn sm" href="feed-status.html">Xem 17 nguồn (SCR-008)</a><button class="btn sm" type="button" data-job="feeds_update">Đồng bộ ngay</button></div>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="rt-h">
+      <h2 id="rt-h">Runtime và site <span class="fr">FR-CON-OVW-001</span><span class="muted" style="font-weight:400;font-size:12px">Từ đây tới checklist kế hoạch ≤ 4 thao tác (NFR-USE-002)</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Runtime</th><th>Trạng thái</th><th>Vòng đời</th><th>EOL</th><th>Kịch bản</th><th>Site / ứng dụng</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>PHP 7.4.33 <code>/usr/bin/php7.4</code><br><span class="hint">dpkg php7.4-cli · ppa:ondrej/php</span></td><td><span class="badge sev-c">eol</span></td><td>EOL</td><td>2022-11-28 (quá 1.424 ngày)</td><td class="mono">SCN-PHP-007</td><td>example.com, shop.example.com</td><td class="row"><a class="btn sm" href="runtime-assessment.html">Đánh giá</a><a class="btn sm" href="upgrade-plan-checklist.html">Lập kế hoạch</a></td></tr>
+          <tr><td>PHP 8.2.34 <code>/usr/bin/php8.2</code><br><span class="hint">dpkg php8.2-cli · ppa:ondrej/php</span></td><td><span class="badge sev-h">vulnerable</span></td><td>SECURITY_ONLY</td><td>2026-12-31 (70 ngày)</td><td class="mono">SCN-PHP-010</td><td>blog.example.com</td><td class="row"><a class="btn sm" href="runtime-assessment.html">Đánh giá</a><a class="btn sm" href="upgrade-plan-checklist.html">Lập kế hoạch</a></td></tr>
+          <tr><td>Node.js 22.23.3 <code>/usr/bin/node</code><br><span class="hint">NodeSource (PB-014) · pm2 (PB-018)</span></td><td><span class="badge sev-h">vulnerable</span></td><td>MAINTENANCE_LTS (Jod)</td><td>2027-04-30 (190 ngày)</td><td class="mono">SCN-NODE-005</td><td>app:pm2:api</td><td class="row"><a class="btn sm" href="runtime-assessment.html">Đánh giá</a><a class="btn sm" href="upgrade-plan-checklist.html">Lập kế hoạch</a></td></tr>
+        </tbody></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="job-h">
+      <h2 id="job-h">Job hiện tại</h2>
+      <p><span class="badge">RUNNING</span> <span class="mono">JOB-20261022-121005-c7e2</span> assess PHP 8.2.34 · bắt đầu 12:10:05 UTC &nbsp; <span class="badge">QUEUED</span> <span class="mono">JOB-20261022-121240-e0d9</span> fix (write) — chờ khoá <code>STATE_DIR/.lock</code> do lượt CLI ngoài console giữ (thử lại mỗi 5 s, tối đa 30 phút). <a href="jobs-log.html">Mở Jobs &amp; Log</a></p>
+    </section>
+  </section>
+
+  <!-- Empty -->
+  <section data-state="empty">
+    <div class="empty">
+      <h2>Chưa có kết quả quét</h2>
+      <p style="margin:8px 0">Chưa có <code>STATE_DIR/state/last-scan.json</code>; <code>GET /api/v1/overview</code> trả danh sách rỗng, <code>meta.scan = null</code>.</p>
+      <button class="btn primary" type="button" data-job="scan">Quét máy chủ</button>
+      <p class="hint" style="margin-top:8px">scan offline P95 ≤ 60 s với 4 PHP, 2 Node.js, 20 lockfile (NFR-PERF-004, chưa đo).</p>
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <section data-state="loading" aria-busy="true">
+    <div class="grid g-kpi"><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div></div>
+    <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/overview</code> (P95 ≤ 500 ms, NFR-PERF-001)…</p></div>
+  </section>
+
+  <!-- Error -->
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 9c41e07a). Không có stack trace trong phản hồi (BR-CON-009). <button class="btn sm" type="button" onclick="location.reload()">Thử lại</button></div>
+    <div class="alert error" role="alert"><b>ERR-SCN-503-01</b> — Dữ liệu vòng đời đã cũ 94 ngày; tạm ngừng đề xuất nâng nhánh. Chỉ vá cùng nhánh được phép (BR-FEED-005). <a href="feed-status.html">Nhập snapshot (SCR-008)</a></div>
+    <div class="alert" role="status"><b>ERR-AUTH-401-02</b> — Phiên làm việc đã hết hạn → chuyển về <a href="console-login.html#expired">SCR-001</a>.</div>
+  </section>
+</main>
+</div>
+
+<!-- Hộp thoại xác nhận thao tác thay đổi hệ thống (rút gọn của SCR-011) -->
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code> — BR-CON-008, FR-CON-SAFE-003)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px">Bước 1: chạy dry-run (job đọc, không ghi manifest). Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005).</p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div id="act-retype-wrap" hidden style="margin-top:8px"><label for="act-retype">Xác nhận kép: gõ lại <code id="act-retype-val"></code> (BR-CON-006)</label><br><input type="text" id="act-retype" autocomplete="off"><div class="field-err" id="act-retype-err"></div></div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng ERR-JOB-428-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button>
+      <button class="btn" type="button" id="act-dry">Dry-run</button>
+      <button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+    <p class="hint" style="margin-top:8px">Bản đầy đủ của hộp thoại: <a href="dry-run-confirm-dialog.html">SCR-011</a>.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var ACTIONS = {
+    fix_php: {title: 'Vá cùng nhánh PHP (fix --only php)', desc: 'Áp dụng cho mọi runtime PHP trên máy chủ: nâng gói 8.2 lên 8.2.35; PHP 7.4 (EOL, không có bản vá) giữ mitigation tạm đã có (FR-PTCH-PHP-001, FR-PTCH-MIT-001).',
+      dry: 'php-quickpatch.sh fix --json --only php --dry-run', exec: 'php-quickpatch.sh fix --json --only php\n# confirm_dry_run_job_id = JOB-20261022-121150-77b0',
+      changes: ['package upgrade php8.2-cli, php8.2-fpm, php8.2-common, php8.2-mbstring, php8.2-mysql, php8.2-opcache: 8.2.34-1+ubuntu22.04.1+deb.sury.org+1 → 8.2.35-1+ubuntu22.04.1+deb.sury.org+1 (apt-get install -y -q --only-upgrade -o Dpkg::Options::=--force-confold)', 'file delete /etc/php/8.2/fpm/conf.d/zz-php-quickpatch-mitigation.ini và /etc/php/8.2/cli/conf.d/zz-php-quickpatch-mitigation.ini (gỡ mitigation khi đã vá, FR-PTCH-MIT-002)', 'PHP 7.4.33: không đổi — mitigation đã có từ lượt 20261021-221530', 'service restart php8.2-fpm.service (FR-PTCH-RST-001)'],
+      affected: 'runtime php:3f9a0c1d2e4b (PHP 8.2.34 /usr/bin/php8.2) · site blog.example.com', disruption: '≈ 5 s, phạm vi runtime: restart php8.2-fpm, request đang xử lý của blog.example.com bị ngắt (ước tính của CLI, chưa đo)',
+      revert: 'Một phần — php-quickpatch.sh rollback <run_id> khôi phục 2 file mitigation; gói đã nâng qua apt không bị hạ cấp (BR-PTCH-008)', retype: null, job: 'JOB-20261022-121150-77b0', execJob: 'JOB-20261022-121240-e0d9'},
+    fix_node: {title: 'Vá cùng nhánh Node.js (fix --only node)', desc: 'Nâng Node.js 22.23.3 lên 22.23.4 qua gói NodeSource (FR-PTCH-NODE-001).',
+      dry: 'php-quickpatch.sh fix --json --only node --dry-run', exec: 'php-quickpatch.sh fix --json --only node\n# confirm_dry_run_job_id = JOB-20261022-121402-3c90',
+      changes: ['package upgrade nodejs: 22.23.3-1nodesource1 → 22.23.4-1nodesource1', 'pm2 restart ứng dụng api (dùng /usr/bin/node, FR-PTCH-RST-001)'],
+      affected: 'runtime node:9e8d7c6b5a41 (Node.js 22.23.3) · ứng dụng app:pm2:api', disruption: 'Phạm vi ứng dụng: restart pm2 api; thời lượng chưa ước tính được (expected_s = null)',
+      revert: 'Một phần — gói nodejs không bị hạ cấp khi rollback (BR-PTCH-008)', retype: null, job: 'JOB-20261022-121402-3c90', execJob: 'JOB-20261022-121433-71fe'},
+    rollback_site: {title: 'Rollback site example.com (migrate rollback)', desc: 'Đưa example.com về PHP 7.4 theo quy trình R1–R7 (FR-UPG-RBK-001). Không cần xác nhận kép.',
+      dry: 'php-quickpatch.sh migrate rollback example.com 20261022-131500 --yes --json --dry-run', exec: 'php-quickpatch.sh migrate rollback example.com 20261022-131500 --yes --json\n# confirm_dry_run_job_id = JOB-20261022-133010-a2b4',
+      changes: ['site_binding switch: /etc/nginx/sites-available/example.conf fastcgi_pass unix:/run/php/php8.5-fpm-example.sock → unix:/run/php/php7.4-fpm.sock (khôi phục từ manifest)', 'nginx -t rồi reload nginx (graceful)', 'pool /etc/php/8.5/fpm/pool.d/example.conf giữ lại (không có --purge-pool)'],
+      affected: 'site example.com · runtime PHP 8.5.12 và PHP 7.4.33', disruption: 'Phạm vi site: graceful reload nginx, 0 phản hồi 5xx mục tiêu (NFR-ENV-04); rollback ≤ 60 s P95 (NFR-ENV-02)',
+      revert: 'Đầy đủ — chuyển lại sang 8.5 bằng lượt chuyển mới thuộc kế hoạch (BR-UPG-005)', retype: null, job: 'JOB-20261022-133010-a2b4', execJob: 'JOB-20261022-133044-58cd'}
+  };
+  var cur = null, dryDone = false;
+  function $(id) { return document.getElementById(id); }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4000); }
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (el) { el.classList.toggle('show', el.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) {
+    document.body.classList.toggle('no-root', e.target.checked);
+    document.querySelectorAll('[data-root]').forEach(function (b) { b.disabled = e.target.checked; b.title = e.target.checked ? 'ERR-CLI-403-01: thao tác cần root; serve đang chạy bằng user deploy (BR-CON-010)' : ''; });
+  });
+  document.querySelectorAll('[data-job]').forEach(function (b) {
+    b.addEventListener('click', function () { toast('POST /api/v1/jobs {action: "' + b.getAttribute('data-job') + '"} → 202, JOB-20261022-121530-0aa1 QUEUED. Theo dõi ở SCR-006.'); });
+  });
+  function openModal(key) {
+    cur = ACTIONS[key]; dryDone = false;
+    $('act-title').textContent = cur.title; $('act-desc').textContent = cur.desc; $('act-cmd').textContent = 'Dry-run: ' + cur.dry;
+    $('act-preview').hidden = true; $('act-err').hidden = true; $('act-exec').disabled = true;
+    $('act-status').textContent = 'Bước 1: chạy dry-run (job đọc, không ghi manifest). Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005).';
+    $('act-retype-wrap').hidden = !cur.retype; $('act-retype').value = ''; if (cur.retype) { $('act-retype-val').textContent = cur.retype; }
+    $('act-modal').classList.add('open'); $('act-dry').focus();
+  }
+  function closeModal() { $('act-modal').classList.remove('open'); }
+  document.querySelectorAll('[data-act]').forEach(function (b) { b.addEventListener('click', function () { openModal(b.getAttribute('data-act')); }); });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  $('act-dry').addEventListener('click', function () { if (!cur) { return; }
+    $('act-status').textContent = 'Đang chạy dry-run ' + cur.job + '…';
+    setTimeout(function () {
+      var ul = $('pv-changes'); ul.textContent = '';
+      cur.changes.forEach(function (c) { var li = document.createElement('li'); li.textContent = c; ul.appendChild(li); });
+      $('pv-affected').textContent = cur.affected; $('pv-disruption').textContent = cur.disruption; $('pv-revert').textContent = cur.revert;
+      $('act-preview').hidden = false; dryDone = true; $('act-exec').disabled = false;
+      $('act-cmd').textContent = 'Dry-run: ' + cur.dry + '\nThực thi: ' + cur.exec;
+      $('act-status').textContent = 'Dry-run ' + cur.job + ' kết thúc SUCCEEDED_WITH_ISSUES (có preview, errors rỗng → hợp lệ, api-spec §2.13.3 e). Hợp lệ 15 phút, cùng phiên, cùng bundle_id và scan_fingerprint (BR-CON-005).';
+    }, 900);
+  });
+  $('act-exec').addEventListener('click', function () { if (!cur) { return; }
+    if (!dryDone) { return; }
+    if (cur.retype && $('act-retype').value.trim() !== cur.retype) {
+      $('act-retype').classList.add('invalid'); $('act-retype-err').textContent = 'Giá trị gõ lại không khớp; job chưa được tạo (ERR-JOB-428-01).'; $('act-retype-err').classList.add('show'); return;
+    }
+    closeModal(); toast('POST /api/v1/jobs → 202: ' + cur.execJob + ' QUEUED (write). Theo dõi log ở SCR-006 Jobs & Log.');
+  });
+  $('act-sim').addEventListener('click', function () {
+    var e = $('act-err'); e.hidden = false;
+    e.textContent = 'ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện. details.constraint = "expired" (dry-run tạo lúc 11:15:30, quá 15 phút).';
+    $('act-exec').disabled = true; $('act-preview').hidden = true;
+  });
+  setState('data');
+})();
+</script>
+</body>
+</html>

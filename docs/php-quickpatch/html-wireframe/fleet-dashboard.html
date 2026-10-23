@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-021
+title: Wireframe SCR-021 — Phase 2 Dashboard tổng hợp nhiều server (php-quickpatch console, máy trung tâm)
+version: 1.0.2
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, phase-2, fleet, dashboard, drill-down, central-audit, scr-021, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-API-QP-006
+  - FR-FLT-DASH-001
+  - FR-FLT-DASH-002
+  - FR-FLT-AUD-001
+  - FR-RPT-ASMT-001
+  - FR-RPT-AUD-001
+  - UC-FLT-003
+related_diagrams:
+  - DIAG-SEQ-QP-FLT-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-021: Dashboard nhiều server (Phase 2) — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g-kpi{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.kpi{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:12px;display:block}
+.kpi b{display:block;font-size:24px}.kpi span{font-size:12px;color:var(--sub)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}.sev-l{color:#374151}
+.kev{border:2px solid #111827;color:#111827}.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.phase2{border:2px dashed #111827;background:#fff;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:12.5px}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--sub)}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}.field-err.show::before{content:"LỖI · ";font-weight:700}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:720px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.rt{display:block;border:1px solid var(--line);border-radius:6px;padding:3px 6px;margin-bottom:4px;font-size:12px}
+.pv th{width:170px;background:#fff}
+tr.sel td{background:#F3F4F6}tr.broken td{background:var(--err-bg);border-bottom:2px solid var(--err-line)}tr.broken td:first-child{border-left:6px solid var(--err-line);font-weight:700}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+body.role-viewer .op-only{display:none!important}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 2 · máy trung tâm</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>qp-central.example.com</b> · Debian 12 · serve <code>127.0.0.1:17321</code> (SSH tunnel)</span>
+    <span>Feed cập nhật: <b>2026-10-22 03:17 UTC</b> <span class="badge stale" title="Tuổi bundle trung tâm 9 giờ, quá TTL 6 giờ (BR-FEED-005)">Dữ liệu cũ 9 giờ</span></span>
+    <span>Đăng nhập: <b>alice</b> <span class="badge" id="role-badge">Operator</span></span>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 27 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html" aria-current="page"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <div class="phase2"><b>Phase 2 — chỉ đặc tả, chưa triển khai</b>. Dữ liệu là envelope <code>--json</code> thu qua SSH (mô hình kéo, không agent, không webhook — BR-FLT-001); màn hình chỉ đọc, hành động đi qua SCR-022.</div>
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-021 · v1.0.2 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-021 Phase 2 — Dashboard tổng hợp nhiều server; UC-FLT-003 (Viewer PER-04, Operator)</td></tr>
+      <tr><th>FR chính</th><td>FR-FLT-DASH-001, FR-FLT-DASH-002, FR-FLT-AUD-001; hộp thoại Xuất báo cáo dùng lại FR-RPT-ASMT-001, FR-RPT-AUD-001 (UC-FLT-003 bước 7)</td></tr>
+      <tr><th>BR</th><td>BR-FLT-006, BR-FLT-008, BR-AUD-003, BR-ASMT-004, BR-FEED-042, BR-SEC-001, BR-RPT-001, BR-RPT-002, BR-RPT-003, BR-JOB-003</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-FLT-404-01, ERR-FLT-422-02, ERR-FLT-403-02, ERR-AUD-409-01, ERR-AUTH-401-02, ERR-CON-500-01, ERR-CON-422-01 (lọc audit), ERR-RPT-422-01, ERR-JOB-429-01 (hộp thoại Xuất báo cáo)</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/fleet-summary?group=</code>, <code>GET /api/v1/servers/{server_id}/results?latest=true</code>, <code>GET /api/v1/fleet-audit-events</code> (api-spec-phase2.md §3.6, §3.7, §3.13); <code>POST /api/v1/reports</code>, <code>GET /api/v1/reports/{report_id}[?download=1]</code> (api-spec-plans.md §6.1, §6.2; Viewer được phép theo ma trận api-spec-phase2.md §2.2)</td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>web01 thống nhất với dữ liệu Phase 1 (PHP 7.4.33 EOL 2022-11-28, PHP 8.2.34, Node.js 22.23.3, 3 finding KEV). Server khác, điểm R, số liệu là minh hoạ; thứ tự R và phân mức theo BR-ASMT-004, BR-FEED-042. "Bây giờ" = 2026-10-22 12:20 UTC.</td></tr>
+      <tr><th>Ghi chú</th><td>Cột KEV/Critical lấy từ <code>summary.kev_findings</code>, <code>summary.critical_issues</code> của <code>qp.scan/1</code> (gồm runtime, WordPress core, package); cột EOL/Chưa vá đếm runtime. Server <code>old</code> (&gt; 24 giờ) vẫn tính vào tổng kèm nhãn; <code>excluded</code> (&gt; 7 ngày) và server chưa có dữ liệu không tính (BR-FLT-006). Màn hình không có hành động thay đổi hệ thống nên không có hộp thoại dry-run; mọi hành động thay đổi đi qua SCR-022 (FR-FLT-DASH-002). Hộp thoại duy nhất là "Xuất báo cáo" (<code>role="dialog"</code>, đóng bằng Esc/Huỷ/Đóng, trả focus về nút mở): tạo job <code>report</code> loại read (BR-JOB-003) nên không cần dry-run (BR-CON-005 chỉ áp cho job ghi); kiểm tham số phía client theo ERR-RPT-422-01. Báo cáo gộp ma trận nhiều server theo nhóm chưa có FR/endpoint trong SRS: hộp thoại chỉ gọi <code>POST /api/v1/reports</code> của Phase 1 trên máy trung tâm, không thêm tham số <code>group</code> — mục chờ PO quyết định, chưa có mã câu hỏi mở. CSS/JS inline chỉ để wireframe tự chứa.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §13; business-rules.md §4.12; api/api-spec-phase2.md §2.2, §3.6, §3.7, §3.13; api/api-spec-plans.md §6; api/api-spec-cli-json.md §5; srs/error-matrix.md (ERR-RPT-422-01); usecases/UC-FLT-003.md; OpenBA-Kit rules/13-wireframe-html-guidelines.md mục 4 (Modal popup)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-021: số liệu tổng, ma trận server × runtime, nhãn độ tươi, server bị loại, đi sâu theo server ở chế độ chỉ đọc, audit trung tâm có kiểm chuỗi từng nguồn</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Bổ sung trạng thái Modal popup theo rule 13 mục 4: nút "Xuất báo cáo" mở hộp thoại (loại assess/evidence, định dạng json/csv/md/html, khoảng ngày bắt buộc với evidence, kiểm lỗi ERR-RPT-422-01, mô phỏng ERR-JOB-429-01, Huỷ/Xuất, đóng bằng Esc) thay cho toast; cập nhật khối thông tin FR/BR/ERR/API</td></tr>
+      <tr><td>1.0.2</td><td>2026-10-22</td><td>BA Agent</td><td>Bỏ màu đỏ của trạng thái lỗi theo rule 13 mục 2 (bảng màu xám đơn sắc): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6; nhấn lỗi bằng viền đậm 2 px, viền trái 6 px và nhãn chữ "LỖI · " cho thông báo lỗi, lỗi trường, ô nhập sai và dòng chuỗi audit bị lệch</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="empty">Chưa thu dữ liệu</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <button type="button" id="sim-modal">Hộp thoại Xuất báo cáo</button>
+    <label>Vai trò <select id="role"><option value="operator">Operator</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Dashboard tổng hợp nhiều server <span class="fr">FR-FLT-DASH-001</span></h1>
+      <p class="muted">Tổng hợp lúc 2026-10-22 08:30 UTC (<code>generated_at</code>) từ kết quả <code>scan</code>/<code>assess</code> mới nhất của từng server</p>
+    </div>
+    <div class="actions">
+      <label class="hint" for="f-group">Nhóm</label><select id="f-group"><option value="">Tất cả</option><option>shop</option><option>blog</option><option>api</option></select>
+      <button class="btn" type="button" id="btn-export" aria-haspopup="dialog" aria-controls="rpt-modal" title="Viewer có quyền Export (BR-FLT-008)">Xuất báo cáo…</button>
+      <a class="btn primary op-only" href="fleet-rollout.html">Thu thập lại (scan)</a>
+    </div>
+  </div>
+
+  <section data-state="data">
+    <div class="grid g-kpi">
+      <div class="kpi"><b id="t-servers">4</b><span>Server tính vào tổng (fresh 2 · old 2)</span></div>
+      <div class="kpi"><b id="t-kev">4</b><span>Finding KEV</span></div>
+      <div class="kpi"><b id="t-crit">6</b><span>Vấn đề Critical</span></div>
+      <div class="kpi"><b id="t-eol">2</b><span>Runtime EOL</span></div>
+      <div class="kpi"><b id="t-unp">5</b><span>Runtime chưa vá</span></div>
+    </div>
+
+    <section class="card" aria-labelledby="mx-h">
+      <h2 id="mx-h">Ma trận server × runtime <span class="fr">FR-FLT-DASH-001</span><span class="muted" style="font-weight:400;font-size:12px">Sắp theo R lớn nhất giảm dần (BR-ASMT-004)</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Server · nhóm</th><th>Thu lúc (UTC)</th><th>Runtime (phiên bản · trạng thái · vòng đời · R)</th><th>KEV</th><th>Critical</th><th>EOL</th><th>Chưa vá</th><th>R lớn nhất</th><th></th></tr></thead>
+        <tbody id="mx-body"></tbody>
+      </table></div>
+      <p class="hint" style="margin-top:6px">R: 70–100 CRITICAL (xử lý ≤ 24 giờ) · 40–69 HIGH (≤ 7 ngày) · 20–39 MEDIUM · 0–19 LOW (BR-FEED-042). Nhãn "cũ": <code>collected_at</code> &gt; 24 giờ (BR-FLT-006).</p>
+    </section>
+
+    <div class="grid g2">
+      <section class="card" aria-labelledby="ex-h">
+        <h2 id="ex-h">Không tính vào số liệu tổng</h2>
+        <table><thead><tr><th>Server</th><th>Lý do</th><th>Thu lúc</th></tr></thead><tbody>
+          <tr><td class="mono">legacy03</td><td><span class="badge sev-h">excluded</span> &gt; 7 ngày (12 ngày) · server đã tắt</td><td>2026-10-10 02:00</td></tr>
+          <tr><td class="mono">api01</td><td>Chưa có dữ liệu — kiểm kết nối FAIL (ERR-FLT-424-01)</td><td>—</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="card" aria-labelledby="dd-h">
+        <h2 id="dd-h">Đi sâu: <span class="mono" id="dd-id">web01</span> <span class="fr">FR-FLT-DASH-002</span></h2>
+        <div class="alert error" id="dd-err" hidden role="alert"></div>
+        <table id="dd-table"><thead><tr><th>command</th><th>Thu lúc</th><th>exit</th><th>schema</th><th>Độ tươi</th></tr></thead><tbody id="dd-body"></tbody></table>
+        <p class="hint" style="margin-top:6px">Mở màn hình Phase 1 ở <b>chế độ chỉ đọc</b> từ envelope đã thu (không gọi tới server):</p>
+        <div class="row" style="margin-top:4px" id="dd-links"><a class="btn sm" href="overview-dashboard.html">Tổng quan</a><a class="btn sm" href="runtime-assessment.html">Đánh giá runtime</a><a class="btn sm" href="dependency-findings.html">Findings</a><a class="btn sm" href="upgrade-plan-checklist.html">Kế hoạch</a><a class="btn sm" href="feed-status.html">Nguồn dữ liệu</a></div>
+        <p class="hint op-only" style="margin-top:6px">Hành động (vá, chuyển site, rollback) chỉ chạy qua đợt chạy từ xa: <a href="fleet-rollout.html">SCR-022</a>.</p>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="au-h">
+      <h2 id="au-h">Audit trung tâm <span class="fr">FR-FLT-AUD-001</span></h2>
+      <form class="row" id="au-form" novalidate style="margin-bottom:8px;align-items:flex-end">
+        <label class="f">Từ ngày<input type="date" id="a-from" value="2026-10-15"></label>
+        <label class="f">Đến ngày<input type="date" id="a-to" value="2026-10-22"></label>
+        <label class="f">Nguồn<select id="a-src"><option value="">Tất cả</option><option>central</option><option>web01</option><option>web02</option><option>web03</option><option>blog01</option></select></label>
+        <label class="f">Actor<select id="a-actor"><option value="">Tất cả</option><option>fleet:alice</option><option>fleet:bob</option><option>console:root</option><option>cli:root</option></select></label>
+        <button class="btn primary" type="submit">Lọc</button>
+      </form>
+      <div class="field-err" id="au-err"></div>
+      <h3>Kiểm chuỗi hash từng nguồn (<code>data.integrity[]</code>, BR-AUD-003)</h3>
+      <div class="tbl-wrap"><table><thead><tr><th>Nguồn</th><th>verified</th><th>first_broken_seq</th><th>Mã</th><th>Ghi chú</th></tr></thead><tbody id="int-body"></tbody></table></div>
+      <h3>Bản ghi hợp nhất (giữ <code>hash</code> gốc của từng nguồn)</h3>
+      <div class="tbl-wrap"><table><thead><tr><th>Nguồn</th><th>seq</th><th>ts (UTC)</th><th>actor</th><th>action</th><th>result</th><th>prev_hash → hash</th></tr></thead><tbody id="au-body"></tbody></table></div>
+    </section>
+  </section>
+
+  <section data-state="empty">
+    <div class="empty">
+      <h2>Chưa có dữ liệu thu từ server nào</h2>
+      <p style="margin:8px 0">Danh mục có 6 server nhưng chưa có lượt <code>scan --json</code> nào được thu (<code>totals</code> = 0). Chạy đợt thu thập (lệnh đọc, ≤ 10 kết nối song song; 100 server ≤ 20 phút — NFR-PERF-008).</p>
+      <a class="btn primary op-only" href="fleet-rollout.html">Tạo đợt chạy scan</a> <a class="btn" href="fleet-servers.html">Xem danh sách server</a>
+    </div>
+  </section>
+  <section data-state="loading" aria-busy="true">
+    <div class="grid g-kpi"><div class="kpi"><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div></div></div>
+    <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/fleet-summary</code> (P95 ≤ 500 ms)…</p></div>
+  </section>
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-FLT-404-01</b> — Không tìm thấy server <code>web09</code> (liên kết đi sâu cũ).</div>
+    <div class="alert error" role="alert"><b>ERR-AUTH-401-02</b> — Phiên làm việc đã hết hạn → về trang đăng nhập.</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 51f0c3d2). <button class="btn sm" type="button" onclick="location.reload()">Thử lại</button></div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="rpt-modal" role="dialog" aria-modal="true" aria-labelledby="rpt-title" aria-describedby="rpt-desc">
+  <form class="modal" id="rpt-form" novalidate>
+    <div class="row"><h2 id="rpt-title">Xuất báo cáo (máy trung tâm)</h2><span class="fr" id="rpt-fr">FR-RPT-ASMT-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="rpt-desc" style="margin:6px 0">Tạo job <code>report</code> loại read (BR-JOB-003) qua <code>POST /api/v1/reports</code>; Viewer, Operator, Admin đều được phép (BR-FLT-008). Không thay đổi hệ thống nên không cần dry-run (BR-CON-005 chỉ áp cho job ghi).</p>
+    <div class="row" style="margin-top:8px">
+      <label class="f">Loại<select id="r-type"><option value="assess" selected>assess — đánh giá</option><option value="evidence">evidence — bằng chứng thay đổi</option></select></label>
+      <label class="f">Định dạng<select id="r-fmt"><option>json</option><option>csv</option><option>md</option><option selected>html</option></select></label>
+    </div>
+    <div class="row" id="r-range" style="margin-top:8px" hidden>
+      <label class="f">Từ ngày (bắt buộc)<input type="date" id="r-from" value="2026-10-01" aria-describedby="r-err"></label>
+      <label class="f">Đến ngày (bắt buộc)<input type="date" id="r-to" value="2026-10-22" aria-describedby="r-err"></label>
+      <span class="hint">Khoảng ≤ 366 ngày, từ ngày ≤ đến ngày</span>
+    </div>
+    <div class="field-err" id="r-err" role="alert"></div>
+    <p class="hint" id="r-scope" style="margin:8px 0"></p>
+    <h3>Lệnh sẽ chạy trên máy trung tâm (argv cố định, <code>shell=False</code> — BR-CON-008)</h3>
+    <pre class="cmd" id="r-cmd"></pre>
+    <ul class="hint" style="margin:8px 0 0 16px">
+      <li>Định dạng theo BR-RPT-001: JSON <code>qp.report.&lt;loại&gt;/1</code>; CSV RFC 4180, UTF-8; Markdown; HTML 1 file ≤ 5 MiB, CSS nhúng, không JavaScript, 0 tài nguyên ngoài.</li>
+      <li>File <code>STATE_DIR/reports/&lt;report_id&gt;.&lt;ext&gt;</code> quyền <code>0600</code>, không ghi đè (BR-RPT-003); SHA-256 in ra và ghi audit (BR-RPT-002). Tải về: <code>GET /api/v1/reports/{report_id}?download=1</code>.</li>
+      <li>Báo cáo gộp nhiều server theo nhóm đang chọn chưa có FR/endpoint trong SRS → hộp thoại không gửi tham số <code>group</code> (chờ PO quyết định).</li>
+    </ul>
+    <div class="alert error" id="r-srv-err" hidden role="alert" style="margin-top:10px"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="r-sim">Mô phỏng ERR-JOB-429-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn primary" type="submit" id="r-submit">Xuất</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text !== undefined) { e.textContent = text; } return e; }
+  var LV = {CRITICAL: 'badge sev-c', HIGH: 'badge sev-h', MEDIUM: 'badge sev-m', LOW: 'badge sev-l'};
+  var MX = [
+    {id: 'web01', group: 'shop', col: '2026-10-22 08:05', fl: 'fresh', kev: 3, crit: 4, eol: 1, unp: 3, rts: [['PHP 7.4.33', 'eol', 'EOL (2022-11-28) · CVE-2026-109618 CVSS 9,8', 70, 'CRITICAL'], ['PHP 8.2.34', 'vulnerable', 'SECURITY_ONLY', 60, 'HIGH'], ['Node.js 22.23.3', 'vulnerable', 'MAINTENANCE_LTS', 47, 'HIGH']]},
+    {id: 'web02', group: 'shop', col: '2026-10-22 08:06', fl: 'fresh', kev: 0, crit: 1, eol: 1, unp: 1, rts: [['PHP 7.4.33 (mod_php)', 'eol', 'EOL (2022-11-28)', 70, 'CRITICAL']]},
+    {id: 'web03', group: 'shop', col: '2026-10-20 23:40', fl: 'old', kev: 0, crit: 0, eol: 0, unp: 1, rts: [['PHP 8.3.35', 'vulnerable', 'SECURITY_ONLY', 58, 'HIGH']]},
+    {id: 'blog01', group: 'blog', col: '2026-10-21 06:10', fl: 'old', kev: 1, crit: 1, eol: 0, unp: 0, rts: [['PHP 8.4.27', 'ok', 'ACTIVE', 5, 'LOW']]}
+  ];
+  var RES = {
+    web01: [['scan', '2026-10-22 08:05', 1, 'qp.scan/1 1.0.0', 'fresh'], ['assess', '2026-10-22 08:07', 1, 'qp.assess/1 1.0.0', 'fresh'], ['feeds_status', '2026-10-22 08:05', 0, 'qp.feeds.status/1 1.0.0', 'fresh'], ['fix', '2026-10-21 22:20', 1, 'qp.fix/1 1.0.0', 'fresh'], ['audit', '2026-10-22 08:06', 0, 'qp.audit/1 1.0.0', 'fresh'], ['migrate', '—', '—', '—', '—']],
+    web02: [['scan', '2026-10-22 08:06', 1, 'qp.scan/1 1.0.0', 'fresh'], ['assess', '2026-10-22 08:07', 1, 'qp.assess/1 1.0.0', 'fresh'], ['audit', '2026-10-22 08:06', 0, 'qp.audit/1 1.0.0', 'fresh']],
+    web03: [['scan', '2026-10-20 23:40', 1, 'qp.scan/1 1.0.0', 'old'], ['assess', '2026-10-20 23:42', 1, 'qp.assess/2 2.0.0', 'old']],
+    blog01: [['scan', '2026-10-21 06:10', 1, 'qp.scan/1 1.0.0', 'old'], ['audit', '—', '—', '—', 'audit_pending']]
+  };
+  var INT = [['central', true, null, null, '—'], ['web01', true, null, null, '—'], ['web02', true, null, null, '—'], ['web03', false, 211, 'ERR-AUD-409-01', 'Nhật ký kiểm toán bị thay đổi từ bản ghi #211; giữ nguyên dữ liệu làm bằng chứng'], ['blog01', null, null, null, 'audit_pending: chưa thu đủ audit tới thời điểm hiện tại (S6 lỗi lần trước)']];
+  var AU = [
+    ['central', 418, '2026-10-22T09:00:00.112Z', 'fleet:alice', 'fleet_run_create', 'ok', '9a1c…', '3e07…'],
+    ['web01', 1046, '2026-10-22T09:03:41.507Z', 'fleet:alice', 'fix', 'intent', '0f4a…', '61dd…'],
+    ['web01', 1047, '2026-10-22T09:04:58.220Z', 'fleet:alice', 'fix', 'ok', '61dd…', 'b730…'],
+    ['web02', 233, '2026-10-22T09:05:12.031Z', 'fleet:alice', 'fix', 'failed', '4ce1…', 'e2a9…'],
+    ['central', 419, '2026-10-22T09:06:12.480Z', 'fleet:alice', 'fleet_run_stopped', 'ok', '3e07…', '77f2…'],
+    ['web03', 211, '2026-10-20T23:38:02.004Z', 'cli:root', 'fix', 'ok', 'aa10…', '5d3b… ✗'],
+    ['central', 417, '2026-10-21T14:12:09.900Z', 'fleet:bob', 'server_update', 'ok', 'c0b4…', '9a1c…']
+  ];
+  var role = 'operator', sel = 'web01';
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 5000); }
+  function renderMx() {
+    var g = $('f-group').value, tb = $('mx-body'); tb.textContent = '';
+    var rows = MX.filter(function (s) { return !g || s.group === g; }).sort(function (a, b) { return Math.max.apply(null, b.rts.map(function (r) { return r[3]; })) - Math.max.apply(null, a.rts.map(function (r) { return r[3]; })) || (b.kev - a.kev); });
+    var t = {s: 0, k: 0, c: 0, e: 0, u: 0, f: 0, o: 0};
+    rows.forEach(function (s) {
+      t.s++; t.k += s.kev; t.c += s.crit; t.e += s.eol; t.u += s.unp; if (s.fl === 'fresh') { t.f++; } else { t.o++; }
+      var tr = el('tr', s.id === sel ? 'sel' : '');
+      var t1 = el('td'); t1.appendChild(el('b', 'mono', s.id)); t1.appendChild(el('span', 'hint', ' · ' + s.group)); tr.appendChild(t1);
+      var t2 = el('td'); t2.appendChild(el('span', '', s.col)); t2.appendChild(el('br')); t2.appendChild(el('span', s.fl === 'fresh' ? 'badge' : 'badge stale', s.fl === 'fresh' ? 'mới' : 'cũ (> 24 giờ)')); tr.appendChild(t2);
+      var t3 = el('td'); s.rts.forEach(function (r) { var d = el('span', 'rt'); d.appendChild(el('b', '', r[0] + ' ')); d.appendChild(el('span', '', r[1] + ' · ' + r[2] + ' · R ' + r[3] + ' ')); d.appendChild(el('span', LV[r[4]], r[4])); t3.appendChild(d); }); tr.appendChild(t3);
+      var t4 = el('td'); if (s.kev) { t4.appendChild(el('span', 'badge kev', String(s.kev))); } else { t4.textContent = '0'; } tr.appendChild(t4);
+      [s.crit, s.eol, s.unp].forEach(function (x) { tr.appendChild(el('td', '', String(x))); });
+      var mr = Math.max.apply(null, s.rts.map(function (r) { return r[3]; })); var lv = s.rts.filter(function (r) { return r[3] === mr; })[0][4];
+      var t8 = el('td'); t8.appendChild(el('b', '', String(mr) + ' ')); t8.appendChild(el('span', LV[lv], lv)); tr.appendChild(t8);
+      var t9 = el('td', 'row'); var b = el('button', 'btn sm', 'Đi sâu'); b.type = 'button'; b.addEventListener('click', function () { sel = s.id; renderMx(); renderDd(); }); t9.appendChild(b);
+      if (role !== 'viewer') { var a = el('a', 'btn sm', 'Tạo đợt chạy'); a.href = 'fleet-rollout.html'; t9.appendChild(a); }
+      tr.appendChild(t9); tb.appendChild(tr);
+    });
+    $('t-servers').textContent = t.s; $('t-kev').textContent = t.k; $('t-crit').textContent = t.c; $('t-eol').textContent = t.e; $('t-unp').textContent = t.u;
+    $('t-servers').nextElementSibling.textContent = 'Server tính vào tổng (fresh ' + t.f + ' · old ' + t.o + ')';
+  }
+  function renderDd() {
+    $('dd-id').textContent = sel; var tb = $('dd-body'); tb.textContent = '';
+    var bad = RES[sel].filter(function (r) { return r[3].indexOf('/2 ') > 0; })[0];
+    $('dd-err').hidden = !bad;
+    if (bad) { $('dd-err').textContent = 'ERR-FLT-422-02 — Kết quả ' + bad[0] + ' từ ' + sel + ' không đọc được (schema ' + bad[3].split(' ')[0] + '): máy trung tâm chỉ hỗ trợ major 1; màn hình Đánh giá runtime của server này không hiển thị. Chạy lại thu thập bằng bản CLI của máy trung tâm (SCR-022).'; }
+    RES[sel].forEach(function (r) { var tr = el('tr'); r.forEach(function (x, i) { var td = el('td', i === 3 ? 'mono' : ''); if (i === 4 && x !== '—') { td.appendChild(el('span', x === 'fresh' ? 'badge' : 'badge stale', x)); } else { td.textContent = String(x); } tr.appendChild(td); }); tb.appendChild(tr); });
+  }
+  function renderAu() {
+    var src = $('a-src').value, act = $('a-actor').value;
+    var ib = $('int-body'); ib.textContent = '';
+    INT.forEach(function (r) { if (src && r[0] !== src) { return; } var tr = el('tr', r[1] === false ? 'broken' : ''); tr.appendChild(el('td', 'mono', r[0])); tr.appendChild(el('td', '', r[1] === null ? '—' : String(r[1]))); tr.appendChild(el('td', '', r[2] === null ? '—' : String(r[2]))); tr.appendChild(el('td', '', r[3] || '—')); tr.appendChild(el('td', 'hint', r[4])); ib.appendChild(tr); });
+    var ab = $('au-body'); ab.textContent = '';
+    AU.slice().sort(function (a, b) { return a[2] < b[2] ? 1 : -1; }).forEach(function (r) {
+      if ((src && r[0] !== src) || (act && r[3] !== act)) { return; }
+      var tr = el('tr', r[7].indexOf('✗') > 0 ? 'broken' : ''); [r[0], r[1], r[2], r[3], r[4], r[5], r[6] + ' → ' + r[7]].forEach(function (x, i) { tr.appendChild(el('td', i === 0 || i === 4 || i === 6 ? 'mono' : '', String(x))); }); ab.appendChild(tr);
+    });
+  }
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (e) { e.classList.toggle('show', e.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('role').addEventListener('change', function (e) {
+    role = e.target.value; document.body.classList.remove('role-viewer', 'role-operator', 'role-admin'); document.body.classList.add('role-' + role);
+    $('role-badge').textContent = role.charAt(0).toUpperCase() + role.slice(1); renderMx();
+  });
+  $('f-group').addEventListener('change', renderMx);
+  /* Hộp thoại Xuất báo cáo (rule 13 mục 4: Modal popup) */
+  var RID = 'RPT-20261022-122415-7c1a', opener = null;
+  var SCOPE = {assess: 'assess (FR-RPT-ASMT-001): máy chủ, môi trường, runtime + đánh giá + ứng viên, CVE/KEV, EOL/LTS, dependency, WordPress, kế hoạch và hạn duyệt, nguồn dữ liệu + fetched_at, bundle_id, phiên bản tool. Không dùng khoảng ngày.',
+    evidence: 'evidence (FR-RPT-AUD-001): trích audit + manifest + switch.json + hc.json trong khoảng; trạng thái trước/sau, người chạy, người duyệt, miễn trừ, rollback; kèm kết quả kiểm chuỗi hash (chuỗi lệch → vẫn xuất kèm cảnh báo ERR-AUD-409-01).'};
+  function rptErr(msg) {
+    $('r-err').textContent = msg; $('r-err').classList.toggle('show', !!msg);
+    $('r-from').classList.toggle('invalid', !!msg); $('r-to').classList.toggle('invalid', !!msg);
+  }
+  function rptValidate() {
+    if ($('r-type').value !== 'evidence') { return ''; }
+    var f = $('r-from').value, t = $('r-to').value;
+    if (!f || !t) { return 'ERR-RPT-422-01 — Tham số báo cáo không hợp lệ: báo cáo evidence bắt buộc có từ ngày và đến ngày.'; }
+    if (f > t) { return 'ERR-RPT-422-01 — Tham số báo cáo không hợp lệ: từ ngày (' + f + ') sau đến ngày (' + t + ').'; }
+    if ((new Date(t) - new Date(f)) / 86400000 > 366) { return 'ERR-RPT-422-01 — Tham số báo cáo không hợp lệ: khoảng thời gian dài hơn 366 ngày.'; }
+    return '';
+  }
+  function rptSync() {
+    var ty = $('r-type').value, fm = $('r-fmt').value, ev = ty === 'evidence';
+    $('r-range').hidden = !ev; $('rpt-fr').textContent = ev ? 'FR-RPT-AUD-001' : 'FR-RPT-ASMT-001'; $('r-scope').textContent = 'Nội dung ' + SCOPE[ty];
+    $('r-cmd').textContent = 'POST /api/v1/reports {"type": "' + ty + '", "format": "' + fm + '"' + (ev ? ', "from": "' + $('r-from').value + '", "to": "' + $('r-to').value + '"' : '') + '}\n→ php-quickpatch.sh report ' + ty + ' --format ' + fm + ' --out /var/lib/php-quickpatch/reports/' + RID + '.' + fm + (ev ? ' --from ' + $('r-from').value + ' --to ' + $('r-to').value : '') + ' --json';
+  }
+  function rptOpen(src) {
+    opener = src; rptErr(''); $('r-srv-err').hidden = true; rptSync();
+    $('rpt-modal').classList.add('open'); $('r-type').focus();
+  }
+  function rptClose() { $('rpt-modal').classList.remove('open'); if (opener) { opener.focus(); } }
+  $('btn-export').addEventListener('click', function () { rptOpen($('btn-export')); });
+  $('sim-modal').addEventListener('click', function () { rptOpen($('sim-modal')); });
+  ['r-type', 'r-fmt', 'r-from', 'r-to'].forEach(function (id) { $(id).addEventListener('change', function () { rptErr(''); rptSync(); }); });
+  document.querySelectorAll('#rpt-modal [data-close]').forEach(function (b) { b.addEventListener('click', rptClose); });
+  document.addEventListener('keydown', function (e) {
+    if (!$('rpt-modal').classList.contains('open')) { return; }
+    if (e.key === 'Escape') { rptClose(); return; }
+    if (e.key === 'Tab') {
+      var fs = Array.prototype.filter.call($('rpt-modal').querySelectorAll('button,select,input'), function (x) { return x.offsetParent !== null && !x.disabled; });
+      var first = fs[0], last = fs[fs.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  $('r-sim').addEventListener('click', function () { var x = $('r-srv-err'); x.hidden = false; x.textContent = 'ERR-JOB-429-01 — Hàng đợi đã có 20 job QUEUED; thử lại sau khi bớt job.'; });
+  $('rpt-form').addEventListener('submit', function (e) {
+    e.preventDefault(); var m = rptValidate(); rptErr(m);
+    if (m) { $('r-from').focus(); return; }
+    var ty = $('r-type').value, fm = $('r-fmt').value; rptClose();
+    toast('202 Accepted: JOB-20261022-122415-b2d0 (read), report_id ' + RID + ' (' + ty + ', ' + fm + '). Theo dõi ở SCR-006; tải file bằng GET /api/v1/reports/' + RID + '?download=1.');
+  });
+  $('au-form').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = $('a-from').value, t = $('a-to').value, m = '';
+    if (f && t && f > t) { m = 'ERR-CON-422-01 — Ngày bắt đầu sau ngày kết thúc.'; } else if (f && t && (new Date(t) - new Date(f)) / 86400000 > 366) { m = 'ERR-CON-422-01 — Khoảng thời gian dài hơn 366 ngày.'; }
+    $('au-err').textContent = m; $('au-err').classList.toggle('show', !!m); if (!m) { renderAu(); }
+  });
+  document.body.classList.add('role-operator'); renderMx(); renderDd(); renderAu(); setState('data');
+})();
+</script>
+</body>
+</html>

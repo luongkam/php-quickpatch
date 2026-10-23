@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-004
+title: Wireframe SCR-004 — Kế hoạch nâng cấp & checklist (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, upgrade-plan, checklist, target, canary, compatibility, scr-004, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-SCN-PHP-001
+  - FR-CON-PLAN-001
+  - FR-CON-PLAN-002
+  - FR-PLAN-TGT-001
+  - FR-PLAN-GEN-001
+  - FR-PLAN-GEN-002
+  - FR-PLAN-DEP-001
+  - FR-PLAN-CHK-001
+  - FR-PLAN-CHK-002
+  - FR-PLAN-STS-001
+  - FR-CMPT-RES-001
+  - UC-PLAN-001
+  - UC-PLAN-002
+  - UC-PLAN-003
+related_diagrams:
+  - DIAG-STATE-QP-PLAN-001
+  - DIAG-STATE-QP-CHK-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-004: Kế hoạch nâng cấp &amp; checklist — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;padding:6px 10px;border:1px solid var(--line2);border-radius:999px;background:#fff;font-size:12.5px}
+.steps li::before{content:counter(s) ". ";font-weight:700}.steps li.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}tr.ph td{background:#fff;font-weight:700;border-top:2px solid var(--line2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}.btn.danger{border:2px solid var(--err-line);color:var(--err);font-weight:700}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}
+.st-DONE{background:#111827;color:#fff;border-color:#111827}.st-FAILED{border:2px solid var(--err-line);color:var(--err)}.st-RUNNING{border-style:dashed;border-color:#111827}.st-WAIVED,.st-SKIPPED{color:var(--sub);background:var(--muted)}
+.blocked{border:1px dashed #111827;font-size:11px;padding:0 5px;border-radius:4px}.unver{border:1px dotted #111827;font-size:11px;padding:0 5px;border-radius:4px}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left:6px solid var(--err);background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}@keyframes sk{to{background-position:-200% 0}}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}textarea{width:100%;min-height:70px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.invalid{border:2px solid var(--err-line)!important;background:var(--err-bg)!important}.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err::before{content:"Lỗi: ";font-weight:700}.field-err.show{display:block}
+fieldset{border:1px solid var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:10px}legend{font-weight:600;font-size:13px;padding:0 4px}
+.opt{display:block;padding:4px 0}
+.log{background:#111827;color:#E5E7EB;padding:10px;border-radius:6px;height:150px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:pre-wrap}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}.pv th{width:170px;background:#fff}.pv ul{margin-left:16px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html" aria-current="page"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-004 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-004 Kế hoạch nâng cấp &amp; checklist — UC-PLAN-001, UC-PLAN-002, UC-PLAN-003 (PER-01, PER-02)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-PLAN-001, FR-CON-PLAN-002, FR-PLAN-TGT-001, FR-PLAN-GEN-001, FR-PLAN-GEN-002, FR-PLAN-DEP-001, FR-PLAN-CHK-001, FR-PLAN-CHK-002, FR-PLAN-STS-001, FR-CMPT-RES-001. Liên quan: FR-UPG-PRE-001, FR-SCN-CHK-001, FR-UPG-HC-001, FR-UPG-SEQ-001, FR-CON-SAFE-001</td></tr>
+      <tr><th>BR</th><td>BR-PLAN-001..007, BR-ASMT-002, BR-UPG-002, BR-UPG-004..006, BR-SCN-005, BR-SCN-007, BR-SCN-008, BR-SCN-018, BR-SCN-042, BR-SCN-044, BR-SCN-045, BR-ENV-003, BR-ENV-010, BR-CON-005, BR-CON-006, BR-HC-001, BR-HC-002</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-PLAN-404-01, ERR-PLAN-409-01, ERR-PLAN-409-02, ERR-PLAN-410-01, ERR-PLAN-412-01, ERR-PLAN-422-01, ERR-SCN-424-01, ERR-SCN-409-01, ERR-SCN-409-02, ERR-CMPT-424-01, ERR-HC-422-02, ERR-UPG-409-01, ERR-JOB-428-01, ERR-CLI-403-01, ERR-CON-422-01</td></tr>
+      <tr><th>API</th><td><code>POST /api/v1/plans</code>, <code>GET/PATCH /api/v1/plans/{plan_id}</code>, <code>GET …/checklist-items</code>, <code>PATCH …/checklist-items/{chk_id}</code>, <code>POST …/checklist-items/{chk_id}/runs</code>, <code>GET …/compatibility</code>, <code>POST …/compatibility-waivers</code>, <code>PATCH /api/v1/sites/{site_id}</code></td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Checklist = 35 mục <code>CHK-PHP-007-01..35</code> của SCN-PHP-007 (version-scenarios-php.md §10.7), lưu theo site. Ràng buộc PHP của phpunit/phpunit kiểm chứng trên Packagist p2 (2026-10-22): 5.6.2 <code>^5.6 || ^7.0</code>; bản nhỏ nhất ≥ 5.6.2 chấp nhận 8.5 là 8.5.12 (<code>&gt;=7.2</code>); OSV GHSA-vvj3-c3rp-c85p sửa ở 8.5.52. Mã hit, đường dẫn mã nguồn, mã kế hoạch là minh hoạ.</td></tr>
+      <tr><th>Ghi chú</th><td>Bảng phụ thuộc mục là rút gọn của BR-SCN-018 cho wireframe. Biến thể "approved"/"in_progress" mô phỏng tiến trình sau khi duyệt. CSS/JS inline chỉ để wireframe tự chứa (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §5, §6, §8.2, §9; business-rules.md (PLAN, UPG); states.md §3, §5; api/api-spec-plans.md §2–§4; api/api-spec-cli-json.md §7; version-scenarios-common.md §3; https://repo.packagist.org/p2/phpunit/phpunit.json; https://api.osv.dev/v1/query (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-004: chọn đích, sinh kế hoạch qua SSE, vòng đời kế hoạch, thứ tự site + canary, kết luận tương thích + miễn trừ, dependency phải nâng, tiền điều kiện, checklist 35 mục có lọc/chạy/đánh dấu/miễn trừ</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Tuân thủ rule 13 §2 (bảng màu xám đơn sắc): thay 3 token lỗi màu đỏ (--err, --err-line, --err-bg) bằng #111827 / #1E293B / #F3F4F6; nhấn trạng thái lỗi bằng viền đậm 2 px (alert lỗi viền trái 6 px, ô nhập sai, nút Huỷ kế hoạch) và nhãn chữ "LỖI ·" / "Lỗi:" trước thông báo</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="draft">Kế hoạch draft</button>
+    <button type="button" data-set="approved">approved</button>
+    <button type="button" data-set="inprog">in_progress</button>
+    <button type="button" data-set="stale">stale</button>
+    <button type="button" data-set="empty">Chưa có kế hoạch</button>
+    <button type="button" data-set="loading">Đang sinh kế hoạch</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <h1>Kế hoạch nâng cấp &amp; checklist <span class="fr">FR-CON-PLAN-001</span></h1>
+  <ol class="steps" aria-label="Các bước từ SCR-002 tới checklist (≤ 4 thao tác, NFR-USE-002)">
+    <li class="on">Chọn runtime</li><li class="on">Chọn phiên bản đích</li><li id="st3">Sinh kế hoạch</li><li id="st4">Mở checklist</li>
+  </ol>
+
+  <!-- Chọn đích + sinh kế hoạch -->
+  <section class="card" data-state="empty draft approved inprog stale" aria-labelledby="tgt-h">
+    <details id="tgt-box">
+      <summary><h2 id="tgt-h" style="display:inline">Chọn phiên bản đích và sinh kế hoạch <span class="fr">FR-PLAN-TGT-001</span><span class="fr">FR-PLAN-GEN-001</span></h2></summary>
+      <form id="tgt-form" novalidate style="margin-top:10px">
+        <div class="grid g2">
+          <fieldset><legend>Runtime</legend>
+            <select id="f-rt" aria-label="Runtime"><option>PHP 7.4.33 — /usr/bin/php7.4 (php:7c41d09e2a15)</option><option>PHP 8.2.34 — /usr/bin/php8.2 (php:3f9a0c1d2e4b)</option><option>Node.js 22.23.3 — /usr/bin/node (node:9e8d7c6b5a41)</option></select>
+            <p class="hint" style="margin-top:6px">Ứng viên lấy từ job assess mới nhất (SCR-003).</p>
+          </fieldset>
+          <fieldset><legend>Phiên bản đích</legend>
+            <label class="opt"><input type="radio" name="tgt" value="8.5" checked> 8.5 (8.5.12) — <span class="badge">RECOMMENDED</span> <span class="badge">LATEST_STABLE</span> · EOL 2029-12-31</label>
+            <label class="opt" style="color:var(--sub)"><input type="radio" name="tgt" value="8.2" disabled> 8.2 (8.2.35) — NEXT_SUPPORTED · không chọn được: EOL_WITHIN_90D (BR-ASMT-002)</label>
+            <label class="opt"><input type="radio" name="tgt" value="other"> Nhánh khác: <input type="text" id="f-other" size="5" placeholder="8.4" aria-label="Nhánh khác"></label>
+            <div class="field-err" id="e-other"></div>
+          </fieldset>
+        </div>
+        <fieldset><legend>Site trong phạm vi (mặc định: mọi site dùng runtime)</legend>
+          <label class="opt"><input type="checkbox" name="site" value="example.com" checked> example.com (WordPress 7.0.2, 1.904 file .php)</label>
+          <label class="opt"><input type="checkbox" name="site" value="shop.example.com" checked> shop.example.com (Composer, 3.417 file .php)</label>
+          <div class="field-err" id="e-site"></div>
+        </fieldset>
+        <div id="reason-wrap" hidden><label for="f-reason"><b>Lý do chọn đích khác đề xuất</b> (20–500 ký tự, ghi audit — BR-PLAN-001)</label><textarea id="f-reason" maxlength="500"></textarea><div class="field-err" id="e-reason"></div></div>
+        <p class="hint" style="margin:8px 0">Sinh kế hoạch là job đọc (không cần dry-run). Kế hoạch draft/approved cũ của runtime bị huỷ (BR-PLAN-002); runtime có kế hoạch in_progress → ERR-PLAN-409-01. Mục tiêu ≤ 120 s cho 10.000 file .php, 300 package (NFR-PERF-005, chưa đo).</p>
+        <button class="btn primary" type="submit">Sinh kế hoạch</button>
+      </form>
+    </details>
+  </section>
+
+  <section data-state="empty"><div class="card" style="text-align:center;border-style:dashed"><h2 style="justify-content:center">PHP 7.4.33 chưa có kế hoạch</h2><p class="muted">Mở "Chọn phiên bản đích và sinh kế hoạch" ở trên. Đích đề xuất: 8.5 (BR-SCN-005).</p></div></section>
+
+  <!-- Đang sinh -->
+  <section class="card" data-state="loading" aria-busy="true">
+    <h2>Đang sinh kế hoạch — job <span class="mono">JOB-20261022-110204-6f1b</span> (plan_create, đọc) <span class="fr">FR-CON-PLAN-001</span></h2>
+    <div class="skeleton" style="width:60%"></div>
+    <div class="log" id="gen-log" aria-live="polite"></div>
+    <p class="hint" style="margin-top:6px">Luồng SSE <code>/api/v1/jobs/{job_id}/events</code>, dòng mới hiển thị ≤ 2 s (NFR-PERF-003). Timeout 1.800 s (BR-JOB-008).</p>
+  </section>
+
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-PLAN-404-01</b> — Không tìm thấy kế hoạch/mục PLN-20261022-095512-0b3e.</div>
+    <div class="alert error" role="alert"><b>ERR-PLAN-409-01</b> — Runtime PHP 7.4.33 đã có kế hoạch đang thực hiện PLN-20261022-110351-4c7e. Không thể sinh kế hoạch mới (BR-PLAN-002).</div>
+    <div class="alert error" role="alert"><b>ERR-SCN-409-01</b> — Không có nhánh đích thoả BR-SCN-005 với framework, loader đã phát hiện (kết quả job plan_create).</div>
+    <div class="alert error" role="alert"><b>ERR-CMPT-424-01</b> — Thiếu công cụ quét PHPCompatibility và không tải được (offline). Chỉ chạy bộ luật breaking change tĩnh của catalog; kết luận các site ở PENDING.</div>
+  </section>
+
+  <!-- Nội dung kế hoạch -->
+  <div data-state="draft approved inprog stale">
+    <div class="alert error" data-state="stale" role="alert"><b>ERR-PLAN-410-01</b> — Kế hoạch đã lỗi thời (TARGET_NEW_KEV: nhánh đích 8.5 có advisory KEV mới); hãy sinh lại trước khi chuyển site. Mục P5 chưa chạy bị chặn; mục đã DONE được giữ khi sinh lại (BR-PLAN-006). <button class="btn sm" type="button" id="btn-regen">Sinh lại kế hoạch</button></div>
+
+    <section class="card" aria-labelledby="plan-h">
+      <h2 id="plan-h"><span class="mono">PLN-20261022-110351-4c7e</span> <span class="badge" id="plan-status">draft</span> <span class="fr">FR-PLAN-STS-001</span><span class="fr">FR-PLAN-GEN-001</span></h2>
+      <div class="grid g2">
+        <table>
+          <tr><th>Runtime</th><td>PHP 7.4.33 <code>/usr/bin/php7.4</code> (<code>php:7c41d09e2a15</code>) · SCN-PHP-007</td></tr>
+          <tr><th>Đích</th><td>8.5 → 8.5.12 · <span class="badge">RECOMMENDED</span> <span class="badge">LATEST_STABLE</span> · lý do khác đề xuất: —</td></tr>
+          <tr><th>Chế độ</th><td><code>cross_branch</code> (cài song song + chuyển từng site, BR-UPG-001). Không có mục vá cùng nhánh vì 7.4 không còn bản vá (BR-UPG-006 ngoại lệ)</td></tr>
+          <tr><th>Hạn duyệt</th><td>Không áp dụng — nhánh nguồn đã EOL, xử lý theo mức CRITICAL <span class="fr">FR-PLAN-DL-001</span></td></tr>
+        </table>
+        <table>
+          <tr><th>Đầu vào</th><td>bundle <code>b-20261022T093000Z-3f2a9c1e</code> · catalog <code>2026.10.20-1</code> · scan_fingerprint <code>5d0c9a…</code></td></tr>
+          <tr><th>Tạo / cập nhật</th><td>2026-10-22 11:03:51 UTC (console:root) / <span id="plan-upd">11:03:52 UTC</span></td></tr>
+          <tr><th>Tiến độ</th><td id="plan-progress"></td></tr>
+          <tr><th>Vòng đời</th><td class="hint">draft → approved → in_progress → completed | rolled_back; huỷ từ draft/approved/in_progress (DIAG-STATE-QP-PLAN-001)</td></tr>
+        </table>
+      </div>
+      <h3>Điều kiện duyệt (BR-PLAN-003)</h3>
+      <ul class="hint" style="margin-left:18px" id="approve-cond">
+        <li>✔ Kế hoạch không stale</li><li>✔ Quét tương thích chạy được trước khi cài đã có kết quả cho 2/2 site (CHK-PHP-007-15, -16)</li><li>✔ Mục P1 AUTO ở DONE (CHK-PHP-007-01..05)</li><li>✔ Tiền điều kiện FR-UPG-PRE-001 đã kiểm (CHK-PHP-007-09)</li><li>✔ Người duyệt có quyền thực thi (serve chạy root)</li>
+      </ul>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" type="button" id="btn-approve" data-root>Duyệt kế hoạch</button>
+        <button class="btn danger" type="button" id="btn-cancel">Huỷ kế hoạch</button>
+        <button class="btn" type="button" id="btn-complete" disabled title="Chỉ khi in_progress và mọi mục DONE/SKIPPED/WAIVED (BR-PLAN-007)">Hoàn tất</button>
+        <button class="btn sm" type="button" id="sim-412">Mô phỏng ERR-PLAN-412-01</button>
+        <span class="root-reason" style="display:none" id="appr-reason">Vô hiệu: ERR-CLI-403-01 — người duyệt phải có quyền thực thi</span>
+      </div>
+      <div class="alert error" id="plan-err" hidden role="alert" style="margin-top:8px"></div>
+    </section>
+
+    <div class="grid g2">
+      <section class="card" aria-labelledby="site-h">
+        <h2 id="site-h">Thứ tự chuyển site và canary <span class="fr">FR-PLAN-GEN-002</span></h2>
+        <table>
+          <thead><tr><th>#</th><th>Site</th><th>Kết luận</th><th>Vai trò</th><th>hc_url</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>example.com<br><span class="hint">1.904 file .php</span></td><td><span class="badge">PENDING</span><br><span class="hint">chờ lint bằng $NEW_BIN</span></td><td><span class="badge sev-c">canary</span></td><td class="hint">trang chủ + /wp-login.php</td><td><button class="btn sm" type="button" data-form="hc">Sửa hc_url</button></td></tr>
+            <tr><td>2</td><td>shop.example.com<br><span class="hint">3.417 file .php</span></td><td><span class="badge st-FAILED">FAIL</span><br><span class="hint">2 error, 11 warning</span></td><td><span class="blocked">blocked: compat FAIL</span></td><td class="hint">trang chủ</td><td><button class="btn sm" type="button" id="btn-canary">Đặt làm canary</button></td></tr>
+          </tbody>
+        </table>
+        <p class="hint" style="margin-top:6px">Site PASS sắp theo số file .php tăng dần; site đầu là canary; đổi canary sau khi duyệt đưa kế hoạch về draft (BR-PLAN-004). Chuyển tuần tự, site kế tiếp chỉ mở khi site trước PASSED (BR-ENV-003). <span class="fr">FR-UPG-HC-001</span></p>
+      </section>
+
+      <section class="card" aria-labelledby="pre-h">
+        <h2 id="pre-h">Tiền điều kiện cài song song <span class="fr">FR-UPG-PRE-001</span></h2>
+        <table>
+          <thead><tr><th>Kiểm tra</th><th>Yêu cầu</th><th>Thực tế</th><th>Đạt</th></tr></thead>
+          <tbody>
+            <tr><td>Đĩa trống</td><td>≥ 2 GB</td><td>14,2 GB</td><td>✔</td></tr>
+            <tr><td>RAM khả dụng</td><td>≥ 512 MB</td><td>1.380 MB</td><td>✔</td></tr>
+            <tr><td>Quyền</td><td>root hoặc API panel</td><td>root</td><td>✔</td></tr>
+            <tr><td>Kho có nhánh đích</td><td><code>apt-cache policy php8.5-fpm</code></td><td>8.5.12-1+ubuntu22.04.1+deb.sury.org+1</td><td>✔</td></tr>
+            <tr><td>RAM cho pool đích</td><td>≥ pm.max_children × RSS + 256 MB</td><td>10 × 62 MB + 256 = 876 MB ≤ 1.380 MB</td><td>✔</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="cmpt-h">
+      <h2 id="cmpt-h">Kết luận tương thích theo site <span class="fr">FR-CMPT-RES-001</span></h2>
+      <table>
+        <thead><tr><th>Site</th><th>Kết luận</th><th>error</th><th>warning</th><th>Miễn trừ</th><th>Phần chờ</th></tr></thead>
+        <tbody><tr><td>example.com</td><td><span class="badge">PENDING</span></td><td>0</td><td>3</td><td>0</td><td><code>lint_new_bin</code></td></tr>
+          <tr><td>shop.example.com</td><td><span class="badge st-FAILED" id="shop-verdict">FAIL</span></td><td id="shop-err">2</td><td>11</td><td id="shop-waived">0</td><td><code>lint_new_bin</code></td></tr></tbody>
+      </table>
+      <h3>Hit mức error của shop.example.com (trích ≤ 200 ký tự, hiển thị bằng textContent)</h3>
+      <table>
+        <thead><tr><th></th><th>Hit</th><th>File:dòng</th><th>Luật</th><th>Trích đoạn</th></tr></thead>
+        <tbody>
+          <tr><td><input type="checkbox" class="hit" value="H-0c4e2a9f7b11" aria-label="Chọn hit H-0c4e2a9f7b11"></td><td class="mono">H-0c4e2a9f7b11</td><td class="mono">/var/www/shop/lib/legacy/cart.php:88</td><td>BC-PHP-80-02 (xoá <code>each()</code>)</td><td class="mono">while (list($k, $v) = each($items)) {</td></tr>
+          <tr><td><input type="checkbox" class="hit" value="H-7a1d03be55c2" aria-label="Chọn hit H-7a1d03be55c2"></td><td class="mono">H-7a1d03be55c2</td><td class="mono">/var/www/shop/lib/legacy/promo.php:41</td><td>BC-PHP-80-02 (xoá <code>create_function()</code>)</td><td class="mono">$fn = create_function('$a', 'return $a * 1.1;');</td></tr>
+        </tbody>
+      </table>
+      <label for="w-reason" style="display:block;margin-top:8px"><b>Lý do miễn trừ</b> (20–500 ký tự, ghi audit; ngoại lệ có duyệt của BR-UPG-002)</label>
+      <textarea id="w-reason" maxlength="500" placeholder="Vd: File lib/legacy/promo.php không được include ở production; đã xác minh bằng grep require/include"></textarea>
+      <div class="field-err" id="e-w"></div>
+      <div class="row" style="margin-top:6px"><button class="btn" type="button" id="btn-waive">Miễn trừ hit đã chọn</button><span class="hint">Lưu ý: lượt chuyển 20251118-150512 của site này đã tự rollback vì <code>each()</code> (HC-C7) — xem SCR-007.</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="dep-h">
+      <h2 id="dep-h">Thư viện và dependency phải nâng <span class="fr">FR-PLAN-DEP-001</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Loại</th><th>Tên</th><th>Hiện tại</th><th>Yêu cầu</th><th>Bản tối thiểu thoả</th><th>Bằng chứng</th><th>Mục</th></tr></thead>
+        <tbody>
+          <tr><td>composer</td><td>phpunit/phpunit (shop)</td><td>5.6.2</td><td><code>php ^5.6 || ^7.0</code> không chấp nhận 8.5.12</td><td>8.5.12 (Packagist <code>&gt;=7.2</code>); bản sửa bảo mật ≥ 8.5.52 (GHSA-vvj3-c3rp-c85p)</td><td>composer.lock require.php</td><td class="mono">CHK-PHP-007-22</td></tr>
+          <tr><td>extension</td><td>imap (shop, 4 hit <code>imap_*</code>)</td><td>có trên 7.4</td><td>rời lõi ở 8.4 (BC-PHP-84-03)</td><td>resolution <code>pecl</code> <span class="unver">chưa kiểm chứng</span></td><td>$OLD_BIN -m; đếm tiền tố hàm</td><td class="mono">CHK-PHP-007-12</td></tr>
+          <tr><td>framework</td><td>WordPress (example.com)</td><td>7.0.2</td><td>7.x hỗ trợ 7.4–8.5</td><td>Tương thích; nâng 7.0.7 vì KEV CVE-2026-87902 (SCR-005)</td><td>wp-includes/version.php</td><td class="mono">CHK-PHP-007-23</td></tr>
+        </tbody></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="chk-h">
+      <h2 id="chk-h">Checklist <span class="fr">FR-PLAN-CHK-001</span><span class="fr">FR-PLAN-CHK-002</span><span class="fr">FR-CON-PLAN-002</span></h2>
+      <div class="row" style="margin-bottom:8px">
+        <label class="hint">Giai đoạn <select id="c-ph"><option value="">P1–P7</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option><option>P7</option></select></label>
+        <label class="hint">Site <select id="c-site"><option value="">Tất cả</option><option value="-">Cấp kế hoạch</option><option>example.com</option><option>shop.example.com</option></select></label>
+        <label class="hint">Trạng thái <select id="c-st"><option value="">Tất cả</option><option>PENDING</option><option>RUNNING</option><option>DONE</option><option>FAILED</option><option>SKIPPED</option><option>WAIVED</option></select></label>
+        <label class="hint">Loại <select id="c-ex"><option value="">Tất cả</option><option>AUTO</option><option>SEMI</option><option>MANUAL</option></select></label>
+        <label class="hint"><input type="checkbox" id="c-bl"> Chỉ mục bị chặn</label>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Mã</th><th>Site</th><th>Hành động</th><th>Loại</th><th>Trạng thái</th><th>Phụ thuộc / ghi chú</th><th>Thao tác</th></tr></thead>
+        <tbody id="chk-body"></tbody></table></div>
+      <p class="hint" style="margin-top:6px">P1 Chuẩn bị · P2 Cài song song · P3 Quét · P4 Nâng dependency · P5 Chuyển site · P6 Kiểm tra · P7 Dọn dẹp. "blocked" = PENDING có phụ thuộc chưa DONE/WAIVED (BR-PLAN-005, BR-SCN-018). Mục AUTO/SEMI đổi hệ thống: dry-run + xác nhận; mục <span class="unver">chưa kiểm chứng</span> không chạy ở mức AUTO (BR-ENV-010).</p>
+    </section>
+  </div>
+</main>
+</div>
+
+<!-- Hộp thoại dry-run cho mục thay đổi hệ thống -->
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr">FR-CON-SAFE-001</span><span class="fr">FR-PLAN-CHK-002</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code> — BR-CON-008)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <label id="opt-wrap" class="opt" hidden><input type="checkbox" id="opt-noauto"> Tắt tự rollback (<code>--no-auto-rollback</code>) — cần xác nhận kép</label>
+    <p class="hint" id="act-status" aria-live="polite"></p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div id="retype-wrap" hidden><label for="retype">Xác nhận kép: gõ lại <code id="retype-val"></code> (BR-CON-006)</label><br><input type="text" id="retype" autocomplete="off"><div class="field-err" id="e-retype"></div></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn" type="button" id="act-dry">Dry-run</button><button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+  </div>
+</div>
+<!-- Hộp thoại nhập lý do / bằng chứng / xác nhận đồng bộ -->
+<div class="modal-bg" id="form-modal" role="dialog" aria-modal="true" aria-labelledby="fm-title">
+  <div class="modal">
+    <div class="row"><h2 id="fm-title">—</h2><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="fm-desc" style="margin:6px 0"></p>
+    <pre class="cmd" id="fm-cmd"></pre>
+    <div id="fm-field-wrap" style="margin-top:8px"><label for="fm-field" id="fm-label"></label><textarea id="fm-field" maxlength="2048"></textarea><div class="field-err" id="e-fm"></div></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" data-close>Huỷ</button><button class="btn primary" type="button" id="fm-ok">Xác nhận</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var PLAN = 'PLN-20261022-110351-4c7e', EX = 'example.com', SH = 'shop.example.com';
+  // [chk, phase, site, hành động, loại, trạng thái, phụ thuộc, cli_action, kind, verified, ghi chú]
+  var BASE = [
+    ['01','P1','','Xác minh phiên bản, SAPI, nguồn cài','AUTO','DONE',[],'plan_create','read',true,'job JOB-20261022-110204-6f1b'],
+    ['02','P1','','Ánh xạ site → pool/handler → binary','AUTO','DONE',[],'plan_create','read',true,'unmapped = 0'],
+    ['03','P1','','Kiểm kê extension (xmlrpc, imap, oci8, pspell, interbase, wddx), directive mbstring.func_overload, track_errors','AUTO','DONE',[],'plan_create','read',true,'imap: 4 hit'],
+    ['04','P1','','Nhận diện framework/CMS, loader, Composer','AUTO','DONE',[],'plan_create','read',true,'wordpress / none; loader none'],
+    ['05','P1','','Đánh giá bảo mật so sánh ứng viên','AUTO','DONE',[],'assess','read',true,'2 ứng viên (BR-ASMT-001)'],
+    ['06','P1','','Chọn và duyệt nhánh đích; nâng framework cùng đợt?','SEMI','PENDING',['01','02','03','04','05'],'plan_approve','sync',true,'DONE khi duyệt kế hoạch'],
+    ['07','P1','','Sao lưu docroot, cấu hình, CSDL','SEMI','PENDING',['06'],null,'',true,'chưa có cli_action trong danh sách trắng'],
+    ['08','P1','','Dựng staging cách ly','MANUAL','PENDING',['06'],null,'',true,'trang chủ staging HTTP 200'],
+    ['09','P2','','Kiểm tra điều kiện tiên quyết (BR-SCN-016)','AUTO','DONE',[],'plan_create','read',true,'5/5 đạt'],
+    ['10','P2','','Ghim mặc định CLI/FPM (BR-SCN-012)','AUTO','PENDING',['09'],'migrate_install','write',true,'readlink -f /usr/bin/php không đổi'],
+    ['11','P2','','Cài PHP 8.5 song song','SEMI','PENDING',['06','09','10'],'migrate_install','write',true,'php8.5 -v exit 0; FPM active'],
+    ['12','P2','','Cài extension tương ứng/thay thế (imap → PECL)','SEMI','PENDING',['11'],'migrate_install','write',false,'BR-SCN-045'],
+    ['13','P2','','Tạo pool FPM 8.5 cho từng site','AUTO','PENDING',['11'],'migrate_install','write',true,'php-fpm8.5 -t exit 0'],
+    ['14','P3',EX,'Lint cú pháp bằng $NEW_BIN','AUTO','PENDING',['11'],'plan_run_item','read',true,'0 Parse error'],
+    ['14','P3',SH,'Lint cú pháp bằng $NEW_BIN','AUTO','PENDING',['11'],'plan_run_item','read',true,'0 Parse error'],
+    ['15','P3',EX,'Quét PHPCompatibility testVersion 8.5','AUTO','DONE',[],'plan_run_item','read',true,'0 ERROR'],
+    ['15','P3',SH,'Quét PHPCompatibility testVersion 8.5','AUTO','FAILED',[],'plan_run_item','read',true,'2 ERROR'],
+    ['16','P3',EX,'Quét bộ luật BC dải (7.4, 8.5]','AUTO','DONE',[],'plan_run_item','read',true,'0 error, 3 warning'],
+    ['16','P3',SH,'Quét bộ luật BC dải (7.4, 8.5]','AUTO','FAILED',[],'plan_run_item','read',true,'2 error chưa miễn trừ'],
+    ['17','P3','','So sánh lỏng chuỗi–số (BC-PHP-80-01)','SEMI','PENDING',['16'],null,'',true,'mỗi vị trí có test hoặc ==='],
+    ['18','P3',EX,'Kiểm tra platform Composer','AUTO','SKIPPED',[],null,'',true,'composer = false'],
+    ['18','P3',SH,'Kiểm tra platform Composer','AUTO','FAILED',[],'plan_run_item','read',true,'phpunit/phpunit chặn'],
+    ['19','P3','','Chạy test tự động bằng $NEW_BIN','SEMI','PENDING',['11'],'plan_run_item','read',true,'phpunit exit 0'],
+    ['20','P3','','(Tuỳ chọn) Rector trên $COPY','SEMI','SKIPPED',[],null,'',true,'Rector không bật (FR-CMPT-RCT-001)'],
+    ['21','P3',SH,'Sửa mã theo báo cáo 14–19','MANUAL','PENDING',['15@'+SH,'16@'+SH],null,'',true,'each(), create_function()'],
+    ['22','P4',SH,'Nâng dependency Composer trên $NEW_BIN','SEMI','PENDING',['11','18@'+SH],'fix','write',true,'check-platform-reqs exit 0'],
+    ['23','P4',EX,'Nâng WordPress trên 7.4 trước khi đổi PHP','SEMI','PENDING',['06'],'fix','write',true,'7.0.2 → 7.0.7; verify-checksums'],
+    ['24','P4',SH,'Nâng framework/CMS khác','MANUAL','SKIPPED',[],null,'',true,'framework = none'],
+    ['25','P4','','Loader cho $NEW','SEMI','SKIPPED',[],null,'',true,'loader = none'],
+    ['26','P5',EX,'Chụp baseline health check','AUTO','PENDING',['13'],'migrate_healthcheck','read',true,'baseline đủ trường'],
+    ['26','P5',SH,'Chụp baseline health check','AUTO','PENDING',['13'],'migrate_healthcheck','read',true,'baseline đủ trường'],
+    ['27','P5','','(khi mod_php) Chuyển sang PHP-FPM của 7.4 trước','SEMI','SKIPPED',[],null,'',true,'không có mod_php'],
+    ['28','P5',EX,'Chuyển site canary','SEMI','PENDING',['14@'+EX,'15@'+EX,'16@'+EX,'17','19','23@'+EX,'26@'+EX],'migrate_switch','write',true,'mục 30 ĐẠT'],
+    ['29','P5',SH,'Chuyển site còn lại (1 lần duyệt/site)','SEMI','PENDING',['28@'+EX,'14@'+SH,'15@'+SH,'16@'+SH,'21@'+SH,'22@'+SH,'26@'+SH],'migrate_switch','write',true,'compat FAIL → chặn'],
+    ['30','P6','','Health check 10 phút + tự hoàn tác','AUTO','PENDING',['28@'+EX],null,'',true,'chạy trong lượt chuyển'],
+    ['31','P6','','Kiểm thử nghiệp vụ','MANUAL','PENDING',['30'],null,'',true,'100% pass'],
+    ['32','P6','','Chuyển cron/CLI sang $NEW_BIN','SEMI','PENDING',['29@'+SH],null,'',true,'0 cron gọi $OLD_BIN'],
+    ['33','P7','','Thống kê log Deprecated 7 ngày','AUTO','PENDING',['32'],null,'',true,'báo cáo theo nhóm'],
+    ['34','P7','','Gỡ PHP 7.4 (BR-SCN-014)','SEMI','PENDING',['33'],'migrate_remove_old','write',true,'14 ngày không dùng'],
+    ['35','P7','','Cập nhật Dockerfile/CI','SEMI','SKIPPED',[],null,'',true,'không có Dockerfile']
+  ];
+  var OVR = {draft: {}, stale: {}, approved: {'06': 'DONE'},
+    inprog: {'06': 'DONE', '07': 'DONE', '08': 'DONE', '10': 'DONE', '11': 'DONE', '12': 'RUNNING', '13': 'DONE', ['14@' + EX]: 'DONE', '17': 'WAIVED', '19': 'DONE', ['23@' + EX]: 'DONE', ['26@' + EX]: 'DONE'}};
+  var mode = 'draft', root = true;
+  function $(id) { return document.getElementById(id); }
+  function el(t, txt, cls) { var e = document.createElement(t); if (txt !== undefined) { e.textContent = txt; } if (cls) { e.className = cls; } return e; }
+  function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4200); }
+  function key(r) { return r[2] ? r[0] + '@' + r[2] : r[0]; }
+  function items() { var o = OVR[mode] || {}; return BASE.map(function (r) { var c = r.slice(); var k = key(c); if (o[k]) { c[5] = o[k]; } else if (o[c[0]] && !c[2]) { c[5] = o[c[0]]; } return c; }); }
+  function statusOf(list, dep) { var f = list.filter(function (r) { return key(r) === dep || (r[0] === dep && dep.indexOf('@') < 0); }); return f.length && f.every(function (r) { return r[5] === 'DONE' || r[5] === 'WAIVED' || r[5] === 'SKIPPED'; }); }
+  function blockers(list, r) { return r[6].filter(function (d) { return !statusOf(list, d); }); }
+  function planStatus() { return mode === 'stale' ? 'draft' : (mode === 'inprog' ? 'in_progress' : mode); }
+  function render() {
+    var list = items(), body = $('chk-body'); body.textContent = '';
+    var f = {ph: $('c-ph').value, site: $('c-site').value, st: $('c-st').value, ex: $('c-ex').value, bl: $('c-bl').checked}, lastPh = '';
+    var cnt = {total: 0, PENDING: 0, RUNNING: 0, DONE: 0, FAILED: 0, SKIPPED: 0, WAIVED: 0};
+    list.forEach(function (r) { cnt.total += 1; cnt[r[5]] += 1; });
+    $('plan-progress').textContent = cnt.total + ' mục: DONE ' + cnt.DONE + ' · PENDING ' + cnt.PENDING + ' · RUNNING ' + cnt.RUNNING + ' · FAILED ' + cnt.FAILED + ' · SKIPPED ' + cnt.SKIPPED + ' · WAIVED ' + cnt.WAIVED;
+    list.forEach(function (r) {
+      var bl = (r[5] === 'PENDING' || r[5] === 'FAILED') ? blockers(list, r) : [];
+      if (f.ph && r[1] !== f.ph) { return; } if (f.site && (f.site === '-' ? r[2] !== '' : r[2] !== f.site)) { return; }
+      if (f.st && r[5] !== f.st) { return; } if (f.ex && r[4] !== f.ex) { return; } if (f.bl && !bl.length) { return; }
+      if (r[1] !== lastPh) { var ph = el('tr', undefined, 'ph'); var td0 = el('td', r[1]); td0.colSpan = 7; ph.appendChild(td0); body.appendChild(ph); lastPh = r[1]; }
+      var tr = el('tr'); tr.appendChild(el('td', 'CHK-PHP-007-' + r[0], 'mono')); tr.appendChild(el('td', r[2] || '—')); tr.appendChild(el('td', r[3])); tr.appendChild(el('td', r[4]));
+      var ts = el('td'); ts.appendChild(el('span', r[5], 'badge st-' + r[5])); tr.appendChild(ts);
+      var tn = el('td'); if (bl.length) { tn.appendChild(el('span', 'blocked: ' + bl.join(', '), 'blocked')); tn.appendChild(el('br')); }
+      if (!r[9]) { tn.appendChild(el('span', 'chưa kiểm chứng', 'unver')); tn.appendChild(document.createTextNode(' ')); }
+      tn.appendChild(el('span', r[10], 'hint')); tr.appendChild(tn);
+      var ta = el('td'); ta.className = 'row'; actions(r, bl).forEach(function (b) { ta.appendChild(b); }); tr.appendChild(ta);
+      body.appendChild(tr);
+    });
+  }
+  function btn(txt, fn, dis, title) { var b = el('button', txt, 'btn sm'); b.type = 'button'; if (dis) { b.disabled = true; b.title = title || ''; } else { b.addEventListener('click', fn); } return b; }
+  function actions(r, bl) {
+    var out = [], st = r[5], ps = planStatus(), id = 'CHK-PHP-007-' + r[0];
+    if (st === 'DONE' || st === 'SKIPPED' || st === 'WAIVED' || st === 'RUNNING') { if (st === 'RUNNING') { var a = el('a', 'Xem job', 'btn sm'); a.href = 'jobs-log.html'; out.push(a); } return out; }
+    if (r[7] === 'plan_approve') { out.push(btn('Duyệt kế hoạch', function () { $('btn-approve').click(); }, ps !== 'draft', 'Chỉ khi kế hoạch draft')); return out; }
+    if (r[4] === 'MANUAL') {
+      out.push(btn('DONE + bằng chứng', function () { if (bl.length) { return toast('ERR-SCN-424-01 — Chưa thể thực hiện ' + id + ': mục ' + bl[0] + ' chưa hoàn thành.'); } openForm('evidence', id); }));
+    } else if (r[7]) {
+      var write = r[8] === 'write', why = '';
+      if (write && !root) { why = 'ERR-CLI-403-01: cần root'; }
+      else if (write && (ps === 'draft')) { why = 'ERR-PLAN-409-02: kế hoạch draft, cần approved/in_progress'; }
+      else if (mode === 'stale' && r[1] === 'P5') { why = 'ERR-PLAN-410-01: kế hoạch stale'; }
+      out.push(btn(write ? 'Chạy (dry-run)' : 'Chạy', function () {
+        if (bl.length) { return toast('ERR-SCN-424-01 — Chưa thể thực hiện ' + id + ': mục ' + bl[0] + ' chưa hoàn thành.'); }
+        if (write || !r[9]) { openAct(r); } else { toast('POST /api/v1/plans/' + PLAN + '/checklist-items/' + id + '/runs {dry_run:false} → 202 (job đọc).'); }
+      }, !!why, why));
+    } else { out.push(btn('Chạy', null, true, 'Mục không có cli_action trong danh sách trắng (spec §3.3.4)')); }
+    out.push(btn('Miễn trừ', function () { openForm('waive', id); }));
+    return out;
+  }
+  var ACTS = {
+    '11': {cmd: 'plan run ' + PLAN + ' CHK-PHP-007-11 --yes --json', child: 'migrate install --runtime php --target 8.5 --yes --json', changes: ['package install php8.5-cli, php8.5-fpm, php8.5-common, php8.5-mbstring, php8.5-mysql, php8.5-curl, php8.5-xml, php8.5-intl (kho ppa:ondrej/php đã cấu hình)', 'service enable + start php8.5-fpm.service', 'update-alternatives php, php-fpm: không đổi (BR-SCN-012)'], affected: 'host · runtime mới PHP 8.5.12 · 0 site', disruption: '0 s, phạm vi none (không đổi gán site)', revert: 'Một phần — gói cài mới không bị gỡ khi rollback; manifest ghi danh sách gói (BR-PTCH-008)', retype: null},
+    '23': {cmd: 'plan run ' + PLAN + ' CHK-PHP-007-23 --yes --json', child: 'fix --json --only wp --path /var/www/example', changes: ['wp core update --minor: 7.0.2 → 7.0.7 (min_patched, BR-FEED-025) dưới quyền chủ site', 'wp plugin update --all --patch', 'wp core verify-checksums, wp plugin verify-checksums --all'], affected: 'site example.com (dự án /var/www/example)', disruption: 'WordPress bật maintenance mode trong lúc cập nhật core; thời lượng chưa ước tính (expected_s = null)', revert: 'Một phần — rollback khôi phục file đã sao lưu; CSDL đã nâng schema không tự hạ', retype: null},
+    '28': {cmd: 'plan run ' + PLAN + ' CHK-PHP-007-28 --yes --json', child: 'migrate switch example.com --target 8.5 --plan ' + PLAN + ' --yes --json', changes: ['site_binding switch /etc/nginx/sites-available/example.conf: fastcgi_pass unix:/run/php/php7.4-fpm.sock → unix:/run/php/php8.5-fpm-example.sock', 'nginx -t, graceful reload nginx', 'health check 600 s (10 vòng × 60 s), tự rollback khi vi phạm (BR-HC-010)'], affected: 'site example.com (canary)', disruption: 'C6–C10 ≤ 30 s P95 (NFR-ENV-01); graceful reload, 0 phản hồi 5xx (NFR-ENV-04)', revert: 'Đầy đủ — migrate rollback example.com ≤ 60 s P95 (NFR-ENV-02); runtime 7.4 được giữ (BR-ENV-008)', retype: 'example.com', opt: true}
+  };
+  var cur = null;
+  function openAct(r) {
+    cur = ACTS[r[0]] || {cmd: 'plan run ' + PLAN + ' CHK-PHP-007-' + r[0] + ' --yes --json', child: r[7], changes: ['Theo kết quả dry-run của ' + r[7]], affected: r[2] || 'host', disruption: 'Theo preview của CLI', revert: 'Theo preview của CLI', retype: null};
+    $('act-title').textContent = 'Chạy mục CHK-PHP-007-' + r[0] + ' — ' + r[3];
+    $('act-cmd').textContent = 'Dry-run: php-quickpatch.sh ' + cur.cmd + ' --dry-run\n# lệnh con: ' + cur.child + ' --dry-run';
+    $('act-status').textContent = r[9] ? 'Bước 1: dry-run. Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005, BR-SCN-008).' : 'Lệnh "chưa kiểm chứng": luôn cần dry-run + xác nhận, không chạy ở mức AUTO (BR-ENV-010).';
+    $('opt-wrap').hidden = !cur.opt; $('opt-noauto').checked = false; $('retype-wrap').hidden = true; $('retype').value = '';
+    $('act-preview').hidden = true; $('act-exec').disabled = true; $('act-modal').classList.add('open'); $('act-dry').focus();
+  }
+  $('opt-noauto').addEventListener('change', function (e) { if (!cur) { return; } $('retype-wrap').hidden = !e.target.checked; $('retype-val').textContent = cur.retype || ''; });
+  $('act-dry').addEventListener('click', function () { if (!cur) { return; }
+    $('act-status').textContent = 'Đang chạy dry-run JOB-20261022-122015-5b0e…';
+    setTimeout(function () {
+      var ul = $('pv-changes'); ul.textContent = ''; cur.changes.forEach(function (c) { ul.appendChild(el('li', c)); });
+      $('pv-affected').textContent = cur.affected; $('pv-disruption').textContent = cur.disruption; $('pv-revert').textContent = cur.revert;
+      $('act-preview').hidden = false; $('act-exec').disabled = false;
+      $('act-status').textContent = 'Dry-run JOB-20261022-122015-5b0e kết thúc, có preview → hợp lệ tới 12:35:15 UTC (15 phút).';
+    }, 900);
+  });
+  $('act-exec').addEventListener('click', function () { if (!cur) { return; }
+    if ($('opt-noauto').checked && $('retype').value.trim() !== cur.retype) { $('retype').classList.add('invalid'); $('e-retype').textContent = 'Giá trị không khớp site_id (ERR-JOB-428-01, details.constraint = "retype_mismatch").'; $('e-retype').classList.add('show'); return; }
+    closeAll(); toast('POST …/checklist-items/…/runs {dry_run:false, confirm_dry_run_job_id: "JOB-20261022-122015-5b0e"} → 202 JOB-20261022-122101-d3a7. Mục chuyển RUNNING; sự kiện SSE plan_item.');
+  });
+  var FORM = null;
+  function openForm(kind, id) {
+    var cfg = {
+      evidence: {t: 'Đánh dấu DONE cho ' + id, d: 'Mục MANUAL: ghi bằng chứng đối chiếu tiêu chí hoàn thành (BR-PLAN-005).', c: 'PATCH /api/v1/plans/' + PLAN + '/checklist-items/' + id + ' {"status":"DONE","evidence":"…"}\n≡ php-quickpatch.sh plan item ' + PLAN + ' ' + id + ' --set done --evidence "…" --json', l: 'Bằng chứng (10–500 ký tự)', min: 10, ok: 'Mục ' + id + ' → DONE; ghi events.jsonl và audit.'},
+      waive: {t: 'Miễn trừ ' + id, d: 'Mục chuyển WAIVED, mục phụ thuộc được mở khoá; ghi audit "miễn trừ" (BR-AUD-001).', c: 'PATCH …/checklist-items/' + id + ' {"status":"WAIVED","reason":"…"}', l: 'Lý do (20–500 ký tự)', min: 20, ok: 'Mục ' + id + ' → WAIVED.'},
+      hc: {t: 'Khai báo URL health check — example.com', d: 'Trang chủ luôn có (BR-HC-001). Tối đa 10 URL, chỉ GET, scheme http/https, host thuộc server_names của site, không userinfo/fragment (BR-HC-002).', c: 'PATCH /api/v1/sites/example.com {"hc_urls": […]}', l: 'Mỗi dòng 1 URL', min: 0, ok: 'Đã lưu hc_url vào /etc/php-quickpatch/sites.d/example.com.conf; ghi audit.'},
+      approve: {t: 'Duyệt kế hoạch ' + PLAN, d: 'Đổi trạng thái draft → approved; mục CHK-PHP-007-06 → DONE. Không đổi gói/dịch vụ nên không cần dry-run (thao tác điều khiển đồng bộ, timeout 30 s).', c: 'PATCH /api/v1/plans/' + PLAN + ' {"status":"approved"}\n≡ php-quickpatch.sh plan approve ' + PLAN + ' --json', l: '', min: -1, ok: 'Kế hoạch → approved (audit).'},
+      cancel: {t: 'Huỷ kế hoạch ' + PLAN, d: 'Cho phép khi không có job của kế hoạch đang RUNNING (BR-PLAN-007); trạng thái cancelled là kết thúc.', c: 'PATCH /api/v1/plans/' + PLAN + ' {"status":"cancelled","reason":"…"}', l: 'Lý do (tuỳ chọn, ≤ 500 ký tự)', min: 0, ok: 'Kế hoạch → cancelled.'}
+    }[kind];
+    FORM = {kind: kind, cfg: cfg};
+    $('fm-title').textContent = cfg.t; $('fm-desc').textContent = cfg.d; $('fm-cmd').textContent = cfg.c; $('fm-label').textContent = cfg.l;
+    $('fm-field-wrap').hidden = cfg.min < 0; $('fm-field').value = kind === 'hc' ? 'https://example.com/wp-login.php' : ''; $('fm-field').classList.remove('invalid'); $('e-fm').classList.remove('show');
+    $('form-modal').classList.add('open'); (cfg.min < 0 ? $('fm-ok') : $('fm-field')).focus();
+  }
+  $('fm-ok').addEventListener('click', function () {
+    var v = $('fm-field').value.trim(), c = FORM.cfg, msg = '';
+    if (c.min > 0 && v.length < c.min) { msg = 'ERR-PLAN-422-01 — Vui lòng nhập ' + (FORM.kind === 'evidence' ? 'bằng chứng' : 'lý do') + ' tối thiểu ' + c.min + ' ký tự (hiện ' + v.length + ').'; }
+    if (FORM.kind === 'hc') {
+      var urls = v ? v.split(/\n+/) : [];
+      if (urls.length > 10) { msg = 'ERR-HC-422-02 — Quá 10 URL.'; }
+      urls.forEach(function (u) { if (!/^https?:\/\/(www\.)?example\.com(\/[^\s#]*)?$/.test(u.trim())) { msg = 'ERR-HC-422-02 — URL sai cú pháp hoặc khác host của site: ' + u.trim(); } });
+    }
+    if (msg) { $('fm-field').classList.add('invalid'); $('e-fm').textContent = msg; $('e-fm').classList.add('show'); return; }
+    closeAll(); toast(c.ok);
+    if (FORM.kind === 'approve') { setMode('approved'); }
+  });
+  function closeAll() { $('act-modal').classList.remove('open'); $('form-modal').classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeAll); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAll(); } });
+  document.querySelectorAll('[data-form]').forEach(function (b) { b.addEventListener('click', function () { openForm(b.getAttribute('data-form')); }); });
+  $('btn-approve').addEventListener('click', function () {
+    if (mode === 'stale') { var e = $('plan-err'); e.hidden = false; e.textContent = 'ERR-PLAN-410-01 — Kế hoạch đã lỗi thời (TARGET_NEW_KEV); hãy sinh lại trước khi duyệt.'; return; }
+    openForm('approve');
+  });
+  $('btn-cancel').addEventListener('click', function () { openForm('cancel'); });
+  $('sim-412').addEventListener('click', function () { var e = $('plan-err'); e.hidden = false; e.textContent = 'ERR-PLAN-412-01 — Chưa thể duyệt: details.unmet = ["P1_AUTO_NOT_DONE: CHK-PHP-007-05", "PRE_INSTALL_SCAN_INCOMPLETE: shop.example.com"].'; });
+  $('btn-canary').addEventListener('click', function () { toast('ERR-PLAN-409-02 — Không thể đặt canary: shop.example.com có kết luận FAIL (canary phải PASS/PENDING).'); });
+  $('btn-regen').addEventListener('click', function () { setMode('loading'); });
+  $('btn-waive').addEventListener('click', function () {
+    var sel = Array.prototype.filter.call(document.querySelectorAll('.hit'), function (c) { return c.checked; }), r = $('w-reason').value.trim(), msg = '';
+    if (!sel.length) { msg = 'Chọn ít nhất 1 hit mức error.'; } else if (r.length < 20) { msg = 'ERR-PLAN-422-01 — Vui lòng nhập lý do tối thiểu 20 ký tự (hiện ' + r.length + ').'; }
+    $('w-reason').classList.toggle('invalid', !!msg); $('e-w').textContent = msg; $('e-w').classList.toggle('show', !!msg); if (msg) { return; }
+    var left = 2 - sel.length; $('shop-err').textContent = String(left); $('shop-waived').textContent = String(sel.length);
+    $('shop-verdict').textContent = left ? 'FAIL' : 'PENDING';
+    toast('POST /api/v1/plans/' + PLAN + '/compatibility-waivers → 201; đã miễn trừ ' + sel.length + ' hit, kết luận shop.example.com: ' + (left ? 'FAIL' : 'PENDING (chờ lint $NEW_BIN)') + '.');
+  });
+  // Chọn đích
+  function syncReason() { var v = document.querySelector('input[name=tgt]:checked').value; $('reason-wrap').hidden = (v === '8.5'); }
+  document.querySelectorAll('input[name=tgt]').forEach(function (x) { x.addEventListener('change', syncReason); });
+  $('tgt-form').addEventListener('submit', function (e) {
+    e.preventDefault(); var ok = true, v = document.querySelector('input[name=tgt]:checked').value;
+    function err(id, inp, m) { $(id).textContent = m; $(id).classList.toggle('show', !!m); if (inp) { inp.classList.toggle('invalid', !!m); } if (m) { ok = false; } }
+    err('e-other', $('f-other'), v === 'other' && !/^[4-9]\.[0-9]$/.test($('f-other').value.trim()) ? 'ERR-CON-422-01 — Nhánh PHP phải dạng X.Y (regex ^[4-9]\\.[0-9]$).' : '');
+    if (v === 'other' && /^(6\.|5\.|7\.|8\.[0-1]$)/.test($('f-other').value.trim())) { err('e-other', $('f-other'), 'ERR-SCN-409-02 — Không thể chọn nhánh EOL/UNKNOWN làm đích (BR-UPG-004).'); }
+    var sites = document.querySelectorAll('input[name=site]:checked').length; err('e-site', null, sites ? '' : 'Chọn ít nhất 1 site.');
+    var reason = $('f-reason').value.trim(); err('e-reason', $('f-reason'), v !== '8.5' && reason.length < 20 ? 'ERR-PLAN-422-01 — Vui lòng nhập lý do tối thiểu 20 ký tự (hiện ' + reason.length + ').' : '');
+    if (!ok) { return; }
+    toast('POST /api/v1/plans → 202 JOB-20261022-110204-6f1b (plan_create). Kế hoạch draft/approved cũ của runtime sẽ bị huỷ (BR-PLAN-002).'); setMode('loading');
+  });
+  var LOG = ['php-quickpatch 2.0.0 mode=plan log=/var/lib/php-quickpatch/php-quickpatch.log', '  [i] runtime php:7c41d09e2a15 /usr/bin/php7.4 7.4.33 -> target 8.5 (8.5.12, RECOMMENDED)', '  [i] scenario SCN-PHP-007; checklist 35 items (catalog 2026.10.20-1)', '  [i] compat: static BC rules (7.4, 8.5] on example.com: 0 error, 3 warning', '  [i] compat: PHPCompatibility 10.0.0-alpha2 on shop.example.com: 2 ERROR', '  [WARN] composer: phpunit/phpunit 5.6.2 requires php ^5.6 || ^7.0; min compatible 8.5.12 (packagist)', '  [i] preconditions: 5/5 passed', '  [OK] plan PLN-20261022-110351-4c7e created (draft)'];
+  var gen = null;
+  function setMode(s) {
+    document.querySelectorAll('[data-state]').forEach(function (x) { x.classList.toggle('show', x.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+    $('st3').className = (s === 'empty') ? '' : 'on'; $('st4').className = (OVR[s] ? 'on' : '');
+    clearInterval(gen);
+    if (s === 'loading') { var i = 0, lg = $('gen-log'); lg.textContent = ''; gen = setInterval(function () { if (i < LOG.length) { lg.textContent += LOG[i] + '\n'; i += 1; } else { clearInterval(gen); setMode('draft'); toast('Job kết thúc SUCCEEDED_WITH_ISSUES; mở checklist PLN-20261022-110351-4c7e.'); } }, 700); }
+    if (!OVR[s]) { return; }
+    mode = s; var ps = planStatus(); $('plan-status').textContent = ps + (s === 'stale' ? ' · stale' : ''); $('plan-status').className = 'badge' + (s === 'stale' ? ' stale' : '');
+    $('btn-approve').disabled = (ps !== 'draft') || !root; $('btn-complete').disabled = true; $('plan-err').hidden = true;
+    $('tgt-box').open = false; render();
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-set')); }); });
+  ['c-ph', 'c-site', 'c-st', 'c-ex', 'c-bl'].forEach(function (id) { $(id).addEventListener('change', render); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) { root = !e.target.checked; $('appr-reason').style.display = root ? 'none' : 'inline'; setMode(mode); });
+  setMode('draft');
+})();
+</script>
+</body>
+</html>

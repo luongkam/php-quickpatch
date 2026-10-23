@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-008
+title: Wireframe SCR-008 — Nguồn dữ liệu (feed status) (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, feeds, freshness, snapshot, schedule, scr-008, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-FEED-001
+  - DOC-SRS-QP-FEED-003
+  - FR-CON-FEED-001
+  - FR-CON-FEED-002
+  - FR-FEED-CMD-002
+  - UC-FEED-001
+  - UC-FEED-003
+  - UC-FEED-004
+  - UC-CON-003
+related_diagrams:
+  - DIAG-SEQ-QP-FEED-001
+  - DIAG-SEQ-QP-FEED-002
+  - DIAG-SEQ-QP-FEED-003
+  - DIAG-STATE-QP-FEED-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-008: Nguồn dữ liệu — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g-kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.kpi{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:12px;display:block}
+.kpi b{display:block;font-size:22px}.kpi span{font-size:12px;color:var(--sub)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.danger{border:2px solid var(--err-line);color:var(--err);font-weight:600}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}.sev-l{color:#374151}
+.kev{border:2px solid #111827;color:#111827}.stale{border-style:dashed;border-color:#111827;background:var(--muted)}.off{border-style:dashed;color:var(--sub)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.field{margin-bottom:10px}.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:170px;background:#fff}.pv ul{margin-left:16px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+tr.row-bad td{background:#FAFAFA}tr.row-off td{color:var(--sub)}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html" aria-current="page"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-008 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-008 Nguồn dữ liệu — UC-FEED-001 (đồng bộ thủ công), UC-FEED-003 (xem trạng thái, PER-04/PER-01), UC-FEED-004 (nhập snapshot, include UC-CON-003 dry-run → xác nhận)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-FEED-001, FR-CON-FEED-002, FR-FEED-CMD-002. Liên quan: FR-FEED-AGE-001, FR-FEED-SYNC-001, FR-FEED-CMD-001 (job <code>feeds_update</code>), FR-FEED-CMD-006 + FR-FEED-SCHD-001 (lịch), FR-FEED-SNAP-003, FR-CON-SAFE-001</td></tr>
+      <tr><th>BR</th><td>BR-FEED-001, BR-FEED-005, BR-FEED-006, BR-FEED-009, BR-FEED-010, BR-FEED-015, BR-FEED-055, BR-FEED-057, BR-FEED-059, BR-DATA-001, BR-JOB-001, BR-JOB-003, BR-CON-004 (ngoại lệ 2: <code>application/gzip</code>), BR-CON-005 (1.0.1: <code>feeds_import</code> bắt buộc dry-run), BR-CON-009</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-FEED-423-01, ERR-FEED-503-01, ERR-FEED-429-01, ERR-FEED-412-01, ERR-SCN-503-01, ERR-FEED-422-02, ERR-FEED-409-02, ERR-FEED-507-01, ERR-CON-413-01, ERR-CON-415-01, ERR-CON-422-01, ERR-JOB-409-01, ERR-JOB-428-01, ERR-JOB-504-01, ERR-CON-500-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/feeds</code> (đồng bộ <code>feeds status --json</code>, timeout 10 s), <code>POST /api/v1/jobs</code> (<code>feeds_update</code> loại data; <code>feeds_schedule</code> loại write, cần dry-run), <code>POST /api/v1/feed-snapshots</code> (<code>feeds_import</code>, ≤ 20 MiB; bước 1 <code>?dry_run=true</code> tạo job read, bước 2 tải lại cùng file với <code>?confirm_dry_run_job_id=</code> tạo job write), <code>GET /api/v1/jobs/{job_id}</code> (đọc <code>result.preview</code> của job dry-run)</td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>TTL theo data-sources.md §3.1. Kiểm chứng ngày 2026-10-22: CISA KEV <code>catalogVersion</code> 2026.10.21, <code>count</code> = 1.754; nodejs/Release <code>schedule.json</code> 27 nhánh; Node.js Security WG <code>vuln/core/index.json</code> 194 mục; php.net <code>active.php</code>: 8.2.35, 8.3.36, 8.4.27, 8.5.12 (21 Oct 2026); WordPress <code>core/stable-check/1.0</code> 959 phiên bản (7.0.7 <code>outdated</code>, 7.0–7.0.6 <code>insecure</code>). NVD 1.521 = 749 PHP + 188 Node.js + 584 WordPress (số đo trong data-sources.md §3.2). Thời điểm lấy, tuổi, lỗi từng nguồn, mã job là minh hoạ; "bây giờ" = 2026-10-22 12:14 UTC.</td></tr>
+      <tr><th>Ghi chú</th><td>Xuất snapshot (<code>feeds export</code>) chưa có trong danh sách trắng console (api-spec-jobs.md §2) → chỉ hướng dẫn lệnh CLI. <code>--accept-shrink</code> chưa có trong danh sách trắng (api-spec.md §2.13.3) → không có nút. Nhập snapshot đi qua 2 bước dry-run → xác nhận theo BR-CON-005 1.0.1 và FR-CON-FEED-002 1.1.0: <code>feeds_import</code> không thuộc ngoại lệ (api-spec.md §2.13.3); bước xác nhận tải lại cùng file, SHA-256 nội dung và <code>force</code> phải bằng <code>params</code> của job dry-run, job dry-run <code>SUCCEEDED</code> ≤ 15 phút, cùng phiên, <code>bundle_id</code> không đổi; lệch → ERR-JOB-428-01. Màu trạng thái lỗi theo bảng xám rules/13 §2 (nhấn bằng viền 2px/6px và nhãn chữ "LỖI"). CSS/JS inline chỉ để wireframe tự chứa; bản thật tuân BR-CON-007.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md 1.1.0 §9 (FR-CON-FEED-002); business-rules.md 1.1.0 (BR-CON-004, BR-CON-005, BR-JOB-003, BR-JOB-008; §6 mục 2); usecases/UC-FEED-004.md (bước 4–9), UC-CON-003.md; flows.md §2.2 (DIAG-SEQ-QP-FEED-003); data-sources.md §3.1, §5; data-sources-cache-cli.md §2.5, §4.3, §5.2, §6; api/api-spec.md §2.13.3; api/api-spec-core.md §6, §6.2; api/api-spec-jobs.md §2, §2.2; rules/13 §2; https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json; https://raw.githubusercontent.com/nodejs/Release/main/schedule.json; https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json; https://www.php.net/releases/active.php; https://api.wordpress.org/core/stable-check/1.0/ (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-008: độ tươi tổng, bảng 17 nguồn, đồng bộ ngay, lịch đồng bộ (dry-run), nhập snapshot qua console, trạng thái đồng bộ đang chạy/STALE/EXPIRED/lỗi</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: nhập snapshot theo BR-CON-005 1.0.1 (bỏ ngoại lệ không dry-run) — <code>dryNeeded: true</code>, bước 1 "Dry-run" (<code>POST /api/v1/feed-snapshots?dry_run=true</code>, job read <code>feeds import … --dry-run</code>) hiển thị 4 mục NFR-USE-006 gồm kết quả kiểm SHA-256 gói, <code>SHA256SUMS</code>, tar, schema, <code>generated_at</code> so với bundle hiện tại; nút Thực thi khoá tới khi có dry-run hợp lệ ≤ 15 phút; bước 2 tải lại cùng file với <code>confirm_dry_run_job_id</code>; thêm file mẫu cũ hơn bundle (dry-run báo ERR-FEED-409-02, Thực thi giữ khoá), mô phỏng ERR-JOB-428-01 (<code>params_mismatch</code>, <code>expired</code>, <code>missing</code>) và ERR-FEED-422-02; đổi màu lỗi đỏ sang bảng xám (rules/13 §2): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6, nhấn lỗi bằng viền 2px/6px và nhãn chữ "LỖI"; bổ sung BR/API/tài liệu tham chiếu</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu (AGING)</button>
+    <button type="button" data-set="running">Đang đồng bộ</button>
+    <button type="button" data-set="stale">STALE &gt; 7 ngày</button>
+    <button type="button" data-set="empty">EXPIRED / chưa có bundle</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Nguồn dữ liệu <span class="fr">FR-CON-FEED-001</span></h1>
+      <p class="muted">17 nguồn <code>SRC-001..017</code> · thư mục <code>/var/lib/php-quickpatch/feeds/</code> · khoá đồng bộ <code>feeds/.lock</code> (BR-FEED-015)</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="button" data-open="sync" id="btn-sync">Đồng bộ ngay</button><span class="fr">FR-FEED-CMD-001</span>
+    </div>
+  </div>
+
+  <!-- Đang đồng bộ -->
+  <section data-state="running">
+    <div class="alert" role="status"><b>Đang đồng bộ</b> — job <a class="mono" href="jobs-log.html">JOB-20261022-121410-5c3d</a> (<code>feeds update --json</code>, loại data, bắt đầu 12:14:10 UTC, ngân sách 180 s tăng dần / 900 s đầy đủ, timeout job 960 s). Nút "Đồng bộ ngay" bị khoá: tạo trùng → <b>ERR-JOB-409-01</b>. Bảng dưới vẫn hiển thị bundle hiện hành tới khi bundle mới thay nguyên tử (BR-FEED-051).</div>
+  </section>
+  <section data-state="stale">
+    <div class="alert error" role="alert"><b>ERR-FEED-412-01</b> — Dữ liệu dùng cho kết quả đã cũ 9 ngày (216 giờ, mức STALE). Kết quả có thể thiếu CVE công bố sau 2026-10-13. Mọi kết quả trên console và báo cáo kèm cảnh báo này (BR-DATA-001). <code>feeds status</code> thoát mã 1. Quá 2.160 giờ (90 ngày) → ERR-SCN-503-01.</div>
+  </section>
+
+  <section data-state="data running stale">
+    <div class="grid g-kpi">
+      <div class="kpi"><b id="k-fresh">AGING</b><span>Độ tươi tổng · <span id="k-age">12 giờ</span> (nguồn cũ nhất: <span id="k-oldest">SRC-008</span>)</span></div>
+      <div class="kpi"><b id="k-ok">13</b><span>Nguồn OK / 16 nguồn bật</span></div>
+      <div class="kpi"><b>1</b><span>DEGRADED (SRC-004 dùng cache)</span></div>
+      <div class="kpi"><b>1</b><span>FAILED (SRC-008 dùng cache, BR-FEED-006)</span></div>
+      <div class="kpi"><b>1</b><span>DISABLED (SRC-013 cần key, không tính tuổi)</span></div>
+    </div>
+
+    <div class="grid g2">
+      <section class="card" aria-labelledby="b-h">
+        <h2 id="b-h">Bundle hiện hành <span class="fr">FR-FEED-CMD-002</span><span class="fr">FR-FEED-AGE-001</span></h2>
+        <table class="pv">
+          <tr><th>bundle_id</th><td class="mono" id="v-bundle">b-20261022T093000Z-3f2a9c1e</td></tr>
+          <tr><th>generated_at</th><td id="v-gen">2026-10-22 09:30:00 UTC</td></tr>
+          <tr><th>Mức độ tươi</th><td><span class="badge stale" id="v-fresh">AGING</span> <span id="v-age">data_age_h = 12</span> · <code>cli_exit_code</code> = <span id="v-exit">0</span></td></tr>
+          <tr><th>Ngưỡng</th><td class="hint">FRESH ≤ TTL nguồn · AGING ≤ 168 giờ · STALE ≤ 2.160 giờ (ERR-FEED-412-01) · EXPIRED &gt; 2.160 giờ (ERR-SCN-503-01, chỉ cho vá cùng nhánh) — BR-FEED-005</td></tr>
+          <tr><th>Schema</th><td class="mono">qp.feeds.status/1 (1.0.0) · BR-FEED-059</td></tr>
+        </table>
+      </section>
+      <section class="card" aria-labelledby="sch-h">
+        <h2 id="sch-h">Lịch đồng bộ <span class="fr">FR-FEED-CMD-006</span></h2>
+        <table class="pv">
+          <tr><th>Kiểu</th><td>systemd timer <code>php-quickpatch-feeds.timer</code> (<code>OnCalendar=*-*-* 00/6:17:00</code>, <code>RandomizedDelaySec=900</code>)</td></tr>
+          <tr><th>Chu kỳ</th><td>6 giờ (mặc định Q-08)</td></tr>
+          <tr><th>Lần tới</th><td>2026-10-22 12:17 UTC (sau 3 phút; độ trễ ngẫu nhiên ≤ 900 s)</td></tr>
+        </table>
+        <div class="row" style="margin-top:8px">
+          <label for="f-int" class="hint">Chu kỳ mới</label>
+          <select id="f-int"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>6</option><option>8</option><option>12</option><option>24</option></select><span class="hint">giờ</span>
+          <button class="btn sm" type="button" data-open="sched_install">Cập nhật lịch</button>
+          <button class="btn sm danger" type="button" data-open="sched_remove">Gỡ lịch</button>
+        </div>
+        <p class="hint" style="margin-top:6px">Đã có lịch → cập nhật tại chỗ, không tạo bản thứ 2 (BR-FEED-057). Chu kỳ &lt; 6 giờ khi chưa cấu hình API key NVD → cảnh báo hạn mức. Job loại write → bắt buộc dry-run (BR-CON-005).</p>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="src-h">
+      <h2 id="src-h">Trạng thái từng nguồn <span class="fr">FR-CON-FEED-001</span><span class="muted" style="font-weight:400;font-size:12px">Thứ tự đồng bộ: SRC-006, 002, 009, 012, 011, 004, 001, 010, 003, 008 (data-sources-cache-cli.md §5.1)</span></h2>
+      <div class="row" style="margin-bottom:8px">
+        <label for="f-st" class="hint">Lọc trạng thái</label>
+        <select id="f-st"><option value="">Tất cả</option><option>OK</option><option>DEGRADED</option><option>FAILED</option><option>DISABLED</option></select>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Mã</th><th>Nguồn</th><th>Trạng thái</th><th>Lấy thành công cuối (UTC)</th><th>Tuổi</th><th>TTL</th><th>Bản ghi</th><th>Lỗi cuối</th><th>data_origin</th><th></th></tr></thead>
+        <tbody id="src-body"></tbody>
+      </table></div>
+      <p class="hint" style="margin-top:6px">Lỗi nguồn không chặn lượt chạy (BR-FEED-008): nguồn lỗi dùng chuỗi dự phòng (BR-FEED-006) và cache hợp lệ; phản hồi lỗi không ghi đè dữ liệu hợp lệ (BR-FEED-007). Số bản ghi giảm &gt; 20% (KEV: giảm &gt; 5) bị từ chối với ERR-FEED-502-02 (BR-FEED-009).</p>
+    </section>
+
+    <section class="card" aria-labelledby="snap-h">
+      <h2 id="snap-h">Snapshot offline <span class="fr">FR-CON-FEED-002</span><span class="fr">FR-FEED-SNAP-003</span></h2>
+      <div class="grid g2">
+        <div>
+          <h3>Snapshot đóng gói kèm tool (SRC-017)</h3>
+          <table class="pv">
+            <tr><th>generated_at</th><td>2026-10-20 06:00 UTC (54 giờ)</td></tr>
+            <tr><th>SHA-256</th><td>Khớp <code>QP_SNAPSHOT_SHA256</code> (<code>sha256_ok = true</code>, BR-FEED-010)</td></tr>
+            <tr><th>Biến thể</th><td><code>standard</code> (≤ 3 MB nén)</td></tr>
+          </table>
+          <p class="hint" style="margin-top:6px">Xuất snapshot cho máy chủ khác: chạy trên CLI <code>php-quickpatch.sh feeds export --out FILE [--variant standard|full]</code> (<code>feeds export</code> chưa có trong danh sách trắng console). <span class="fr">FR-FEED-CMD-004</span></p>
+        </div>
+        <form id="snap-form" novalidate>
+          <h3>Nhập snapshot (máy chủ không ra Internet)</h3>
+          <div class="field"><label for="f-file">File <code>feeds-snapshot-*.tar.gz</code> (≤ 20 MiB = 20.971.520 byte)</label>
+            <input type="file" id="f-file" accept=".tar.gz,application/gzip">
+            <div class="row" style="margin-top:4px"><span class="hint">Mô phỏng chọn file:</span><button class="btn sm" type="button" data-pick="ok">feeds-snapshot-20261022T110000Z-standard.tar.gz (2,7 MB)</button><button class="btn sm" type="button" data-pick="old">…-20261021T060000Z-standard.tar.gz (cũ hơn bundle)</button><button class="btn sm" type="button" data-pick="big">…-full.tar.gz (24,1 MB)</button><button class="btn sm" type="button" data-pick="txt">snapshot.zip</button></div>
+            <div class="field-err" id="e-file"></div></div>
+          <div class="field"><label for="f-sha">SHA-256 do nguồn phát hành công bố (64 ký tự hex)</label>
+            <input type="text" id="f-sha" size="66" autocomplete="off" spellcheck="false" placeholder="9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
+            <div class="field-err" id="e-sha"></div></div>
+          <div class="field"><label><input type="checkbox" id="f-force"> Cho nhập snapshot cũ hơn bundle hiện tại (<code>--force</code>)</label></div>
+          <button class="btn primary" type="submit">Tải lên và xem trước (dry-run)…</button> <span class="fr">FR-CON-SAFE-001</span>
+          <p class="hint" style="margin-top:6px"><b>2 bước (BR-CON-005):</b> (1) Dry-run — tải lên với <code>dry_run=true</code>, job read <code>feeds import … --dry-run</code>, 0 thay đổi <code>feeds/current/</code>; (2) Thực thi trong ≤ 15 phút, cùng phiên — tải lại <b>cùng file</b>, cùng SHA-256 và cùng lựa chọn <code>--force</code>; lệch → ERR-JOB-428-01, không tạo job.</p>
+          <p class="hint" style="margin-top:6px">CLI kiểm cả gói, <code>SHA256SUMS</code>, schema cùng major, <code>generated_at</code> không cũ hơn <code>current/</code>, tar không có đường dẫn tuyệt đối/<code>..</code>/symlink, giải nén ≤ 50 MB (data-sources-cache-cli.md §4.3).</p>
+        </form>
+      </div>
+    </section>
+  </section>
+
+  <!-- EXPIRED / chưa có bundle -->
+  <section data-state="empty">
+    <div class="alert error" role="alert"><b>ERR-SCN-503-01</b> — Không lấy được dữ liệu vòng đời/CVE online và không có bundle dùng được (hoặc dữ liệu cũ &gt; 90 ngày). <code>feeds status</code> thoát mã 2; <code>GET /api/v1/feeds</code> vẫn trả HTTP 200 với <code>freshness = EXPIRED</code>. Tạm ngừng đề xuất nâng nhánh; chỉ cho vá cùng nhánh (BR-FEED-005).</div>
+    <div class="empty">
+      <h2>Chưa có dữ liệu CVE/vòng đời dùng được</h2>
+      <p style="margin:8px 0">Không có <code>feeds/current/</code> hợp lệ và snapshot đóng gói lỗi SHA-256 (<b>ERR-FEED-422-02</b>). Máy chủ có Internet: chạy đồng bộ. Không có Internet: nhập snapshot tải từ nguồn phát hành.</p>
+      <div class="row" style="justify-content:center"><button class="btn primary" type="button" data-open="sync">Đồng bộ ngay</button><button class="btn" type="button" data-set-go="data">Nhập snapshot</button></div>
+    </div>
+  </section>
+
+  <section data-state="loading" aria-busy="true">
+    <div class="grid g-kpi"><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div><div class="kpi"><div class="skeleton"></div><div class="skeleton"></div></div></div>
+    <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/feeds</code> (console chạy <code>feeds status --json</code>, timeout 10 s)…</p></div>
+  </section>
+
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-JOB-504-01</b> — Đọc trạng thái nguồn quá 10 s (<code>details.sync = true</code>). <button class="btn sm" type="button" onclick="location.reload()">Thử lại</button></div>
+    <div class="alert error" role="alert"><b>ERR-FEED-423-01</b> — Một tiến trình <code>feeds update</code> khác (lịch systemd, PID 48211) đang giữ khoá <code>feeds/.lock</code> &gt; 30 s; job đồng bộ từ console kết thúc FAILED. Chờ lượt theo lịch kết thúc rồi xem lại bảng.</div>
+    <div class="alert error" role="alert"><b>ERR-FEED-409-02</b> (kết quả job dry-run nhập JOB-20261022-121650-6d1b) — Snapshot <code>generated_at</code> 2026-10-21 06:00 UTC cũ hơn bundle hiện tại (2026-10-22 09:30 UTC); giữ nguyên <code>current/</code>, không mở được bước Thực thi. Chọn "Cho nhập snapshot cũ hơn" rồi chạy lại dry-run nếu chủ ý quay về dữ liệu cũ (<code>force</code> phải giống nhau ở 2 bước).</div>
+    <div class="alert error" role="alert"><b>ERR-FEED-507-01</b> — Dung lượng trống phân vùng chứa <code>feeds/</code> còn 72 MB (&lt; 100 MB): không đồng bộ/nhập snapshot; dữ liệu hiện có giữ nguyên.</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 4be21c90). Không có stack trace trong phản hồi (BR-CON-009).</div>
+  </section>
+</main>
+</div>
+
+<!-- Hộp thoại -->
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr" id="act-fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <div id="sync-opts" hidden>
+      <h3>Phạm vi đồng bộ</h3>
+      <label><input type="radio" name="scope" value="all" checked> Mọi nguồn quá TTL (đồng bộ tăng dần, ngân sách 180 s)</label><br>
+      <label><input type="radio" name="scope" value="sel"> Chỉ nguồn: <input type="text" id="f-src" size="22" value="SRC-004,SRC-008" aria-label="Danh sách src_id"></label><br>
+      <label><input type="checkbox" id="f-fforce"> Bỏ qua TTL (<code>--force</code>)</label>
+      <div class="field-err" id="e-src"></div>
+    </div>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code> — BR-CON-008, FR-CON-SAFE-003)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px"></p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng lỗi</button>
+      <button class="btn" type="button" data-close>Huỷ</button>
+      <button class="btn" type="button" id="act-dry">Dry-run</button>
+      <button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+    <p class="hint" style="margin-top:8px">Bản đầy đủ của hộp thoại: <a href="dry-run-confirm-dialog.html">SCR-011</a>.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var SRC = [
+    ['SRC-001','endoflife.date API v1','OK','2026-10-22 09:22','3 h','24 h','8 sản phẩm',null,'PRIMARY'],
+    ['SRC-002','php.net releases JSON','OK','2026-10-22 09:22','3 h','6 h','4 nhánh hỗ trợ (8.2.35 · 8.3.36 · 8.4.27 · 8.5.12)',null,'PRIMARY'],
+    ['SRC-003','php.net ChangeLog + trang EOL','OK','2026-10-22 09:23','3 h','24 h','ChangeLog-8.php, eol.php',null,'PRIMARY'],
+    ['SRC-004','NVD CVE API 2.0','DEGRADED','2026-10-22 03:10','9 h','6 h','1.521 CVE (vd CVE-2026-109618 CVSS v3.1 9,8)','ERR-FEED-429-01 (NVD trả 403, chưa có API key)','CACHE'],
+    ['SRC-005','CVE.org CVE Services API','OK','2026-10-22 09:24','3 h','24 h/bản ghi','1 bản ghi tra theo nhu cầu (CVE-2026-111497, NVD chưa có)',null,'PRIMARY'],
+    ['SRC-006','CISA KEV JSON','OK','2026-10-22 09:23','3 h','6 h','1.754 (catalogVersion 2026.10.21)',null,'PRIMARY'],
+    ['SRC-007','OSV API (Composer/npm)','OK','2026-10-22 10:05','2 h','6 h/cặp','3 lockfile (cache theo SHA-256 lockfile)',null,'PRIMARY'],
+    ['SRC-008','GitHub Security Advisories','FAILED','2026-10-22 00:14','12 h','6 h','— (giữ dữ liệu lần trước)','ERR-FEED-503-01 (3 lần thử)','CACHE'],
+    ['SRC-009','nodejs.org release index','OK','2026-10-22 09:22','3 h','6 h','dòng 22: 22.23.4 mới nhất',null,'PRIMARY'],
+    ['SRC-010','nodejs/Release schedule.json','OK','2026-10-22 09:22','3 h','24 h','27 nhánh',null,'PRIMARY'],
+    ['SRC-011','Node.js Security WG vuln/core','OK','2026-10-22 09:22','3 h','6 h','194 mục',null,'PRIMARY'],
+    ['SRC-012','WordPress.org core API','OK','2026-10-22 09:23','3 h','6 h','959 phiên bản (7.0.7 outdated)',null,'PRIMARY'],
+    ['SRC-013','CSDL lỗ hổng WordPress (cần key)','DISABLED','—','—','24 h','—','Chưa cấu hình QP_WPVULN_KEY','—'],
+    ['SRC-014','OSV API (distro Ubuntu:22.04:LTS)','OK','2026-10-22 10:05','2 h','6 h/cặp','gói php7.4-*, php8.2-*, nodejs',null,'PRIMARY'],
+    ['SRC-015','Tracker distro trực tiếp','OK','2026-10-22 10:05','2 h','24 h/bản ghi','0 lần tra (SRC-014 đủ dữ liệu)',null,'PRIMARY'],
+    ['SRC-016','Changelog gói cục bộ','OK','2026-10-22 10:05','—','Mỗi lượt scan','changelog.Debian.gz của gói đã cài',null,'PRIMARY'],
+    ['SRC-017','Snapshot offline đóng gói','OK','2026-10-20 06:00 (generated_at)','54 h','Theo BR-FEED-005','SHA-256 khớp',null,'SNAPSHOT']
+  ];
+  var BADGE = {OK: 'badge', DEGRADED: 'badge sev-m', FAILED: 'badge sev-h', DISABLED: 'badge off'};
+  function renderSrc() {
+    var f = $('f-st').value, tb = $('src-body'); tb.textContent = '';
+    SRC.forEach(function (s) {
+      if (f && s[2] !== f) { return; }
+      var tr = document.createElement('tr'); if (s[2] === 'FAILED' || s[2] === 'DEGRADED') { tr.className = 'row-bad'; } if (s[2] === 'DISABLED') { tr.className = 'row-off'; }
+      [s[0], s[1], null, s[3], s[4], s[5], s[6], s[7] || '—', s[8]].forEach(function (v, i) {
+        var td = document.createElement('td');
+        if (i === 0) { td.className = 'mono'; }
+        if (i === 2) { var b = document.createElement('span'); b.className = BADGE[s[2]]; b.textContent = s[2]; td.appendChild(b); } else { td.textContent = v; }
+        tr.appendChild(td);
+      });
+      var tdA = document.createElement('td');
+      if (s[0] !== 'SRC-013' && s[0] !== 'SRC-016' && s[0] !== 'SRC-017') {
+        var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn sm'; b2.textContent = 'Đồng bộ nguồn này';
+        b2.addEventListener('click', function () { openModal('sync', s[0]); }); tdA.appendChild(b2);
+      } else { tdA.className = 'hint'; tdA.textContent = s[0] === 'SRC-013' ? 'Bật bằng key (BR-FEED-011)' : 'Không đồng bộ riêng'; }
+      tr.appendChild(tdA); tb.appendChild(tr);
+    });
+  }
+  $('f-st').addEventListener('change', renderSrc);
+
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4500); }
+  var cur = 'data';
+  function setState(s) {
+    cur = s;
+    document.querySelectorAll('[data-state]').forEach(function (el) { el.classList.toggle('show', el.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+    var st = s === 'stale';
+    $('k-fresh').textContent = st ? 'STALE' : 'AGING'; $('k-age').textContent = st ? '216 giờ' : '12 giờ'; $('k-oldest').textContent = st ? 'SRC-004' : 'SRC-008';
+    $('v-fresh').textContent = st ? 'STALE' : 'AGING'; $('v-age').textContent = st ? 'data_age_h = 216' : 'data_age_h = 12'; $('v-exit').textContent = st ? '1' : '0';
+    $('v-bundle').textContent = st ? 'b-20261013T061700Z-8e04b7a2' : 'b-20261022T093000Z-3f2a9c1e'; $('v-gen').textContent = st ? '2026-10-13 06:17:00 UTC' : '2026-10-22 09:30:00 UTC';
+    $('btn-sync').disabled = (s === 'running'); $('btn-sync').title = s === 'running' ? 'ERR-JOB-409-01: đã có job feeds_update đang chạy' : '';
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  document.querySelectorAll('[data-set-go]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set-go')); $('f-sha').focus(); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+
+  /* Hộp thoại */
+  var A = null, dryDone = false;
+  var ACT = {
+    sync: {title: 'Đồng bộ dữ liệu ngay (feeds update)', fr: 'FR-FEED-CMD-001', dryNeeded: false,
+      desc: 'Job loại data (BR-JOB-003): chỉ ghi trong STATE_DIR/feeds, không đổi gói, dịch vụ hay site → không cần dry-run. Tối đa 1 job data cùng chạy (BR-JOB-001).',
+      sim: 'ERR-JOB-409-01 — Đã có job feeds_update đang QUEUED/RUNNING (details.job_id = JOB-20261022-121410-5c3d).'},
+    sched_install: {title: 'Cập nhật lịch đồng bộ (feeds schedule install)', fr: 'FR-FEED-CMD-006', dryNeeded: true,
+      desc: 'Job loại write: ghi unit systemd của tool. Bắt buộc dry-run hợp lệ ≤ 15 phút (BR-CON-005).',
+      changes: ['file modify /etc/systemd/system/php-quickpatch-feeds.timer: OnCalendar=*-*-* 00/6:17:00 → *-*-* 00/12:17:00 (giữ phút 17 đã chọn lúc cài)', 'file modify /etc/systemd/system/php-quickpatch-feeds.service: không đổi (ExecStart=… feeds update --quiet)', 'systemd daemon-reload; systemctl restart php-quickpatch-feeds.timer'],
+      affected: 'host web01.example.com (lịch đồng bộ feeds)', disruption: '0 s, phạm vi none — không ảnh hưởng site', revert: 'Đầy đủ — chạy lại "Cập nhật lịch" với chu kỳ cũ hoặc php-quickpatch.sh rollback <run_id> (manifest copy 1 file)',
+      sim: 'ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện (details.constraint = "params_mismatch": chu kỳ đã đổi sau dry-run).'},
+    sched_remove: {title: 'Gỡ lịch đồng bộ (feeds schedule remove)', fr: 'FR-FEED-CMD-006', dryNeeded: true,
+      desc: 'Job loại write: gỡ timer của tool. Sau khi gỡ, dữ liệu chỉ được làm mới khi chạy scan/fix/assess (BR-FEED-001) hoặc đồng bộ thủ công; dự kiến chuyển AGING sau 6 giờ.',
+      changes: ['systemctl disable --now php-quickpatch-feeds.timer', 'file delete /etc/systemd/system/php-quickpatch-feeds.timer, /etc/systemd/system/php-quickpatch-feeds.service', 'systemd daemon-reload'],
+      affected: 'host web01.example.com (lịch đồng bộ feeds)', disruption: '0 s, phạm vi none', revert: 'Đầy đủ — "Cập nhật lịch" để cài lại',
+      sim: 'ERR-JOB-428-01 — details.constraint = "expired": dry-run tạo lúc 11:52:04, quá 15 phút.'},
+    snap: {title: 'Nhập snapshot (feeds import)', fr: 'FR-CON-FEED-002', dryNeeded: true, dryJob: 'JOB-20261022-121650-6d1b', validTo: '12:31:50',
+      desc: 'Job loại write (thay feeds/current/), không thuộc ngoại lệ của BR-CON-005 1.0.1. Bước 1: dry-run (job read, CLI giải nén vào work/dryrun-<pid>/, 0 thay đổi current/, previous/, bundles/). Bước 2: trong ≤ 15 phút, cùng phiên, tải lại cùng file; console chỉ tạo job write khi SHA-256 nội dung và force bằng job dry-run. Ghi audit "nhập snapshot" (BR-AUD-001).',
+      affected: 'feeds/current của host web01.example.com: bundle b-20261022T093000Z-3f2a9c1e → bundle dựng từ snapshot; không đổi gói, dịch vụ, cấu hình web server hay site',
+      disruption: '0 s, phạm vi none — tiến trình đang đọc bundle cũ dùng tiếp tới hết lượt (BR-FEED-051); job write giữ feeds/.lock khi thay (BR-FEED-015)',
+      revert: 'Một phần — bundle hiện tại được giữ ở feeds/previous/ (BR-FEED-051) nhưng danh sách trắng không có lệnh khôi phục previous; muốn quay lại dữ liệu cũ: nhập snapshot cũ với --force hoặc "Đồng bộ ngay"',
+      sim: ['ERR-JOB-428-01 — Bước 2 không đạt cổng D, details.constraint = "params_mismatch": SHA-256 nội dung tải lại ở bước 2 (0c1f…e7a2, khớp X-QP-Snapshot-SHA256 mới nhưng là file khác) khác params.sha256 của job dry-run JOB-20261022-121650-6d1b (9f86…0a08). File vừa nhận đã xoá, không tạo job.',
+        'ERR-JOB-428-01 — details.constraint = "expired": job dry-run JOB-20261022-121650-6d1b tạo lúc 12:16:50, quá 15 phút. Chạy lại dry-run.',
+        'ERR-JOB-428-01 — details.constraint = "missing": gửi dry_run=false nhưng thiếu confirm_dry_run_job_id; console từ chối ngay sau khi đọc header, không đọc thân, không ghi file.',
+        'ERR-FEED-422-02 — Bước 1: SHA-256 nội dung nhận (0c1f…e7a2) khác X-QP-Snapshot-SHA256 (9f86…0a08). File tạm đã xoá, không tạo job dry-run.']}
+  };
+  function cmdFor(key, src, step) {
+    if (key === 'snap') {
+      var sha = $('f-sha').value.trim(), fq = $('f-force').checked, fn = picked ? picked.name : 'feeds-snapshot-*.tar.gz', dj = ACT.snap.dryJob;
+      var s1 = 'Bước 1 — Dry-run: POST /api/v1/feed-snapshots?dry_run=true' + (fq ? '&force=true' : '') + '  (' + fn + ', Content-Type: application/gzip, X-QP-Snapshot-SHA256: ' + sha + ')\n→ job read ' + dj + ': php-quickpatch.sh feeds import /var/lib/php-quickpatch/work/upload-' + dj + '.tar.gz --sha256 ' + sha + ' --yes --json --dry-run' + (fq ? ' --force' : '');
+      if (step !== 2) { return s1; }
+      return s1 + '\nBước 2 — Thực thi: POST /api/v1/feed-snapshots?confirm_dry_run_job_id=' + dj + (fq ? '&force=true' : '') + '  (tải lại cùng file, cùng X-QP-Snapshot-SHA256)\n→ job write: php-quickpatch.sh feeds import /var/lib/php-quickpatch/work/upload-JOB-20261022-121702-9a4e.tar.gz --sha256 ' + sha + ' --yes --json' + (fq ? ' --force' : '');
+    }
+    if (key === 'sync') {
+      var sel = document.querySelector('input[name=scope]:checked').value === 'sel';
+      var list = src || $('f-src').value.trim();
+      return 'php-quickpatch.sh feeds update --json' + (sel || src ? ' --source ' + list : '') + ($('f-fforce').checked ? ' --force' : '');
+    }
+    if (key === 'sched_install') { return 'Dry-run: php-quickpatch.sh feeds schedule install --interval-hours ' + $('f-int').value + ' --yes --json --dry-run'; }
+    if (key === 'sched_remove') { return 'Dry-run: php-quickpatch.sh feeds schedule remove --yes --json --dry-run'; }
+    return '';
+  }
+  function snapChanges() {
+    var old = picked.gen < '2026-10-22 09:30', sha = $('f-sha').value.trim();
+    if (old && !$('f-force').checked) { return null; }
+    return ['Dry-run: 0 thay đổi feeds/current/, previous/, bundles/ (FR-CLI-SAFE-001)',
+      'SHA-256 cả gói = --sha256 (' + sha.slice(0, 4) + '…' + sha.slice(-4) + '): khớp',
+      'SHA256SUMS: 100% dòng khớp file trong bundle/',
+      'tar: 0 đường dẫn tuyệt đối, 0 "..", 0 symlink/hardlink/thiết bị; giải nén ' + picked.unpacked + ' ≤ 50 MB',
+      'manifest.json: schema qp.feeds.bundle/1 cùng major với tool; bundle_id ' + picked.bid,
+      'generated_at snapshot ' + picked.gen + ' UTC ' + (old ? '< bundle hiện tại 2026-10-22 09:30 UTC — chỉ cho phép vì có --force (quay về dữ liệu cũ)' : '> bundle hiện tại 2026-10-22 09:30 UTC (b-20261022T093000Z-3f2a9c1e) và ≤ hiện tại + 1 giờ'),
+      'Khi thực thi: dựng bundle trong staging/, đổi current nguyên tử, bundle hiện tại thành previous/ (BR-FEED-051)'];
+  }
+  function openModal(key, src) {
+    A = ACT[key]; A.key = key; A.src = src || null; dryDone = false;
+    $('act-title').textContent = A.title; $('act-fr').textContent = A.fr; $('act-desc').textContent = A.desc;
+    $('sync-opts').hidden = key !== 'sync';
+    if (src) { document.querySelector('input[name=scope][value=sel]').checked = true; $('f-src').value = src; }
+    $('act-cmd').textContent = cmdFor(key, src); $('act-preview').hidden = true; $('act-err').hidden = true; $('e-src').classList.remove('show');
+    $('act-dry').hidden = !A.dryNeeded; $('act-exec').disabled = A.dryNeeded;
+    $('act-exec').textContent = key === 'snap' ? 'Thực thi (tải lại và nhập)' : (key === 'sync' ? 'Chạy đồng bộ' : 'Thực thi');
+    $('act-status').textContent = A.dryNeeded ? 'Bước 1: chạy dry-run (job đọc). Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005). Nút Thực thi khoá tới khi có dry-run hợp lệ.' : 'Không cần dry-run: job data (BR-JOB-003).';
+    $('act-modal').classList.add('open'); (A.dryNeeded ? $('act-dry') : $('act-exec')).focus();
+  }
+  function closeModal() { $('act-modal').classList.remove('open'); }
+  document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) { return; } openModal(b.getAttribute('data-open')); }); });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  ['f-src', 'f-fforce'].forEach(function (id) { $(id).addEventListener('input', function () { if (A && A.key === 'sync') { $('act-cmd').textContent = cmdFor('sync'); } }); });
+  document.querySelectorAll('input[name=scope]').forEach(function (r) { r.addEventListener('change', function () { $('act-cmd').textContent = cmdFor('sync'); }); });
+  $('act-dry').addEventListener('click', function () {
+    var dj = A.dryJob || 'JOB-20261022-121530-0aa1', snap = A.key === 'snap';
+    $('act-status').textContent = 'Đang chạy dry-run ' + dj + '…'; $('act-err').hidden = true; $('act-preview').hidden = true; dryDone = false; $('act-exec').disabled = true;
+    var a0 = A;
+    setTimeout(function () {
+      if (A !== a0) { return; }
+      var ch = snap ? snapChanges() : A.changes;
+      if (!ch) {
+        var e = $('act-err'); e.hidden = false;
+        e.textContent = 'ERR-FEED-409-02 — Kết quả job dry-run ' + dj + ': snapshot generated_at ' + picked.gen + ' UTC cũ hơn bundle hiện tại (2026-10-22 09:30 UTC), force = false. Job dry-run không đạt điều kiện (e) của cổng D → Thực thi giữ khoá; current/ giữ nguyên.';
+        $('act-status').textContent = 'Muốn quay về dữ liệu cũ: đóng hộp thoại, chọn "Cho nhập snapshot cũ hơn" rồi chạy lại dry-run (force phải giống nhau ở 2 bước).';
+        return;
+      }
+      var ul = $('pv-changes'); ul.textContent = '';
+      ch.forEach(function (c) { var li = document.createElement('li'); li.textContent = c; ul.appendChild(li); });
+      $('pv-affected').textContent = A.affected; $('pv-disruption').textContent = A.disruption; $('pv-revert').textContent = A.revert;
+      $('act-preview').hidden = false; dryDone = true; $('act-exec').disabled = false;
+      $('act-cmd').textContent = snap ? cmdFor('snap', null, 2) : cmdFor(A.key) + '\nThực thi: ' + cmdFor(A.key).replace('Dry-run: ', '').replace(' --dry-run', '') + '\n# confirm_dry_run_job_id = ' + dj;
+      $('act-status').textContent = 'Dry-run ' + dj + ' SUCCEEDED, hợp lệ tới ' + (A.validTo || '12:30:30') + ' UTC (15 phút, cùng phiên, ' + (snap ? 'cùng bundle_id, cùng SHA-256 nội dung và force' : 'cùng bundle_id và scan_fingerprint') + ' — BR-CON-005).';
+    }, 800);
+  });
+  $('act-exec').addEventListener('click', function () {
+    if (A.dryNeeded && !dryDone) { return; }
+    if (A.key === 'sync' && document.querySelector('input[name=scope]:checked').value === 'sel' && !/^SRC-0(0[1-9]|1[0-7])(,SRC-0(0[1-9]|1[0-7]))*$/.test($('f-src').value.trim())) {
+      $('e-src').textContent = 'ERR-CON-422-01 — Danh sách nguồn phải là SRC-001..SRC-017, phân tách bằng dấu phẩy, 1–17 phần tử.'; $('e-src').classList.add('show'); return;
+    }
+    closeModal();
+    var j = A.key === 'snap' ? 'JOB-20261022-121702-9a4e' : 'JOB-20261022-121610-b3c1';
+    toast('202 Accepted: ' + j + ' QUEUED (' + (A.key === 'sync' ? 'data' : 'write, dry_run = false') + ')' + (A.key === 'snap' ? ' — cổng D đạt: cùng SHA-256 nội dung, cùng force, dry-run ≤ 15 phút' : '') + '. Theo dõi log ở SCR-006 Jobs & Log.');
+    if (A.key === 'sync') { setState('running'); }
+  });
+  $('act-sim').addEventListener('click', function () {
+    var e = $('act-err'), s = [].concat(A.sim); A.simI = (A.simI || 0) % s.length;
+    e.hidden = false; e.textContent = s[A.simI++]; $('act-exec').disabled = true; $('act-preview').hidden = true;
+    if (A.dryNeeded) { dryDone = false; $('act-status').textContent = 'Thực thi bị khoá tới khi có dry-run hợp lệ ≤ 15 phút (BR-CON-005). Bấm "Dry-run" để chạy lại.'; }
+  });
+
+  /* Form nhập snapshot */
+  var picked = null;
+  var PICK = {ok: {name: 'feeds-snapshot-20261022T110000Z-standard.tar.gz', bytes: 2831155, type: 'application/gzip', gen: '2026-10-22 11:00', bid: 'b-20261022T110000Z-71c0d5e2', unpacked: '11,8 MB'},
+    old: {name: 'feeds-snapshot-20261021T060000Z-standard.tar.gz', bytes: 2826517, type: 'application/gzip', gen: '2026-10-21 06:00', bid: 'b-20261021T060000Z-a24f6b19', unpacked: '11,7 MB'},
+    big: {name: 'feeds-snapshot-20261021T060000Z-full.tar.gz', bytes: 25270682, type: 'application/gzip'}, txt: {name: 'snapshot.zip', bytes: 1048576, type: 'application/zip'}};
+  document.querySelectorAll('[data-pick]').forEach(function (b) { b.addEventListener('click', function () { picked = PICK[b.getAttribute('data-pick')]; $('e-file').textContent = 'Đã chọn (mô phỏng): ' + picked.name + ' — ' + picked.bytes.toLocaleString('vi-VN') + ' byte'; $('e-file').classList.add('show'); $('e-file').style.color = 'var(--sub)'; }); });
+  function err(id, input, msg) { var e = $(id); e.textContent = msg; e.style.color = ''; e.classList.toggle('show', !!msg); if (input) { input.classList.toggle('invalid', !!msg); } return !msg; }
+  $('snap-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var ok = true;
+    if (!picked) { ok = err('e-file', $('f-file'), 'Vui lòng chọn file snapshot .tar.gz.') && ok; }
+    else if (picked.bytes > 20971520) { ok = err('e-file', $('f-file'), 'ERR-CON-413-01 — File ' + (picked.bytes / 1048576).toFixed(1) + ' MiB vượt giới hạn 20 MiB (BR-CON-009). Dùng biến thể standard hoặc nhập bằng CLI.') && ok; }
+    else if (picked.type !== 'application/gzip') { ok = err('e-file', $('f-file'), 'ERR-CON-415-01 — Chỉ nhận application/gzip (.tar.gz).') && ok; }
+    else { err('e-file', $('f-file'), ''); }
+    var sha = $('f-sha').value.trim();
+    ok = err('e-sha', $('f-sha'), /^[0-9a-f]{64}$/i.test(sha) ? '' : 'ERR-CON-422-01 — SHA-256 phải gồm đúng 64 ký tự hex (hiện ' + sha.length + ').') && ok;
+    if (ok) { openModal('snap'); }
+  });
+
+  renderSrc(); setState('data');
+})();
+</script>
+</body>
+</html>

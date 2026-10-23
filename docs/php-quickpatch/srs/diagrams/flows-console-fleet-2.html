@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flows-console-fleet — Sơ đồ 2 (sequenceDiagram)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.5vw + 0.8rem, 2.2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+    .diagram-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(45,49,66,0.12);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+    .footer-bar {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture &amp; Specification · Diagram Design</p>
+    <h1>flows-console-fleet — Sơ đồ 2 (sequenceDiagram)</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1300 3512" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-title seq-desc">
+  <title id="seq-title">flows-console-fleet — Sơ đồ 2 (sequenceDiagram)</title>
+  <desc id="seq-desc">Sequence diagram with 6 participants and 42 messages.</desc>
+  <defs>
+    <pattern id="seq-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#bf4520"/>
+    </marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#seq-dots)" opacity="0.6"/>
+  <!-- Lifelines -->
+  <line x1="80" y1="120" x2="80" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="308" y1="120" x2="308" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="536" y1="120" x2="536" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="764" y1="120" x2="764" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="992" y1="120" x2="992" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1220" y1="120" x2="1220" y2="3412" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <!-- Messages & Annotations -->
+  <line x1="80" y1="160" x2="308" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="0.0" y="146" width="388.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="194.0" y="157" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">1. SCR-022 → chọn nhóm server, hành động fix, kích thước đợt</text>
+  <line x1="308" y1="208" x2="536" y2="208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="212.5" y="194" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="205" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">2. POST /api/v1/fleet-runs {group, action: &quot;fix&quot;, params, batc...</text>
+  <line x1="536" y1="256" x2="764" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="477.7" y="242" width="344.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="253" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">3. Tra vai trò tài khoản và danh sách server của nhóm</text>
+  <line x1="536" y1="304" x2="308" y2="304" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="358.2" y="290" width="127.60000000000001" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="301" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">403 ERR-FLT-403-02</text>
+  <line x1="536" y1="352" x2="308" y2="352" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="348.9" y="338" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="349" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">5. 404 ERR-FLT-404-01</text>
+  <line x1="536" y1="400" x2="308" y2="400" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="348.9" y="386" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="397" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">6. 422 ERR-CON-422-01</text>
+  <line x1="536" y1="448" x2="764" y2="448" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="440.5" y="434" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="445" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">7. Tạo fleet_run, trạng thái từng server = PENDING, audit trun...</text>
+  <line x1="536" y1="496" x2="308" y2="496" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="348.9" y="482" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="493" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">8. 202 {fleet_run_id}</text>
+  <line x1="536" y1="544" x2="992" y2="544" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="554.5" y="530" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="541" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">9. ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKn...</text>
+  <line x1="536" y1="592" x2="764" y2="592" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="536.6" y="578" width="226.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="589" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">10. Server TIMEOUT, ERR-FLT-504-01</text>
+  <line x1="536" y1="640" x2="764" y2="640" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="499.4" y="626" width="301.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="637" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">11. Server lỗi, ERR-FLT-403-01, không gửi lệnh</text>
+  <line x1="536" y1="688" x2="764" y2="688" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="549.0" y="674" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="685" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">12. Server lỗi, ERR-FLT-401-01</text>
+  <line x1="536" y1="736" x2="992" y2="736" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="554.5" y="722" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="733" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">13. mktemp -d, đẩy gói CLI bằng tar qua SSH, sha256sum -c (BR-...</text>
+  <line x1="536" y1="784" x2="764" y2="784" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="511.79999999999995" y="770" width="276.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="781" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">14. Server lỗi, ERR-FLT-422-03, không chạy</text>
+  <line x1="536" y1="832" x2="764" y2="832" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="549.0" y="818" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="829" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">15. Server lỗi, ERR-FLT-424-01</text>
+  <line x1="536" y1="880" x2="992" y2="880" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="554.5" y="866" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="877" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">16. Chạy TMP/php-quickpatch.sh fix --dry-run --json (sudo -n k...</text>
+  <line x1="992" y1="928" x2="1220" y2="928" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="930.6" y="914" width="350.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1106.0" y="925" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">17. Khoá chia sẻ, đọc bundle feeds/current/ của server</text>
+  <line x1="536" y1="976" x2="992" y2="976" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="700.2" y="962" width="127.60000000000001" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="973" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">18. Ngắt phiên SSH</text>
+  <line x1="536" y1="1024" x2="764" y2="1024" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="536.6" y="1010" width="226.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1021" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">19. Server TIMEOUT, ERR-FLT-504-01</text>
+  <line x1="992" y1="1072" x2="536" y2="1072" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="656.8" y="1058" width="214.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1069" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">20. Envelope qp.fix/1 + mã thoát</text>
+  <line x1="536" y1="1120" x2="764" y2="1120" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="549.0" y="1106" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1117" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">21. Server lỗi, ERR-FLT-422-02</text>
+  <line x1="536" y1="1168" x2="764" y2="1168" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="527.3" y="1154" width="245.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1165" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">22. Lưu kết quả dry-run, collected_at</text>
+  <line x1="536" y1="1216" x2="992" y2="1216" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="610.3" y="1202" width="307.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1213" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">23. Xoá thư mục TMP, kể cả khi lỗi (BR-FLT-001)</text>
+  <line x1="536" y1="1264" x2="764" y2="1264" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="440.5" y="1250" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1261" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">24. fleet_run dừng trước bước ghi, giữ mã lỗi từng server (BR-...</text>
+  <line x1="536" y1="1312" x2="308" y2="1312" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="280.7" y="1298" width="282.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="1309" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">25. Trạng thái fleet_run và lỗi từng server</text>
+  <line x1="536" y1="1360" x2="992" y2="1360" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="554.5" y="1346" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1357" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">26. Đợt 1 = 1 server canary: fix --json (cùng quy trình đẩy gó...</text>
+  <line x1="992" y1="1408" x2="1220" y2="1408" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="896.5" y="1394" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1106.0" y="1405" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">27. flock -x STATE_DIR/.lock, audit intent, manifest, vá như D...</text>
+  <line x1="992" y1="1456" x2="536" y2="1456" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="675.4" y="1442" width="177.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1453" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">28. exit 2, ERR-CLI-423-01</text>
+  <line x1="992" y1="1504" x2="536" y2="1504" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="644.4" y="1490" width="239.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1501" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">29. Envelope qp.fix/1, exit 0 hoặc 1</text>
+  <line x1="536" y1="1552" x2="764" y2="1552" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="527.3" y="1538" width="245.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1549" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">30. fleet_run STOPPED, ERR-FLT-409-01</text>
+  <line x1="536" y1="1600" x2="992" y2="1600" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="635.1" y="1586" width="257.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1597" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">31. fix --json trên từng server của đợt</text>
+  <line x1="992" y1="1648" x2="536" y2="1648" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="684.7" y="1634" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="764.0" y="1645" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">32. Envelope + mã thoát</text>
+  <line x1="536" y1="1696" x2="764" y2="1696" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="527.3" y="1682" width="245.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1693" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">33. Kết quả từng server, collected_at</text>
+  <line x1="536" y1="1744" x2="764" y2="1744" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="465.29999999999995" y="1730" width="369.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1741" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">34. fleet_run STOPPED, ERR-FLT-409-01, đợt sau không chạy</text>
+  <line x1="536" y1="1792" x2="764" y2="1792" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="440.5" y="1778" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1789" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">35. fleet_run COMPLETED, gộp audit server vào audit trung tâm ...</text>
+  <line x1="308" y1="1840" x2="536" y2="1840" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="286.9" y="1826" width="270.20000000000005" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="1837" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">36. GET /api/v1/fleet-runs/{fleet_run_id}</text>
+  <line x1="536" y1="1888" x2="764" y2="1888" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="555.2" y="1874" width="189.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="1885" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">37. Đọc trạng thái fleet_run</text>
+  <line x1="536" y1="1936" x2="308" y2="1936" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="290.0" y="1922" width="264.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="1933" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">38. 200 trạng thái và mã lỗi từng server</text>
+  <line x1="308" y1="1984" x2="536" y2="1984" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="324.1" y="1970" width="195.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="1981" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">39. GET /api/v1/fleet-summary</text>
+  <line x1="536" y1="2032" x2="764" y2="2032" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="511.79999999999995" y="2018" width="276.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="650.0" y="2029" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">40. Ma trận server × runtime, collected_at</text>
+  <line x1="536" y1="2080" x2="308" y2="2080" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="212.5" y="2066" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="422.0" y="2077" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">41. 200, dữ liệu &gt; 24 giờ gắn nhãn &quot;cũ&quot;, &gt; 7 ngày loại khỏi số...</text>
+  <line x1="308" y1="2128" x2="80" y2="2128" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="27.900000000000006" y="2114" width="332.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="194.0" y="2125" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">42. SCR-022 tiến độ đợt, SCR-021 dashboard tổng hợp</text>
+  <!-- Participant Boxes -->
+  <g transform="translate(10.0, 60)">
+    <rect width="140" height="50" rx="6" fill="rgba(191,69,32,0.06)" stroke="#bf4520" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#bf4520" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#bf4520" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ACTOR</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Operator (vai trò ..</text>
+  </g>
+  <g transform="translate(238.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Browser</text>
+  </g>
+  <g transform="translate(466.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Console trung tâm ..</text>
+  </g>
+  <g transform="translate(694.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">SQLite (central.db)</text>
+  </g>
+  <g transform="translate(922.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">CLI (Bash) trên se..</text>
+  </g>
+  <g transform="translate(1150.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">STATE_DIR server (..</text>
+  </g>
+</svg>
+    </div>
+    <div class="footer-bar">
+      <span>BA-Kit Open × Diagram Design</span>
+      <span>Tự động xuất bản HTML + SVG vector</span>
+    </div>
+  </div>
+</body>
+</html>

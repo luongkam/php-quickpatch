@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-011
+title: Wireframe SCR-011 — Hộp thoại xem trước dry-run & xác nhận (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, dry-run, confirm, double-confirm, preview, empty-state, scr-011, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-ENV-001
+  - FR-CON-SAFE-001
+  - FR-PTCH-PHP-001
+  - FR-UPG-SWT-001
+  - FR-UPG-SWT-003
+  - UC-CON-003
+  - UC-PTCH-001
+  - UC-UPG-002
+  - UC-UPG-003
+related_diagrams:
+  - DIAG-STATE-QP-JOB-001
+  - DIAG-STATE-QP-ENV-002
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-011: Hộp thoại dry-run &amp; xác nhận — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}.unver{border-style:dashed;border-color:#111827}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.variants{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:14px}
+.variant{display:block;border:1px solid var(--line2);border-radius:8px;padding:10px;background:#fff;cursor:pointer}
+.variant input{margin-right:6px}.variant:has(input:checked){border:2px solid var(--accent)}
+/* Hộp thoại: mặc định hiển thị nội tuyến để xem cấu trúc; nút "Xem dạng lớp phủ" chuyển sang modal */
+.modal-bg.inline{position:static;display:block;background:none;padding:0}
+.modal-bg.overlay{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:860px;width:100%;padding:18px}
+.steps{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:10px 0}
+.steps li{flex:1 1 120px;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12px;color:var(--sub);background:#fff}
+.steps li.done{background:var(--muted);color:var(--text)}.steps li.cur{border:2px solid var(--accent);color:var(--text);font-weight:600}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:180px;background:#fff}
+.sec{border:1px solid var(--line2);border-radius:6px;padding:10px;margin-top:8px}
+.sec h3{margin-top:0}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code id="serve-user">root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html" aria-current="page"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-011 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-011 Hộp thoại xem trước dry-run &amp; xác nhận — UC-CON-003; mở từ mọi thao tác ghi của SCR-002..SCR-009 (spec §3.3.1). Mô phỏng 4 biến thể: vá PHP cùng nhánh (UC-PTCH-001), chuyển 1 site (UC-UPG-002), chuyển <code>mod_php</code> → PHP-FPM (UC-UPG-003), không có thay đổi (empty state, rules/13 §4)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-SAFE-001, FR-PTCH-PHP-001, FR-UPG-SWT-001, FR-UPG-SWT-003. Liên quan: FR-CON-SAFE-003 (danh sách trắng argv), FR-PTCH-MIT-002, FR-PTCH-RST-001, FR-UPG-RBK-002, FR-PLAN-CHK-002, FR-JOB-RUN-001</td></tr>
+      <tr><th>BR</th><td>BR-CON-005, BR-CON-006, BR-CON-008, BR-CON-010, BR-JOB-001, BR-JOB-003, BR-PTCH-001, BR-PTCH-002, BR-PTCH-008, BR-SCN-008, BR-SCN-047, BR-ENV-006, BR-ENV-008, BR-ENV-010, BR-UPG-002, BR-UPG-005, BR-HC-010, BR-AUD-001</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-JOB-428-01 (9 giá trị <code>details.constraint</code>), ERR-CLI-403-01, ERR-JOB-409-01, ERR-JOB-429-01, ERR-CON-422-01, ERR-UPG-409-01, ERR-SCN-412-02, ERR-PTCH-403-01, ERR-CLI-423-01, ERR-HC-500-01</td></tr>
+      <tr><th>API</th><td><code>POST /api/v1/jobs</code> (<code>dry_run=true</code>) → <code>GET /api/v1/jobs/{job_id}</code> (<code>result.preview</code>, <code>result.fingerprint</code>, <code>dry_run_valid_until</code>) → <code>POST /api/v1/jobs</code> (<code>confirm_dry_run_job_id</code>, <code>confirm_retype</code>); <code>GET /api/v1/sessions/current</code> (quyền root của serve). Endpoint mặt tiền: <code>POST /api/v1/plans/{plan_id}/checklist-items/{chk_id}/runs</code>, <code>POST /api/v1/rollbacks</code></td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Đối tượng <code>preview</code>/<code>fingerprint</code> theo api-spec-cli-json.md §4. Biến thể A, B trên web01.example.com (thống nhất SCR-002/004/009). Biến thể C minh hoạ trên máy chủ khác <b>web02.example.com</b> (Ubuntu 22.04, Apache 2.4 <code>mod_php</code> 7.4) vì web01 không có site <code>mod_php</code>. Biến thể D minh hoạ trên <b>web03.example.com</b> (1 runtime PHP 8.2.35 trạng thái <code>ok</code>, 0 file mitigation) vì web01 còn PHP 7.4.33, PHP 8.2.34 và Node.js 22.23.3 có lỗ hổng (SCR-002). <code>expected_s</code>, số vhost, mã kế hoạch/job là minh hoạ; bản vá 8.2.35 kiểm chứng trên php.net <code>releases/active.php</code> (21 Oct 2026).</td></tr>
+      <tr><th>Ghi chú</th><td>Hộp thoại hiển thị nội tuyến để xem cấu trúc; nút "Xem dạng lớp phủ" mô phỏng modal thật (Esc để đóng). Biến thể D: dry-run <code>SUCCEEDED</code> với <code>preview.changes[]</code> và <code>preview.affected[]</code> rỗng → thông báo "Không có thay đổi nào cần thực hiện", nút Thực thi vô hiệu, không gửi bước 3 (ĐX của wireframe: cổng D ở api-spec.md §2.13.3 chưa quy định preview rỗng, chờ PO + Dev). Màu trạng thái lỗi theo bảng xám rules/13 §2 (nhấn bằng viền 2px/6px, chữ đậm). CSS/JS inline chỉ để wireframe tự chứa; bản thật tuân BR-CON-007.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §7, §8, §9; business-rules.md §4.8; api/api-spec.md §2.13.3; api/api-spec-cli-json.md §4, §8 (<code>run_id</code> = <code>null</code> khi không có thay đổi); api/api-spec-jobs.md §2; php-quickpatch.sh v0.1.0 dòng 82 ("Exit status: 0 nothing left to fix"), 366–387 (<code>php_unmitigate</code> chỉ restart khi xoá file mitigation), 878; environment-playbooks.md §5.1; environment-playbooks-os.md §7 (PB-006); error-matrix.md; https://www.php.net/releases/active.php (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-011: quy trình 5 bước dry-run → xem trước 4 mục → xác nhận (kép) → tạo job, 3 biến thể hành động, mô phỏng toàn bộ lỗi cổng D</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: thêm biến thể "D. Không có thay đổi" (empty state, rules/13 §4) — dry-run <code>fix --only php</code> trên runtime đã <code>ok</code> trả 0 file, 0 gói, 0 dịch vụ, gián đoạn 0 s; hiển thị "Không có thay đổi nào cần thực hiện", nút Thực thi vô hiệu, thêm dòng "Preview rỗng" vào bảng phản hồi cổng D; đổi màu lỗi đỏ sang bảng xám (rules/13 §2): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6, nhấn lỗi bằng viền 2px/6px; "Lỗi đỏ" → "Lỗi (viền đậm)"</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng">
+    <strong>Mô phỏng:</strong>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+    <button type="button" id="btn-overlay">Xem dạng lớp phủ</button>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Hộp thoại xem trước dry-run &amp; xác nhận <span class="fr">FR-CON-SAFE-001</span></h1>
+      <p class="muted">Mọi thao tác ghi đi qua 2 bước: dry-run (job đọc, không ghi manifest) → xác nhận trong ≤ 15 phút, cùng phiên, cùng tham số, <code>bundle_id</code> và <code>scan_fingerprint</code> không đổi (BR-CON-005).</p>
+    </div>
+  </div>
+
+  <fieldset class="variants" aria-label="Biến thể hành động">
+    <label class="variant"><input type="radio" name="v" value="fix" checked><b>A. Vá PHP cùng nhánh</b><br><span class="hint">fix --only php · mở từ SCR-002/003</span> <span class="fr">FR-PTCH-PHP-001</span></label>
+    <label class="variant"><input type="radio" name="v" value="switch"><b>B. Chuyển 1 site sang 8.5</b><br><span class="hint">migrate switch example.com · mở từ SCR-004/009</span> <span class="fr">FR-UPG-SWT-001</span></label>
+    <label class="variant"><input type="radio" name="v" value="modphp"><b>C. mod_php → PHP-FPM cùng 7.4</b><br><span class="hint">plan run CHK-PHP-007-27 (PB-006 bước 1) · web02</span> <span class="fr">FR-UPG-SWT-003</span></label>
+    <label class="variant"><input type="radio" name="v" value="empty"><b>D. Không có thay đổi</b><br><span class="hint">fix --only php · runtime đã ok · web03 (empty state)</span> <span class="fr">FR-CON-SAFE-001</span></label>
+  </fieldset>
+
+  <!-- HỘP THOẠI -->
+  <div class="modal-bg inline" id="dlg-host">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="d-title" id="dlg">
+      <div class="row"><h2 id="d-title">—</h2><span class="fr" id="d-fr"></span><span class="fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" id="d-close" style="margin-left:auto">Đóng</button></div>
+      <p class="muted" id="d-desc" style="margin-top:4px"></p>
+      <ol class="steps" id="d-steps"><li>1. Tham số</li><li>2. Dry-run</li><li>3. Xem trước</li><li>4. Xác nhận</li><li>5. Đã tạo job</li></ol>
+
+      <div class="sec" id="d-params">
+        <h3>Tham số (đã qua danh sách trắng và regex — FR-CON-SAFE-003)</h3>
+        <table class="pv" id="d-ptable"></table>
+        <div id="d-opt" hidden style="margin-top:6px"><label><input type="checkbox" id="d-nar"> Tắt tự rollback khi health check không đạt (<code>no_auto_rollback=true</code>) — cần xác nhận kép</label></div>
+      </div>
+
+      <div class="sec">
+        <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code>, env danh sách trắng — BR-CON-008)</h3>
+        <pre class="cmd" id="d-cmd"></pre>
+      </div>
+
+      <div class="sec" id="d-loading" hidden aria-busy="true"><div class="skeleton"></div><div class="skeleton"></div><p class="hint" id="d-loading-t"></p></div>
+
+      <div id="d-preview" hidden>
+        <div class="sec">
+          <h3>1/4 Thay đổi dự kiến (<code>preview.changes[]</code>)</h3>
+          <div class="tbl-wrap"><table><thead><tr><th>type</th><th>action</th><th>target</th><th>from → to</th><th>detail</th><th>verified</th></tr></thead><tbody id="d-changes"></tbody></table></div>
+          <p class="hint" id="d-unver" hidden style="margin-top:4px">Có lệnh <code>verified=false</code> (playbook "chưa kiểm chứng"): chỉ chạy ở mức SEMI sau khi người vận hành duyệt từng lệnh, không chạy ở mức AUTO (BR-ENV-010).</p>
+        </div>
+        <div class="sec"><h3>2/4 Đối tượng ảnh hưởng (<code>preview.affected[]</code>)</h3><ul id="d-affected" style="margin-left:16px"></ul></div>
+        <div class="sec"><h3>3/4 Gián đoạn dự kiến (<code>preview.disruption</code>)</h3><p id="d-disr"></p></div>
+        <div class="sec"><h3>4/4 Khả năng hoàn tác (<code>preview.reversibility</code>)</h3><p id="d-rev"></p><ul id="d-revnotes" class="hint" style="margin-left:16px"></ul></div>
+        <div class="sec">
+          <h3>Dấu vân tay lúc dry-run (<code>fingerprint</code>) và hiệu lực</h3>
+          <table class="pv"><tr><th>Job dry-run</th><td class="mono" id="d-dryjob"></td></tr><tr><th>bundle_id</th><td class="mono">b-20261022T093000Z-3f2a9c1e</td></tr><tr><th>scan_fingerprint</th><td class="mono" id="d-fp">5d0c9a…</td></tr><tr><th>catalog_version</th><td class="mono">2026.10.20-1</td></tr><tr><th>Hiệu lực tới</th><td><b id="d-valid">12:33:12 UTC</b> · còn <span id="d-left">15:00</span> (<code>dry_run_valid_until</code> = created_at + 15 phút)</td></tr></table>
+        </div>
+        <div class="sec" id="d-retype-wrap" hidden>
+          <h3>Xác nhận kép (BR-CON-006)</h3>
+          <p class="hint" id="d-retype-why"></p>
+          <label for="d-retype">Gõ lại <code id="d-retype-val"></code> để xác nhận</label><br>
+          <input type="text" id="d-retype" autocomplete="off" spellcheck="false">
+          <div class="field-err" id="d-retype-err"></div>
+        </div>
+      </div>
+
+      <div class="alert error" id="d-err" hidden role="alert" style="margin-top:10px"></div>
+      <div class="alert" id="d-ok" hidden role="status" style="margin-top:10px"></div>
+
+      <div class="row" style="justify-content:flex-end;margin-top:12px">
+        <button class="btn" type="button" id="d-cancel">Huỷ</button>
+        <button class="btn" type="button" id="d-dry">Dry-run</button>
+        <button class="btn primary" type="button" id="d-exec" disabled>Thực thi</button>
+      </div>
+      <p class="hint" id="d-root" hidden style="margin-top:6px"></p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="sim-h" style="margin-top:14px">
+    <h2 id="sim-h">Mô phỏng phản hồi của cổng D khi bấm "Thực thi" (ERR-JOB-428-01 và lỗi tạo job)</h2>
+    <div class="row" id="sim-btns"></div>
+    <div class="tbl-wrap" style="margin-top:8px"><table>
+      <thead><tr><th>Mã / <code>details.constraint</code></th><th>Điều kiện</th><th>Hiển thị trên hộp thoại</th></tr></thead>
+      <tbody>
+        <tr><td><code>missing</code></td><td>Không gửi <code>confirm_dry_run_job_id</code></td><td>Không xảy ra từ UI (nút Thực thi khoá tới khi có dry-run hợp lệ); client API nhận 428</td></tr>
+        <tr><td><code>action_mismatch</code> / <code>params_mismatch</code></td><td>Hành động hoặc tham số chuẩn hoá khác lúc dry-run</td><td>Ẩn kết quả xem trước, quay về bước 2, yêu cầu dry-run lại</td></tr>
+        <tr><td><code>other_session</code></td><td>Dry-run tạo bởi phiên khác (<code>session_ref</code> khác)</td><td>Như trên</td></tr>
+        <tr><td><code>expired</code></td><td><code>created_at</code> &gt; 15 phút</td><td>Đồng hồ "còn" về 00:00, nút Thực thi khoá</td></tr>
+        <tr><td><code>not_succeeded</code></td><td>Dry-run <code>FAILED</code>, hoặc <code>SUCCEEDED_WITH_ISSUES</code> có <code>errors[]</code></td><td>Hiện mã lỗi của CLI (vd ERR-UPG-409-01, ERR-SCN-412-02), không cho thực thi</td></tr>
+        <tr><td><code>fingerprint_changed</code></td><td><code>bundle_id</code> hoặc <code>scan_fingerprint</code> đổi (đồng bộ feed, scan mới)</td><td>Hiện 2 giá trị cũ/mới, yêu cầu dry-run lại</td></tr>
+        <tr><td><code>retype_required</code> / <code>retype_mismatch</code></td><td>Thiếu hoặc sai <code>confirm_retype</code></td><td>Lỗi (viền đậm) dưới ô gõ lại, không tạo job</td></tr>
+        <tr><td>Preview rỗng (không phải lỗi)</td><td>Dry-run <code>SUCCEEDED</code>, <code>preview.changes[]</code> = 0 mục, <code>affected[]</code> = 0 mục, <code>disruption.expected_s</code> = 0 (biến thể D)</td><td>Thông báo "Không có thay đổi nào cần thực hiện"; nút Thực thi vô hiệu, không gửi bước 3, không tạo job ghi (ĐX)</td></tr>
+        <tr><td>ERR-CLI-403-01 (403)</td><td>Hành động cần root khi serve không root (cổng J)</td><td>Nút Dry-run/Thực thi vô hiệu kèm lý do ngay khi mở (BR-CON-010)</td></tr>
+        <tr><td>ERR-JOB-409-01 / ERR-JOB-429-01</td><td>Trùng job cùng <code>object_key</code> / hàng đợi 20 job</td><td>Thông báo + liên kết job đang có ở SCR-006</td></tr>
+      </tbody></table></div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text !== undefined) { e.textContent = text; } return e; }
+  var PLAN_B = 'PLN-20261022-110351-4c7e', PLAN_C = 'PLN-20261022-140210-a7d3';
+  var V = {
+    fix: {title: 'Vá cùng nhánh PHP (fix --only php)', fr: 'FR-PTCH-PHP-001', root: false, action: 'fix', dryJob: 'JOB-20261022-121150-77b0', execJob: 'JOB-20261022-121240-e0d9',
+      desc: 'PHP 8.2.34 vulnerable (CVE-2026-109618, CVSS 9,8; bản vá 8.2.35). Nâng gói PHP cùng nhánh lên bản vá mới nhất theo bundle (BR-PTCH-001), nhóm gói theo nguồn cài (BR-PTCH-002), tự gỡ mitigation khi đã vá, restart PHP-FPM. Không root: CLI chỉ vá cấp dự án và ghi issue "needs root" (BR-CLI-005).',
+      params: [['action', 'fix'], ['params.only', '["php"]'], ['params.no_restart', 'false'], ['params.no_memlimit', 'false'], ['object_key', 'host'], ['Loại / timeout', 'write · 3.600 s (BR-JOB-008)']],
+      dry: 'php-quickpatch.sh fix --json --only php --dry-run', exec: 'php-quickpatch.sh fix --json --only php',
+      changes: [['package', 'upgrade', 'php8.2-cli, php8.2-fpm, php8.2-common, php8.2-mbstring, php8.2-mysql, php8.2-opcache', '8.2.34-1+ubuntu22.04.1+deb.sury.org+1 → 8.2.35-1+ubuntu22.04.1+deb.sury.org+1', 'apt-get install -y -q --only-upgrade -o Dpkg::Options::=--force-confold', true],
+        ['file', 'delete', '/etc/php/8.2/fpm/conf.d/zz-php-quickpatch-mitigation.ini', '—', 'gỡ mitigation khi đã vá (FR-PTCH-MIT-002)', true],
+        ['file', 'delete', '/etc/php/8.2/cli/conf.d/zz-php-quickpatch-mitigation.ini', '—', 'gỡ mitigation khi đã vá', true],
+        ['service', 'restart', 'php8.2-fpm.service', '—', 'restart_php_services (FR-PTCH-RST-001)', true]],
+      affected: ['runtime php:3f9a0c1d2e4b — PHP 8.2.34 /usr/bin/php8.2 → 8.2.35', 'site blog.example.com (PB-005)', 'runtime php:7c41d09e2a15 — PHP 7.4.33 (EOL 2022-11-28): không có bản vá cùng nhánh, giữ mitigation từ lượt 20261021-221530'],
+      disr: 'expected_s = 5 · scope = runtime · basis: restart php8.2-fpm, request đang xử lý của blog.example.com bị ngắt (ước tính của CLI, chưa đo)',
+      rev: 'level = partial · rollback_command: php-quickpatch.sh rollback <run_id>', revNotes: ['Khôi phục 2 file mitigation đã xoá (dòng copy của manifest)', 'Gói nâng qua apt không bị hạ cấp khi rollback (giữ hành vi v0.1, BR-PTCH-008)'],
+      retype: null, failCode: 'ERR-CLI-423-01 — Khoá STATE_DIR/.lock đang bị lượt CLI khác giữ (cron "fix" của người vận hành); dry-run thoát mã 2.'},
+    switch: {title: 'Chuyển example.com sang PHP 8.5 (canary)', fr: 'FR-UPG-SWT-001', root: true, action: 'migrate_switch', dryJob: 'JOB-20261022-121812-c41a', execJob: 'JOB-20261022-121900-8d2f',
+      desc: 'Lượt chuyển C1–C12 thuộc kế hoạch ' + PLAN_B + ' (BR-UPG-005); mỗi site 1 lần dry-run + xác nhận riêng (BR-SCN-008). Health check 600 s, tự rollback khi vi phạm (BR-HC-010).',
+      params: [['action', 'migrate_switch'], ['params.site_id', 'example.com'], ['params.target', '8.5 (8.5.12)'], ['params.plan_id', PLAN_B], ['object_key', 'site:example.com'], ['Loại / timeout', 'write · 1.200 s']],
+      dry: 'php-quickpatch.sh migrate switch example.com --target 8.5 --plan ' + PLAN_B + ' --yes --json --dry-run', exec: 'php-quickpatch.sh migrate switch example.com --target 8.5 --plan ' + PLAN_B + ' --yes --json',
+      changes: [['pool', 'create', '/etc/php/8.5/fpm/pool.d/qp-example.com.conf', '— → listen unix:/run/php/qp-example.com.sock, user example', 'C3: php-fpm8.5 -t; reload riêng php8.5-fpm', true],
+        ['site_binding', 'switch', '/etc/nginx/sites-enabled/example.conf:31', 'fastcgi_pass unix:/run/php/php7.4-fpm.sock → unix:/run/php/qp-example.com.sock', 'C7 sau FastCGI probe (C4) và baseline 5 vòng (C5)', true],
+        ['service', 'reload', 'nginx', '—', 'C8 nginx -t; C9 graceful reload (BR-ENV-006)', true]],
+      affected: ['site example.com (canary, PB-005)', 'runtime PHP 7.4.33 → PHP 8.5.12 (PHP 7.4 giữ để rollback, BR-ENV-008)'],
+      disr: 'expected_s = 30 · scope = site · basis: C6–C10 ≤ 30 s P95 (NFR-ENV-01); graceful reload, mục tiêu 0 phản hồi 5xx (NFR-ENV-04)',
+      rev: 'level = full · rollback_command: php-quickpatch.sh migrate rollback example.com <run_id>', revNotes: ['Rollback 1 site ≤ 60 s P95 (NFR-ENV-02)', 'Tự rollback bắt đầu ≤ 5 s khi health check vi phạm (NFR-ENV-03)'],
+      retype: null, retypeOpt: {val: 'example.com', why: 'Tắt tự rollback là hành động không tự hoàn tác được (BR-CON-006): gõ lại site_id.'},
+      failCode: 'ERR-UPG-409-01 — Site example.com còn 2 lỗi tương thích chưa xử lý (details.constraint = "not_succeeded").'},
+    modphp: {title: 'Chuyển Apache mod_php → PHP-FPM cùng PHP 7.4 (toàn máy chủ web02)', fr: 'FR-UPG-SWT-003', root: true, action: 'plan_run_item', dryJob: 'JOB-20261022-140530-1e9b', execJob: 'JOB-20261022-140601-6c2a',
+      desc: 'PB-006 bước 1, mục SEMI ' + 'CHK-PHP-007-27 của kế hoạch ' + PLAN_C + '. Tác động mọi vhost của Apache; điều kiện P6-1..P6-3 đã đạt. Không đạt health check → khôi phục liên kết module/conf và restart Apache.',
+      params: [['action', 'plan_run_item'], ['plan_id', PLAN_C], ['chk_id', 'CHK-PHP-007-27'], ['Điều kiện', 'P6-1: 0 dòng php_value/php_flag ngoài <IfModule> · P6-2: php7.4-fpm có trong kho ppa:ondrej/php · P6-3: 3 directive khác biệt SAPI apache2/fpm sẽ chép vào pool'], ['object_key', 'plan:' + PLAN_C + '/CHK-PHP-007-27'], ['Loại', 'write']],
+      dry: 'php-quickpatch.sh plan run ' + PLAN_C + ' CHK-PHP-007-27 --yes --json --dry-run', exec: 'php-quickpatch.sh plan run ' + PLAN_C + ' CHK-PHP-007-27 --yes --json',
+      changes: [['package', 'install', 'php7.4-fpm (+ extension theo php7.4 -m)', '— → 7.4.33', 'apt-get install -y php7.4-fpm (1.1)', true],
+        ['pool', 'create', '/etc/php/7.4/fpm/pool.d/www.conf', '— → user www-data (giữ hành vi mod_php)', '1.2; chép 3 directive khác biệt (P6-3)', true],
+        ['link', 'delete', '/etc/apache2/mods-enabled/php7.4.load, php7.4.conf', 'a2dismod php7.4', '1.3', true],
+        ['link', 'modify', '/etc/apache2/mods-enabled/mpm_*', 'mpm_prefork → mpm_event', '1.3 đổi MPM', false],
+        ['link', 'create', 'mods-enabled/proxy_fcgi, setenvif; conf-enabled/php7.4-fpm.conf', '—', 'a2enmod proxy_fcgi setenvif; a2enconf php7.4-fpm (1.3)', true],
+        ['service', 'restart', 'apache2', '—', '1.4 apachectl configtest; 1.5 restart (đổi MPM, không graceful)', true]],
+      affected: ['host web02.example.com — 37 vhost Apache', 'runtime PHP 7.4.33: SAPI mod_php → fpm-fcgi', 'Module chỉ chạy với prefork: không phát hiện trong apachectl -M (cần người vận hành duyệt danh sách)'],
+      disr: 'expected_s = null (chưa ước tính được) · scope = host · basis: restart apache2 đổi MPM ngắt mọi vhost; thời gian gián đoạn thực tế được đo và ghi vào báo cáo; sau đó health check mọi vhost 600 s (HC-C1, HC-C2, HC-C5, HC-C7)',
+      rev: 'level = partial · rollback_command: php-quickpatch.sh rollback <run_id> (khôi phục liên kết module/conf, restart apache2, health check lại 1 vòng)', revNotes: ['Gói php7.4-fpm đã cài không bị gỡ khi rollback', 'Bước 2 (chuyển từng site sang nhánh mới) chỉ mở sau khi bước 1 PASSED và ≥ 24 giờ không rollback'],
+      retype: {val: '7.4', why: 'Hành động tác động toàn máy chủ (PB-006 bước 1): gõ lại nhánh PHP hiện tại (BR-CON-006).'},
+      failCode: 'ERR-SCN-412-02 — Site shop.web02.example.com đang chạy mod_php; .htaccess có php_value ngoài <IfModule> (P6-1) — cần chuyển sang PHP-FPM trước khi đổi phiên bản.'},
+    empty: {title: 'Vá cùng nhánh PHP — không có thay đổi (fix --only php, web03)', fr: 'FR-PTCH-PHP-001', root: false, action: 'fix', dryJob: 'JOB-20261022-123015-5a3e', execJob: null,
+      desc: 'Empty state: web03.example.com có 1 runtime PHP 8.2.35 trạng thái ok, 0 file mitigation. Với runtime ok/ok-backport, CLI chỉ gỡ mitigation còn sót (không có) — không nâng gói, không restart; mã thoát 0 "nothing left to fix" (v0.1).',
+      params: [['action', 'fix'], ['params.only', '["php"]'], ['params.no_restart', 'false'], ['params.no_memlimit', 'false'], ['object_key', 'host'], ['Loại / timeout', 'write · 3.600 s (BR-JOB-008)']],
+      dry: 'php-quickpatch.sh fix --json --only php --dry-run', exec: 'php-quickpatch.sh fix --json --only php',
+      changes: [], affected: [],
+      disr: 'expected_s = 0 · scope = none · basis: 0 gói nâng, 0 file đổi, 0 dịch vụ restart',
+      rev: 'Không áp dụng — 0 thay đổi; result.run_id = null, không tạo backups/<run_id> (api-spec-cli-json.md §8)', revNotes: [],
+      retype: null, failCode: 'ERR-CLI-423-01 — Khoá STATE_DIR/.lock đang bị lượt CLI khác giữ; dry-run thoát mã 2.'}
+  };
+  var cur = null, step = 1, dry = false, retypeVal = null, left = 900, timer = null;
+  function setStep(n) { step = n; Array.prototype.forEach.call($('d-steps').children, function (li, i) { li.className = i + 1 < n ? 'done' : (i + 1 === n ? 'cur' : ''); }); }
+  function noRoot() { return $('toggle-root').checked; }
+  function canExec() { return dry && cur.changes.length > 0; }
+  function load(key) {
+    cur = V[key]; dry = false; clearInterval(timer); left = 900;
+    $('d-title').textContent = cur.title; $('d-fr').textContent = cur.fr; $('d-desc').textContent = cur.desc;
+    var t = $('d-ptable'); t.textContent = '';
+    cur.params.forEach(function (p) { var tr = el('tr'); tr.appendChild(el('th', '', p[0])); tr.appendChild(el('td', 'mono', p[1])); t.appendChild(tr); });
+    $('d-opt').hidden = !cur.retypeOpt; $('d-nar').checked = false;
+    $('d-cmd').textContent = 'Dry-run: ' + cur.dry;
+    ['d-preview', 'd-loading', 'd-err', 'd-ok'].forEach(function (id) { $(id).hidden = true; });
+    $('d-retype').value = ''; $('d-retype').classList.remove('invalid'); $('d-retype-err').classList.remove('show');
+    $('d-exec').disabled = true; $('d-dry').disabled = false; setStep(1); applyRoot();
+  }
+  function applyRoot() {
+    var blocked = cur.root && noRoot();
+    if (blocked) { $('d-dry').disabled = true; $('d-exec').disabled = true; }
+    else if (step < 5) { $('d-dry').disabled = dry; $('d-exec').disabled = !canExec(); }
+    $('d-root').hidden = !noRoot();
+    $('d-root').textContent = blocked ? 'Vô hiệu: ERR-CLI-403-01 — "' + cur.action + ' requires root." serve đang chạy bằng user deploy (BR-CON-010).'
+      : 'serve không root: job fix vẫn được tạo nhưng CLI chỉ vá Composer/npm/WordPress trong thư mục user sở hữu; runtime hệ thống nhận issue ERR-PTCH-403-01 (BR-PTCH-003, BR-CLI-005).';
+    $('serve-user').textContent = noRoot() ? 'deploy@127.0.0.1:17321' : 'root@127.0.0.1:17321';
+  }
+  function curRetype() { return cur.retype ? cur.retype : ($('d-nar').checked ? cur.retypeOpt : null); }
+  function cmdText(withExec) {
+    var flag = $('d-nar').checked ? ' --no-auto-rollback' : '';
+    var s = 'Dry-run: ' + cur.dry + flag;
+    if (withExec) { s += '\nThực thi: ' + cur.exec + flag + '\n# POST /api/v1/jobs {"confirm_dry_run_job_id": "' + cur.dryJob + '"' + (curRetype() ? ', "confirm_retype": "<giá trị gõ lại>"' : '') + '}'; }
+    return s;
+  }
+  $('d-nar').addEventListener('change', function () {
+    $('d-cmd').textContent = cmdText(false);
+    if (dry) { dry = false; $('d-preview').hidden = true; $('d-exec').disabled = true; $('d-dry').disabled = false; setStep(2); showErr('ERR-JOB-428-01 — details.constraint = "params_mismatch": tham số đổi sau dry-run, cần dry-run lại.'); }
+  });
+  function showErr(msg) { $('d-err').hidden = !msg; $('d-err').textContent = msg || ''; }
+  $('d-dry').addEventListener('click', function () {
+    showErr(''); $('d-ok').hidden = true; setStep(2); $('d-loading').hidden = false; $('d-preview').hidden = true; $('d-dry').disabled = true;
+    $('d-loading-t').textContent = 'POST /api/v1/jobs {dry_run: true} → 202 ' + cur.dryJob + ' (read). Đang chờ kết thúc qua SSE…';
+    setTimeout(function () {
+      $('d-loading').hidden = true; dry = true; setStep(3);
+      var tb = $('d-changes'); tb.textContent = ''; var unver = false;
+      cur.changes.forEach(function (c) {
+        var tr = el('tr'); [c[0], c[1], c[2], c[3], c[4]].forEach(function (x, i) { tr.appendChild(el('td', i === 2 ? 'mono' : '', x)); });
+        var td = el('td'); td.appendChild(el('span', c[5] ? 'badge' : 'badge unver', c[5] ? 'true' : 'false · chưa kiểm chứng')); tr.appendChild(td);
+        if (!c[5]) { unver = true; } tb.appendChild(tr);
+      });
+      if (!cur.changes.length) { var tr0 = el('tr'), td0 = el('td', 'muted', '0 thay đổi — preview.changes[] rỗng (0 file, 0 gói, 0 dịch vụ)'); td0.colSpan = 6; tr0.appendChild(td0); tb.appendChild(tr0); }
+      if ($('d-nar').checked) { var tr2 = el('tr'); ['site_binding', 'switch', 'health check', '—', 'Tự rollback TẮT: không đạt → HC_FAILED_KEPT, site giữ 8.5 (ERR-HC-500-01)', ''].forEach(function (x) { tr2.appendChild(el('td', '', x)); }); tb.appendChild(tr2); }
+      $('d-unver').hidden = !unver;
+      var ul = $('d-affected'); ul.textContent = ''; cur.affected.forEach(function (a) { ul.appendChild(el('li', '', a)); });
+      if (!cur.affected.length) { ul.appendChild(el('li', 'muted', '0 đối tượng — preview.affected[] rỗng')); }
+      $('d-disr').textContent = cur.disr; $('d-rev').textContent = cur.rev;
+      var rn = $('d-revnotes'); rn.textContent = ''; cur.revNotes.forEach(function (n) { rn.appendChild(el('li', '', n)); });
+      $('d-dryjob').textContent = cur.dryJob + ' · SUCCEEDED';
+      var r = curRetype(); $('d-retype-wrap').hidden = !r; if (r) { $('d-retype-val').textContent = r.val; $('d-retype-why').textContent = r.why; }
+      if (!cur.changes.length) {
+        $('d-preview').hidden = false; $('d-exec').disabled = true; setStep(3); clearInterval(timer); $('d-left').textContent = '—';
+        $('d-cmd').textContent = cmdText(false) + '\n# Không gửi bước 3 (confirm_dry_run_job_id): preview rỗng, không có job ghi để tạo';
+        $('d-ok').hidden = false; $('d-ok').textContent = 'Không có thay đổi nào cần thực hiện. Dry-run ' + cur.dryJob + ' SUCCEEDED (mã thoát 0): 0 file, 0 gói, 0 dịch vụ, gián đoạn 0 s. Nút Thực thi vô hiệu, không tạo job ghi (ĐX).';
+        return;
+      }
+      $('d-preview').hidden = false; $('d-exec').disabled = false; $('d-cmd').textContent = cmdText(true); setStep(r ? 4 : 3);
+      left = 900; clearInterval(timer); tick(); timer = setInterval(tick, 1000);
+    }, 1000);
+  });
+  function tick() {
+    left = Math.max(0, left - 1);
+    $('d-left').textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+    if (left === 0) { clearInterval(timer); expire(); }
+  }
+  function expire() { $('d-exec').disabled = true; $('d-dry').disabled = false; dry = false; setStep(2); showErr('ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện (details.constraint = "expired").'); }
+  $('d-exec').addEventListener('click', function () {
+    if (!canExec()) { return; }
+    var r = curRetype();
+    if (r) {
+      var v = $('d-retype').value.trim();
+      if (!v || v !== r.val) { $('d-retype').classList.add('invalid'); $('d-retype-err').textContent = 'ERR-JOB-428-01 — details.constraint = "' + (v ? 'retype_mismatch' : 'retype_required') + '": gõ lại đúng "' + r.val + '". Job chưa được tạo.'; $('d-retype-err').classList.add('show'); return; }
+    }
+    $('d-retype').classList.remove('invalid'); $('d-retype-err').classList.remove('show');
+    clearInterval(timer); setStep(5); $('d-exec').disabled = true; $('d-dry').disabled = true; showErr('');
+    $('d-ok').hidden = false; $('d-ok').textContent = '202 Accepted — ' + cur.execJob + ' QUEUED (write). Audit intent được ghi trước thay đổi đầu tiên (BR-AUD-001). Theo dõi log trực tiếp ở SCR-006 Jobs & Log.';
+  });
+  var SIM = [
+    ['params_mismatch', 'ERR-JOB-428-01 — details.constraint = "params_mismatch": tham số chuẩn hoá khác lúc dry-run; cần dry-run lại.'],
+    ['other_session', 'ERR-JOB-428-01 — details.constraint = "other_session": dry-run ' + 'được tạo ở phiên khác (session_ref 2b90e6d1).'],
+    ['expired', null],
+    ['not_succeeded', 'not'],
+    ['fingerprint_changed', 'ERR-JOB-428-01 — details.constraint = "fingerprint_changed": bundle_id b-20261022T093000Z-3f2a9c1e → b-20261022T121730Z-0c4d71aa (đồng bộ theo lịch lúc 12:17); dry-run lại để xem preview theo dữ liệu mới.'],
+    ['ERR-JOB-409-01', 'ERR-JOB-409-01 — Đã có job cùng hành động cho cùng đối tượng đang chờ hoặc đang chạy (details.job_id = JOB-20261022-121240-e0d9).'],
+    ['ERR-JOB-429-01', 'ERR-JOB-429-01 — Hàng đợi đã đầy (20 job). Chờ job hiện tại hoàn thành.'],
+    ['ERR-CON-422-01', 'ERR-CON-422-01 — Tham số không hợp lệ: site_id "-rf" bắt đầu bằng "-" (BR-CON-008); không tạo tiến trình.']
+  ];
+  SIM.forEach(function (s) {
+    var b = el('button', 'btn sm', s[0]); b.type = 'button';
+    b.addEventListener('click', function () {
+      $('d-ok').hidden = true;
+      if (s[0] === 'expired') { left = 1; tick(); return; }
+      if (s[1] === 'not') { $('d-preview').hidden = true; dry = false; $('d-exec').disabled = true; $('d-dry').disabled = false; setStep(2); showErr('Dry-run ' + cur.dryJob + ' FAILED (mã thoát 2): ' + cur.failCode); return; }
+      if (s[0].indexOf('ERR-') !== 0) { $('d-preview').hidden = true; dry = false; $('d-exec').disabled = true; $('d-dry').disabled = false; setStep(2); clearInterval(timer); }
+      showErr(s[1]);
+    });
+    $('sim-btns').appendChild(b);
+  });
+  function close() { $('dlg-host').classList.remove('overlay'); $('dlg-host').classList.add('inline'); }
+  $('btn-overlay').addEventListener('click', function () { $('dlg-host').classList.remove('inline'); $('dlg-host').classList.add('overlay'); $('d-dry').focus(); });
+  $('d-close').addEventListener('click', close); $('d-cancel').addEventListener('click', function () { close(); load(document.querySelector('input[name=v]:checked').value); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
+  document.querySelectorAll('input[name=v]').forEach(function (r) { r.addEventListener('change', function () { load(r.value); }); });
+  $('toggle-root').addEventListener('change', applyRoot);
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  load('fix');
+})();
+</script>
+</body>
+</html>

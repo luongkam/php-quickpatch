@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 2100 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="state-title state-desc" id="states-3-root">
+  <title id="state-title">states — Sơ đồ 3 (stateDiagram-v2)</title>
+  <desc id="state-desc">State machine diagram showing 11 states and transitions.</desc>
+  <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #states-3-root { --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #states-3-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #states-3-root .diagram-container { width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(45,49,66,0.12);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+      #states-3-root .footer-bar { margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      font-family: var(--font-mono); }</style>
+    <pattern id="states-3-state-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="#2d3142" fill-opacity="0.10"/>
+    </pattern>
+    <marker id="states-3-s-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="states-3-s-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#bf4520"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#states-3-state-dots)" opacity="0.6"/>
+  <!-- Transitions -->
+  <line x1="155.0" y1="176.0" x2="651.0" y2="176.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="307.0" y="160.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="403.0" y="170.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">C2..C6 không đạt, hoặc huỷ ...</text>
+  <line x1="155.0" y1="176.0" x2="651.0" y2="176.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="307.0" y="160.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="403.0" y="170.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">C7/C8 lỗi, đã khôi phục fil...</text>
+  <line x1="155.0" y1="176.0" x2="1298.0" y2="176.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="687.5" y="160.0" width="78" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="726.5" y="170.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">C7..C9 xong</text>
+  <line x1="155.0" y1="176.0" x2="1945.0" y2="176.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="969.0" y="160.0" width="162" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1050.0" y="170.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">C9 reload lỗi, R1..R7 đạt</text>
+  <path d="M 1448.0 212 L 1448.0 256.0 L 155.0 256.0 L 155.0 300" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <line x1="1448.0" y1="176.0" x2="1945.0" y2="176.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="1606.5" y="160.0" width="180" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1696.5" y="170.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">HC-C0 không đạt, tự rollback</text>
+  <line x1="5.0" y1="336.0" x2="155.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="-16.0" y="320.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="80.0" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">tiến trình health check bị ...</text>
+  <line x1="155.0" y1="336.0" x2="651.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="307.0" y="320.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="403.0" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">đạt đủ 10 tiêu chí khi hết ...</text>
+  <path d="M 155.0 372 L 155.0 256.0 L 2095.0 256.0 L 2095.0 140" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <line x1="155.0" y1="336.0" x2="1298.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="630.5" y="320.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="726.5" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">KHÔNG ĐẠT, tự rollback bị t...</text>
+  <path d="M 1448.0 372 L 1448.0 256.0 L 2095.0 256.0 L 2095.0 140" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <path d="M 801.0 372 L 801.0 256.0 L 2095.0 256.0 L 2095.0 140" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <line x1="651.0" y1="336.0" x2="801.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="630.0" y="320.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="726.0" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">migrate remove-old, rollbac...</text>
+  <path d="M 155.0 212 L 155.0 256.0 L 2095.0 256.0 L 2095.0 300" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <path d="M 1448.0 212 L 1448.0 256.0 L 2095.0 256.0 L 2095.0 300" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <line x1="155.0" y1="336.0" x2="1945.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="954.0" y="320.0" width="192" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1050.0" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">rollback thất bại hoặc site...</text>
+  <line x1="1448.0" y1="336.0" x2="1945.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="1639.5" y="320.0" width="114" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1696.5" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">rollback thất bại</text>
+  <line x1="801.0" y1="336.0" x2="1945.0" y2="336.0" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <rect x="1316.0" y="320.0" width="114" height="14" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1373.0" y="330.0" fill="#4f5d75" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">rollback thất bại</text>
+  <path d="M 801.0 212 L 801.0 336.0 L 155.0 336.0 L 155.0 460" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <path d="M 2095.0 212 L 2095.0 336.0 L 801.0 336.0 L 801.0 460" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <path d="M 2095.0 372 L 2095.0 416.0 L 1448.0 416.0 L 1448.0 460" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#states-3-s-arrow)"/>
+  <!-- State Boxes -->
+  <g transform="translate(80, 140)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">PREFLIGHT</text>
+  </g>
+  <g transform="translate(726, 140)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">ABORTED</text>
+  </g>
+  <g transform="translate(1373, 140)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">SWITCHED</text>
+  </g>
+  <g transform="translate(2020, 140)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">ROLLED_BACK</text>
+  </g>
+  <g transform="translate(80, 300)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">HC_RUNNING</text>
+  </g>
+  <g transform="translate(726, 300)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">PASSED</text>
+  </g>
+  <g transform="translate(1373, 300)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">HC_FAILED_KEPT</text>
+  </g>
+  <g transform="translate(2020, 300)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">ROLLBACK_FAILED</text>
+  </g>
+  <g transform="translate(80, 460)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">[end]</text>
+  </g>
+  <g transform="translate(726, 460)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">[end]</text>
+  </g>
+  <g transform="translate(1373, 460)">
+    <rect width="150" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="8" width="36" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="26" y="16.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+    <text x="75.0" y="42" fill="#2d3142" font-size="11.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">[end]</text>
+  </g>
+</svg>

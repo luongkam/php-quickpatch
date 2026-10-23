@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-022
+title: Wireframe SCR-022 — Phase 2 Đợt chạy từ xa & phân phối snapshot (php-quickpatch console, máy trung tâm)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, phase-2, fleet, rollout, canary, batch, ssh, snapshot-distribution, scr-022, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-API-QP-006
+  - FR-FLT-EXEC-001
+  - FR-FLT-EXEC-002
+  - FR-FLT-FEED-001
+  - UC-FLT-002
+  - UC-FLT-004
+related_diagrams:
+  - DIAG-SEQ-QP-FLT-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-022: Đợt chạy từ xa &amp; phân phối snapshot (Phase 2) — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}.off{border-style:dashed;color:var(--sub)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.phase2{border:2px dashed #111827;background:#fff;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:12.5px}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--sub)}.f input,.f select{color:var(--text)}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line2);margin-bottom:12px}
+.tabs button{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line2);border-bottom:0;border-radius:6px 6px 0 0;background:#fff;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-panel]{display:none}[data-panel].show{display:block}
+.stages{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:8px 0}
+.stages li{flex:1 1 130px;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12px;color:var(--sub);background:#fff}
+.stages li.done{background:var(--muted);color:var(--text)}.stages li.cur{border:2px solid var(--accent);color:var(--text);font-weight:600}.stages li.stop{border:2px dashed var(--err-line);background:var(--err-bg);color:var(--err);font-weight:700}.stages li.stop::before{content:"DỪNG · "}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:820px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:170px;background:#fff}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+body.role-viewer .op-only{display:none!important}
+.role-note{display:none}body.role-viewer .role-note{display:block}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 2 · máy trung tâm</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>qp-central.example.com</b> · Debian 12 · serve <code>127.0.0.1:17321</code> (SSH tunnel)</span>
+    <span>Feed cập nhật: <b>2026-10-22 03:17 UTC</b> <span class="badge stale" title="Tuổi bundle trung tâm 9 giờ, quá TTL 6 giờ (BR-FEED-005)">Dữ liệu cũ 9 giờ</span></span>
+    <span>Đăng nhập: <b>alice</b> <span class="badge" id="role-badge">Operator</span></span>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 27 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html" aria-current="page"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <div class="phase2"><b>Phase 2 — chỉ đặc tả, chưa triển khai</b>. Máy trung tâm đẩy gói CLI qua SSH vào thư mục tạm, chạy lệnh <code>--json</code>, thu kết quả, xoá thư mục tạm (S0–S7); không cài agent, dịch vụ, cron trên server (BR-FLT-001).</div>
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-022 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-022 Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot; UC-FLT-002, UC-FLT-004 (Operator/Admin; Viewer chỉ xem tiến độ)</td></tr>
+      <tr><th>FR chính</th><td>FR-FLT-EXEC-001, FR-FLT-EXEC-002, FR-FLT-FEED-001</td></tr>
+      <tr><th>BR</th><td>BR-FLT-001, BR-FLT-002, BR-FLT-003, BR-FLT-004, BR-FLT-005, BR-FLT-007, BR-FLT-008, BR-FEED-055, BR-FEED-056, BR-CON-008, BR-JOB-008</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-FLT-409-01, ERR-FLT-403-01, ERR-FLT-403-02, ERR-FLT-401-01, ERR-FLT-404-01, ERR-FLT-422-02, ERR-FLT-424-01, ERR-FLT-504-01, ERR-FLT-422-03 (error-matrix.md §3.13), ERR-CLI-423-01, ERR-CON-422-01, ERR-JOB-409-01, ERR-FEED-422-02, ERR-FEED-409-02, ERR-FEED-423-01</td></tr>
+      <tr><th>API</th><td><code>POST /api/v1/fleet-runs</code>, <code>GET /api/v1/fleet-runs/{fleet_run_id}</code> (client gọi lại mỗi 5 s), <code>POST /api/v1/feed-distributions</code> (api-spec-phase2.md §3.8–§3.10, §4)</td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Nhóm shop = web01, web02, web03 (SCR-020). Đợt FLR-20261022-090000-7d21 và lỗi ERR-CLI-423-01 của web02 lấy từ ví dụ api-spec-phase2.md §3.9. SHA-256, kích thước snapshot, thời lượng là minh hoạ.</td></tr>
+      <tr><th>Ghi chú</th><td>(1) <code>feeds import</code> không có <code>--dry-run</code> (data-sources-cache-cli.md §6.1) nên giai đoạn dry-run của BR-FLT-005 không áp dụng được cho phân phối snapshot; wireframe dùng kiểm SHA-256 trên từng server + canary — câu hỏi mở cho PO/BA. (2) Lệnh đọc bỏ giai đoạn dry-run và canary, chạy song song ≤ 10 kết nối (đề xuất api-spec-phase2.md §3.8; chờ PO xác nhận, UC-FLT-002 1d). (3) ERR-FLT-422-03 (gói CLI lệch SHA-256 ở bước S4, BR-FLT-003) định nghĩa chuẩn ở error-matrix.md §3.13 (từ v1.0.1). (4) Bảng màu xám theo rules/13 §2: trạng thái lỗi nhấn bằng viền đậm và nhãn chữ "LỖI", giai đoạn bị dừng bằng viền đứt và nhãn "DỪNG", không dùng màu đỏ. CSS/JS inline chỉ để wireframe tự chứa.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §13; business-rules.md §4.12; api/api-spec-phase2.md §3.8–§3.10, §4.1–§4.4; api/api-spec-jobs.md §2; data-sources-cache-cli.md §4, §6; srs/error-matrix.md 1.1.0 §3.13; usecases/UC-FLT-002.md, UC-FLT-004.md; rules/13 §2 (bảng màu xám)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-022: tạo đợt chạy (dry-run mọi server → canary → đợt ≤ 5), tiến độ theo đợt và theo server, điều kiện dừng &gt; 20%, phân phối snapshot từ máy trung tâm</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: bỏ nhãn "mã đề xuất" của ERR-FLT-422-03 ở khối thông tin, ghi chú (3) và thông báo mô phỏng dry-run, dẫn nguồn error-matrix.md §3.13; đổi màu lỗi đỏ sang bảng xám (rules/13 §2): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6, nhấn cảnh báo lỗi bằng viền 2px/6px và nhãn chữ "LỖI", giai đoạn bị dừng bằng viền đứt và nhãn "DỪNG"</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng đợt FLR-20261022-090000-7d21:</strong>
+    <button type="button" data-run="dry">DRY_RUN đang chạy</button>
+    <button type="button" data-run="dryfail">Dừng ở dry-run (web03)</button>
+    <button type="button" data-run="stopped">STOPPED &gt; 20%</button>
+    <button type="button" data-run="done">COMPLETED</button>
+    <button type="button" data-set="empty">Chưa có đợt</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label>Vai trò <select id="role"><option value="operator">Operator</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Đợt chạy từ xa &amp; phân phối snapshot <span class="fr">FR-FLT-EXEC-002</span></h1>
+      <p class="muted">≤ 10 kết nối SSH song song toàn máy trung tâm · canary 1 server → đợt ≤ 5 server · dừng khi canary lỗi hoặc &gt; 20% server của 1 đợt lỗi (BR-FLT-005)</p>
+    </div>
+  </div>
+  <div class="alert role-note" role="status">Vai trò <b>Viewer</b> chỉ xem tiến độ và kết quả đợt chạy. Tạo đợt chạy, phân phối snapshot dành cho Operator/Admin; gọi API trực tiếp → 403 <b>ERR-FLT-403-02</b> (BR-FLT-008).</div>
+
+  <section data-state="data">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="run" aria-selected="true">Đợt chạy từ xa</button>
+      <button type="button" role="tab" data-tab="snap" aria-selected="false">Phân phối snapshot</button>
+    </div>
+
+    <div data-panel="run" class="show">
+      <section class="card op-only" aria-labelledby="new-h">
+        <h2 id="new-h">Tạo đợt chạy <span class="fr">FR-FLT-EXEC-001</span><span class="fr">FR-FLT-EXEC-002</span></h2>
+        <form id="run-form" novalidate>
+          <div class="row" style="align-items:flex-end">
+            <label class="f">Đích<select id="r-tt"><option value="group">Nhóm</option><option value="ids">Chọn server</option></select></label>
+            <label class="f" id="r-group-wrap">Nhóm<select id="r-group"><option>shop</option><option>blog</option><option>api</option><option value="empty">staging (0 server)</option></select></label>
+            <span id="r-ids-wrap" hidden class="row"><label><input type="checkbox" name="sid" value="web01" checked> web01</label><label><input type="checkbox" name="sid" value="web02"> web02</label><label><input type="checkbox" name="sid" value="web03"> web03</label><label><input type="checkbox" name="sid" value="blog01"> blog01</label><label class="hint"><input type="checkbox" disabled> legacy03 (đã tắt)</label></span>
+            <label class="f">Hành động (danh sách trắng Phase 2)<select id="r-action"><option value="scan">scan (đọc)</option><option value="assess">assess (đọc)</option><option value="fix" selected>fix (ghi)</option><option value="rollback_run">rollback_run (ghi, 1 server)</option><option value="feeds_update">feeds_update (data)</option><option value="migrate_healthcheck">migrate_healthcheck (đọc, 1 server)</option><option value="migrate_install">migrate_install (ghi)</option><option value="migrate_switch">migrate_switch (ghi, 1 server)</option><option value="migrate_rollback">migrate_rollback (ghi, 1 server)</option></select></label>
+            <label class="f" id="r-only-wrap">params.only<select id="r-only"><option value="php">php</option><option value="node">node</option><option value="composer,npm">composer, npm</option><option value="wp">wp</option></select></label>
+            <label class="f" id="r-site-wrap" hidden>params.site_id<input type="text" id="r-site" placeholder="example.com" size="16"></label>
+            <label class="f">batch_size (1–5)<input type="number" id="r-batch" value="5" min="1" max="5" style="width:80px"></label>
+            <button class="btn primary" type="submit">Xem kế hoạch chạy…</button>
+          </div>
+          <div class="field-err" id="r-err"></div>
+          <p class="hint" style="margin-top:6px">Hành động có <code>site_id</code>, <code>plan_id</code>, <code>runtime_id</code>, <code>run_id</code> chỉ nhận đúng 1 server. Server <code>enabled=false</code> bị bỏ qua và liệt kê trong phản hồi. Tham số kiểm theo lược đồ api-spec-jobs.md §2; văn bản tự do (lý do, bằng chứng) không truyền qua SSH.</p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="prog-h">
+        <h2 id="prog-h">Tiến độ đợt <span class="mono">FLR-20261022-090000-7d21</span> <span class="fr">FR-FLT-EXEC-002</span></h2>
+        <p><span class="mono">fix</span> · <code>{"only": ["php"]}</code> · nhóm shop (3 server) · batch_size 5 · tạo bởi alice lúc 2026-10-22 09:00:00 UTC · trạng thái <span class="badge" id="p-state">DRY_RUN</span> <span class="hint" id="p-poll">· cập nhật mỗi 5 s (GET /api/v1/fleet-runs/{id})</span></p>
+        <ol class="stages" id="p-stages"><li>1. DRY_RUN trên mọi server</li><li>2. Đợt 1 — canary (1 server)</li><li>3. Đợt 2 (≤ 5 server)</li><li>4. COMPLETED</li></ol>
+        <div class="alert error" id="p-err" hidden role="alert"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Server</th><th>Giai đoạn / đợt</th><th>Trạng thái</th><th>Bước SSH</th><th>exit</th><th>Mã lỗi</th><th>Thu lúc (UTC)</th></tr></thead>
+          <tbody id="p-body"></tbody>
+        </table></div>
+        <div class="row op-only" style="margin-top:8px" id="p-actions"></div>
+      </section>
+
+      <section class="card" aria-labelledby="hist-h">
+        <h2 id="hist-h">Đợt chạy gần đây</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>fleet_run_id</th><th>Hành động</th><th>Đích</th><th>Trạng thái</th><th>Tạo bởi · lúc (UTC)</th><th>Kết thúc</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">FLR-20261022-090000-7d21</td><td>fix {only: php}</td><td>nhóm shop (3)</td><td><span class="badge" id="h-state">DRY_RUN</span></td><td>alice · 09:00:00</td><td id="h-end">—</td></tr>
+            <tr><td class="mono">FLR-20261022-080000-4b1e</td><td>scan (đọc, song song ≤ 10)</td><td>6 server (bỏ qua legacy03 đã tắt)</td><td><span class="badge">COMPLETED</span> 4 SUCCEEDED_WITH_ISSUES · 1 FAILED (api01, ERR-FLT-424-01)</td><td>bob · 08:00:00</td><td>08:06:12</td></tr>
+            <tr><td class="mono">FLR-20261021-140501-2c9e</td><td>feeds_import_remote (snapshot standard)</td><td>web02, web03</td><td><span class="badge">COMPLETED</span></td><td>alice · 2026-10-21 14:05:01</td><td>14:07:40</td></tr>
+          </tbody></table></div>
+      </section>
+    </div>
+
+    <div data-panel="snap">
+      <section class="card" aria-labelledby="sn-h">
+        <h2 id="sn-h">Phân phối snapshot tới server không ra Internet <span class="fr">FR-FLT-FEED-001</span></h2>
+        <form id="snap-form" novalidate class="op-only">
+          <div class="row" style="align-items:flex-end">
+            <label class="f">Nhóm đích<select id="s-group"><option value="shop">shop (web01, web02, web03)</option><option value="blog">blog (blog01)</option></select></label>
+            <label class="f">Biến thể<select id="s-variant"><option value="standard">standard (≤ 3 MB nén)</option><option value="full">full (+ OSV Packagist, ≤ 15 MB nén)</option></select></label>
+            <button class="btn primary" type="submit">Xem kế hoạch phân phối…</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Bundle trung tâm đang 9 giờ (&gt; TTL 6 giờ) → máy trung tâm chạy <code>feeds update</code> trước khi xuất. Snapshot chỉ chứa dữ liệu công khai, không chứa dữ liệu riêng của server khác (BR-FEED-056, BR-FLT-007). Mỗi server tự kiểm SHA-256 trước khi nhập (BR-FEED-055).</p>
+        </form>
+        <h3>Lần phân phối gần nhất — <span class="mono">FLR-20261021-140501-2c9e</span></h3>
+        <table class="pv"><tr><th>Snapshot</th><td class="mono">feeds-snapshot-20261021T140230Z-standard.tar.gz · 2.794.310 byte · SHA-256 6b1e…a40c · generated_at 2026-10-21 14:02:30 UTC</td></tr></table>
+        <div class="tbl-wrap" style="margin-top:8px"><table>
+          <thead><tr><th>Server</th><th>Kết quả</th><th>Bundle trước → sau</th><th>Tuổi dữ liệu sau nhập</th></tr></thead>
+          <tbody id="sn-body">
+            <tr><td class="mono">web02</td><td><span class="badge">SUCCEEDED</span> đã nhập, ghi audit fleet:alice</td><td class="mono">b-20261012T061700Z-… → b-20261021T140230Z-…</td><td>0 giờ (FRESH)</td></tr>
+            <tr><td class="mono">web03</td><td><span class="badge sev-h">FAILED</span> ERR-FEED-409-02 — snapshot cũ hơn bundle hiện có, giữ nguyên <code>current/</code></td><td class="mono">b-20261021T180000Z-… (giữ)</td><td>—</td></tr>
+          </tbody></table></div>
+      </section>
+    </div>
+  </section>
+
+  <section data-state="empty">
+    <div class="empty">
+      <h2>Chưa có đợt chạy nào</h2>
+      <p style="margin:8px 0">Bắt đầu bằng đợt <code>scan</code> (đọc) để thu dữ liệu cho dashboard SCR-021. Server phải đã ghim khoá máy chủ và kiểm kết nối PASS (SCR-020).</p>
+      <button class="btn primary op-only" type="button" id="btn-first">Tạo đợt scan</button>
+    </div>
+  </section>
+  <section data-state="loading" aria-busy="true"><div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/fleet-runs/FLR-20261022-090000-7d21</code>…</p></div></section>
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-FLT-404-01</b> — Nhóm <code>staging</code> không có server nào.</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-409-01</b> — Đã có đợt chạy RUNNING chứa cùng server với hành động ghi (<code>details.fleet_run_id</code> = FLR-20261022-090000-7d21).</div>
+    <div class="alert error" role="alert"><b>ERR-CON-404-01</b> — Không có đợt chạy <code>FLR-20261001-000000-0000</code> (<code>details.resource = fleet_run</code>).</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 3a90be11). <button class="btn sm" type="button" onclick="location.reload()">Thử lại</button></div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr" id="act-fr"></span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <table class="pv" id="act-plan"></table>
+    <h3>Lệnh sẽ chạy (argv do máy trung tâm dựng, <code>shell=False</code>; giá trị qua <code>shlex.quote</code> + regex danh sách trắng)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px"></p>
+    <div id="act-dry-res" hidden><h3>Kết quả giai đoạn dry-run</h3><div class="tbl-wrap"><table><thead><tr><th>Server</th><th>Kết quả</th><th>Tóm tắt preview</th></tr></thead><tbody id="act-dry-body"></tbody></table></div></div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng dry-run lỗi trên web03</button>
+      <button class="btn" type="button" data-close>Huỷ</button>
+      <button class="btn" type="button" id="act-dry">Dry-run trên mọi server</button>
+      <button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text !== undefined) { e.textContent = text; } return e; }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 5000); }
+  var GROUPS = {shop: ['web01', 'web02', 'web03'], blog: ['blog01'], api: ['api01'], empty: []};
+  var WRITE = ['fix', 'rollback_run', 'migrate_install', 'migrate_switch', 'migrate_rollback'];
+  var SINGLE = ['rollback_run', 'migrate_healthcheck', 'migrate_switch', 'migrate_rollback'];
+  var SB = {PENDING: 'badge off', DRY_RUN_OK: 'badge', RUNNING: 'badge sev-m', SUCCEEDED: 'badge', SUCCEEDED_WITH_ISSUES: 'badge', FAILED: 'badge sev-h', TIMEOUT: 'badge sev-h', SKIPPED: 'badge off'};
+  var RUNS = {
+    dry: {state: 'DRY_RUN', stage: 0, stop: false, err: null, end: '—',
+      rows: [['web01', 'dry-run', 'DRY_RUN_OK', 'S7 dọn dẹp xong', 1, '—', '09:01:12'], ['web02', 'dry-run', 'RUNNING', 'S5 fix --dry-run', '—', '—', '—'], ['web03', 'dry-run', 'PENDING', 'chờ chỗ (≤ 10 kết nối)', '—', '—', '—']]},
+    dryfail: {state: 'STOPPED', stage: 0, stop: true, end: '09:01:31',
+      err: 'Đã dừng trước bước ghi: dry-run không thành công trên web03 (ERR-FLT-403-01 — Khoá máy chủ của web03 không khớp; đã dừng kết nối). Lệnh ghi cần dry-run thành công trên mọi server đích (BR-FLT-005); chưa có thay đổi nào trên server.',
+      rows: [['web01', 'dry-run', 'DRY_RUN_OK', 'S7', 1, '—', '09:01:12'], ['web02', 'dry-run', 'DRY_RUN_OK', 'S7', 1, '—', '09:01:20'], ['web03', 'dry-run', 'FAILED', 'S1 kết nối', 255, 'ERR-FLT-403-01', '09:01:31']]},
+    stopped: {state: 'STOPPED', stage: 2, stop: true, end: '09:06:12',
+      err: 'ERR-FLT-409-01 — Đã dừng đợt 2: 1/2 server lỗi (50% > 20%). Không còn đợt kế tiếp; xem kết quả từng server rồi quyết định chạy tiếp bằng đợt mới.',
+      rows: [['web01', 'đợt 1 (canary)', 'SUCCEEDED_WITH_ISSUES', 'S7', 1, '—', '09:04:58'], ['web02', 'đợt 2', 'FAILED', 'S5', 2, 'ERR-CLI-423-01 (khoá STATE_DIR/.lock bị lượt khác giữ)', '09:06:10'], ['web03', 'đợt 2', 'SUCCEEDED_WITH_ISSUES', 'S7', 1, '—', '09:06:05']]},
+    done: {state: 'COMPLETED', stage: 3, stop: false, err: null, end: '09:06:40',
+      rows: [['web01', 'đợt 1 (canary)', 'SUCCEEDED_WITH_ISSUES', 'S7', 1, '—', '09:04:58'], ['web02', 'đợt 2', 'SUCCEEDED_WITH_ISSUES', 'S7', 1, '—', '09:06:31'], ['web03', 'đợt 2', 'SUCCEEDED', 'S7', 0, '—', '09:06:40']]}
+  };
+  function renderRun(key) {
+    var r = RUNS[key];
+    $('p-state').textContent = r.state; $('p-state').className = r.state === 'STOPPED' ? 'badge sev-h' : 'badge'; $('h-state').textContent = r.state; $('h-state').className = $('p-state').className; $('h-end').textContent = r.end;
+    $('p-poll').hidden = r.state === 'COMPLETED' || r.state === 'STOPPED';
+    Array.prototype.forEach.call($('p-stages').children, function (li, i) { li.className = i < r.stage ? 'done' : (i === r.stage ? (r.stop ? 'stop' : (r.state === 'COMPLETED' ? 'done' : 'cur')) : ''); });
+    $('p-err').hidden = !r.err; $('p-err').textContent = r.err || '';
+    var tb = $('p-body'); tb.textContent = '';
+    r.rows.forEach(function (x) { var tr = el('tr'); x.forEach(function (v, i) { var td = el('td', i === 0 ? 'mono' : ''); if (i === 2) { td.appendChild(el('span', SB[v], v)); } else { td.textContent = String(v); } tr.appendChild(td); }); tb.appendChild(tr); });
+    var pa = $('p-actions'); pa.textContent = '';
+    if (r.state === 'STOPPED') { var a = el('a', 'btn sm', 'Xem server web03 (SCR-020)'); a.href = 'fleet-servers.html'; pa.appendChild(a); pa.appendChild(el('span', 'hint', 'Đợt đã dừng không tự chạy tiếp; tạo đợt mới cho các server còn lại sau khi xử lý lỗi.')); }
+    else if (r.state === 'COMPLETED') { var a2 = el('a', 'btn sm', 'Xem dashboard (SCR-021)'); a2.href = 'fleet-dashboard.html'; pa.appendChild(a2); pa.appendChild(el('span', 'hint', 'Audit của từng server đã gộp vào audit trung tâm (S6); thư mục tạm đã xoá (S7, NFR-SEC-012).')); }
+    else { pa.appendChild(el('span', 'hint', 'Đợt đang chạy: không có nút dừng trong hợp đồng API hiện tại; điều kiện dừng tự động theo BR-FLT-005.')); }
+    document.querySelectorAll('.state-bar [data-run]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-run') === key)); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    setState('data', true);
+  }
+  function setState(s, keep) {
+    document.querySelectorAll('[data-state]').forEach(function (e) { e.classList.toggle('show', e.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    if (!keep) { document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); }); document.querySelectorAll('.state-bar [data-run]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); }
+  }
+  document.querySelectorAll('.state-bar [data-run]').forEach(function (b) { b.addEventListener('click', function () { renderRun(b.getAttribute('data-run')); }); });
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('role').addEventListener('change', function (e) { var r = e.target.value; document.body.classList.remove('role-viewer', 'role-operator', 'role-admin'); document.body.classList.add('role-' + r); $('role-badge').textContent = r.charAt(0).toUpperCase() + r.slice(1); });
+  document.querySelectorAll('.tabs [data-tab]').forEach(function (b) { b.addEventListener('click', function () {
+    document.querySelectorAll('.tabs [data-tab]').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+    document.querySelectorAll('[data-panel]').forEach(function (p) { p.classList.toggle('show', p.getAttribute('data-panel') === b.getAttribute('data-tab')); });
+  }); });
+
+  /* Form tạo đợt */
+  function syncForm() {
+    var ids = $('r-tt').value === 'ids'; $('r-ids-wrap').hidden = !ids; $('r-group-wrap').hidden = ids;
+    var a = $('r-action').value; $('r-only-wrap').hidden = ['fix', 'scan'].indexOf(a) < 0; $('r-site-wrap').hidden = ['migrate_switch', 'migrate_rollback', 'migrate_healthcheck'].indexOf(a) < 0;
+  }
+  ['r-tt', 'r-action'].forEach(function (id) { $(id).addEventListener('change', syncForm); });
+  function targets() { return $('r-tt').value === 'ids' ? Array.prototype.map.call(document.querySelectorAll('input[name=sid]:checked'), function (x) { return x.value; }) : GROUPS[$('r-group').value]; }
+  var P = null, dryOk = false;
+  $('run-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var a = $('r-action').value, t = targets(), b = Number($('r-batch').value), m = '';
+    if (!t.length) { m = 'ERR-FLT-404-01 — ' + ($('r-tt').value === 'ids' ? 'Chưa chọn server nào.' : 'Nhóm staging không có server nào.'); }
+    else if (SINGLE.indexOf(a) >= 0 && t.length !== 1) { m = 'ERR-CON-422-01 — Hành động ' + a + ' chỉ nhận đúng 1 server (đang chọn ' + t.length + ').'; }
+    else if (!(b >= 1 && b <= 5 && Math.floor(b) === b)) { m = 'ERR-CON-422-01 — batch_size trong khoảng 1–5.'; }
+    else if (!$('r-site-wrap').hidden && !/^[a-z0-9.-]{1,253}$/.test($('r-site').value.trim())) { m = 'ERR-CON-422-01 — params.site_id sai định dạng (BR-CON-008).'; }
+    $('r-err').textContent = m; $('r-err').classList.toggle('show', !!m); if (m) { return; }
+    openRun(a, t, b);
+  });
+  function sshCmd(tail) {
+    return 'S1  ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=<CENTRAL_STATE>/known_hosts.d/<server_id> -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 [-o IdentitiesOnly=yes -i <key_path>] -p <port> -- <ssh_user>@<host> bash --noprofile --norc -s\n'
+      + 'S2  mktemp -d /tmp/qp-remote.XXXXXXXXXX\nS3  tar -C <gói CLI> -cf - . | ssh … tar -C <TMP> -xf - --no-same-owner   (≤ 10 MiB)\n'
+      + 'S4  cd <TMP> && sha256sum -c SHA256SUMS >/dev/null && sha256sum SHA256SUMS   # so với hash của máy trung tâm (BR-FLT-003)\n'
+      + 'S5  cd <TMP> && [sudo -n] env QP_ACTOR=fleet:alice QP_JOB_ID=<fleet_run_id>:<server_id> bash <TMP>/php-quickpatch.sh ' + tail + '\n'
+      + 'S6  bash <TMP>/php-quickpatch.sh audit list --from <ngày bản ghi cuối đã thu> --json\nS7  rm -rf -- <TMP> && test ! -e <TMP>   # chạy cả khi bước trước lỗi';
+  }
+  function plan(rows) { var t = $('act-plan'); t.textContent = ''; rows.forEach(function (r) { var tr = el('tr'); tr.appendChild(el('th', '', r[0])); tr.appendChild(el('td', '', r[1])); t.appendChild(tr); }); }
+  function openRun(a, t, b) {
+    var w = WRITE.indexOf(a) >= 0, only = $('r-only').value;
+    var site = $('r-site').value.trim() || '<site_id>';
+    var ARGV = {scan: 'scan --json', assess: 'assess --runtime-id <runtime_id của server> --candidates --json', fix: 'fix --json --only ' + only, rollback_run: 'rollback <run_id> --json',
+      feeds_update: 'feeds update --json', migrate_healthcheck: 'migrate healthcheck ' + site + ' --baseline-only --json', migrate_install: 'migrate install --runtime php --target <nhánh> --yes --json',
+      migrate_switch: 'migrate switch ' + site + ' --target <nhánh> --plan <plan_id> --yes --json', migrate_rollback: 'migrate rollback ' + site + ' --yes --json'};
+    var TO = {scan: '1.800', assess: '1.800', fix: '3.600', migrate_install: '3.600', migrate_switch: '1.200', migrate_rollback: '300', feeds_update: '960'};
+    var argv = ARGV[a];
+    P = {a: a, t: t, w: w}; dryOk = false;
+    $('act-title').textContent = 'Kế hoạch đợt chạy: ' + a + ' trên ' + t.length + ' server'; $('act-fr').textContent = 'FR-FLT-EXEC-002';
+    $('act-desc').textContent = 'POST /api/v1/fleet-runs {target, action: "' + a + '", params, batch_size: ' + b + '} → 202 {fleet_run_id, state: "PENDING"}. Timeout mỗi server theo BR-JOB-008 (' + (TO[a] || '600') + ' s); quá → TIMEOUT, ERR-FLT-504-01 (BR-FLT-004).';
+    var batches = w ? ['Đợt 1 (canary): ' + t[0]] : [];
+    if (w) { for (var i = 1; i < t.length; i += b) { batches.push('Đợt ' + (batches.length + 1) + ': ' + t.slice(i, i + b).join(', ')); } }
+    plan([['Đích', t.join(', ')], ['Loại', w ? 'Ghi → dry-run trên mọi server, rồi canary, rồi đợt ≤ ' + b + ' server' : 'Đọc → chạy song song ≤ 10 kết nối, không dry-run, không canary (đề xuất, chờ PO)'], ['Các đợt', w ? batches.join(' · ') : '1 lượt song song'], ['Điều kiện dừng', w ? 'Canary lỗi hoặc > 20% server của 1 đợt lỗi → STOPPED, ERR-FLT-409-01' : 'Không dừng; server lỗi giữ mã lỗi riêng']]);
+    $('act-cmd').textContent = sshCmd(argv + (w ? ' --dry-run' : '')) + (w ? '\n# Sau khi dry-run đạt trên mọi server: S5 chạy lại không có --dry-run theo từng đợt' : '');
+    $('act-dry').hidden = !w; $('act-sim').hidden = !w; $('act-exec').disabled = w; $('act-exec').textContent = w ? 'Thực thi theo đợt' : 'Chạy';
+    $('act-dry-res').hidden = true; $('act-err').hidden = true; $('act-status').textContent = w ? 'Bước 1: dry-run trên mọi server đích (≤ 10 kết nối song song).' : '';
+    $('act-modal').classList.add('open'); (w ? $('act-dry') : $('act-exec')).focus();
+  }
+  function dryRows(fail) {
+    var tb = $('act-dry-body'); tb.textContent = '';
+    P.t.forEach(function (s) {
+      var bad = fail && s === 'web03'; var tr = el('tr'); tr.appendChild(el('td', 'mono', s));
+      var td = el('td'); td.appendChild(el('span', bad ? 'badge sev-h' : 'badge', bad ? 'FAILED' : 'DRY_RUN_OK')); tr.appendChild(td);
+      tr.appendChild(el('td', 'hint', bad ? 'ERR-FLT-403-01 — Khoá máy chủ của web03 không khớp; đã dừng kết nối.' : (s === 'web02' ? '0 gói nâng (PHP 7.4 EOL), giữ mitigation; affected: host; disruption: none' : '6 gói php8.2-* 8.2.34 → 8.2.35; restart php8.2-fpm (≈ 5 s, runtime)')));
+      tb.appendChild(tr);
+    });
+    $('act-dry-res').hidden = false;
+  }
+  $('act-dry').addEventListener('click', function () {
+    $('act-status').textContent = 'Đang chạy giai đoạn DRY_RUN trên ' + P.t.length + ' server…';
+    setTimeout(function () { dryRows(false); dryOk = true; $('act-exec').disabled = false; $('act-status').textContent = 'Dry-run đạt trên ' + P.t.length + '/' + P.t.length + ' server. Bước 2: thực thi theo đợt (canary trước).'; }, 900);
+  });
+  $('act-sim').addEventListener('click', function () {
+    dryRows(true); dryOk = false; $('act-exec').disabled = true; var e = $('act-err'); e.hidden = false;
+    e.textContent = 'Dry-run không thành công trên 1/' + P.t.length + ' server (web03: ERR-FLT-403-01). Đợt dừng trước bước ghi (BR-FLT-005). Các mã lỗi khác có thể gặp ở giai đoạn này: ERR-FLT-401-01, ERR-FLT-424-01, ERR-FLT-504-01, ERR-FLT-422-02, ERR-FLT-422-03 (gói CLI lệch SHA-256 ở S4).';
+  });
+  $('act-exec').addEventListener('click', function () {
+    if (P.w && !dryOk) { return; }
+    $('act-modal').classList.remove('open');
+    if (P.snap) { toast('202 Accepted — FLR-20261022-122600-e41b, snapshot {generated_at: 2026-10-22T12:25:40Z, sha256: 0a7c…91f2, bytes: 2.801.554}. Theo dõi ở tab Đợt chạy.'); return; }
+    toast('202 Accepted — FLR-20261022-122500-5f8a {state: "PENDING", servers: ' + P.t.length + '}. Client gọi GET /api/v1/fleet-runs/{id} mỗi 5 s.');
+    if (P.w) { renderRun('dry'); }
+  });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('.modal-bg').classList.remove('open'); }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { $('act-modal').classList.remove('open'); } });
+
+  /* Phân phối snapshot */
+  $('snap-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var g = $('s-group').value, v = $('s-variant').value, t = GROUPS[g];
+    P = {a: 'feeds_import_remote', t: t, w: false, snap: true}; dryOk = false;
+    $('act-title').textContent = 'Phân phối snapshot ' + v + ' tới ' + t.length + ' server'; $('act-fr').textContent = 'FR-FLT-FEED-001';
+    $('act-desc').textContent = 'POST /api/v1/feed-distributions {target: {group: "' + g + '"}, variant: "' + v + '"} → 202 {fleet_run_id, snapshot}. Theo đợt như UC-FLT-002: canary 1 server → đợt ≤ 5.';
+    plan([['Đích', t.join(', ')], ['Bước trên máy trung tâm', 'feeds update (bundle 9 giờ > TTL 6 giờ) → feeds export --variant ' + v], ['Kích thước', v === 'full' ? '≤ 15 MB nén' : '≤ 3 MB nén'], ['Kiểm trên server', 'SHA-256 toàn gói, SHA256SUMS, schema cùng major, generated_at không cũ hơn current/ (ERR-FEED-422-02, ERR-FEED-409-02)'], ['Dry-run', 'Không áp dụng: feeds import không có --dry-run (câu hỏi mở)']]);
+    $('act-cmd').textContent = '# Máy trung tâm\nphp-quickpatch.sh feeds update --json\nphp-quickpatch.sh feeds export --out /var/lib/php-quickpatch/work/feeds-snapshot-20261022T122540Z-' + v + '.tar.gz --variant ' + v + '\n# Từng server (S3 đẩy thêm feeds-snapshot.tar.gz)\n' + sshCmd('feeds import <TMP>/feeds-snapshot.tar.gz --sha256 <hex> --yes --json');
+    $('act-dry').hidden = true; $('act-sim').hidden = true; $('act-exec').disabled = false; $('act-exec').textContent = 'Phân phối';
+    $('act-dry-res').hidden = true; $('act-err').hidden = true; $('act-status').textContent = 'Lỗi từng server có thể gặp: ERR-FEED-422-02 (lệch SHA-256), ERR-FEED-409-02 (cũ hơn bundle hiện có), ERR-FEED-423-01 (feeds update đang giữ khoá > 30 s).';
+    $('act-modal').classList.add('open'); $('act-exec').focus();
+  });
+  $('btn-first').addEventListener('click', function () { setState('data'); $('r-action').value = 'scan'; syncForm(); $('run-form').scrollIntoView({behavior: 'smooth'}); });
+  document.body.classList.add('role-operator'); syncForm(); renderRun('dry');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Runtime state and local scratch
+*.log
+.php-quickpatch/
+__pycache__/
+*.pyc

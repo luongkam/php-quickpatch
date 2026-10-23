@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 2900 824" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-title seq-desc" id="data-sources-merge-risk-1-root">
+  <title id="seq-title">data-sources-merge-risk — Sơ đồ 1 (erDiagram)</title>
+  <desc id="seq-desc">Sequence diagram with 14 participants and 10 messages.</desc>
+  <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #data-sources-merge-risk-1-root { --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #data-sources-merge-risk-1-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #data-sources-merge-risk-1-root .diagram-container { width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(45,49,66,0.12);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+      #data-sources-merge-risk-1-root .footer-bar { margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      font-family: var(--font-mono); }</style>
+    <pattern id="data-sources-merge-risk-1-seq-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="#2d3142" fill-opacity="0.10"/>
+    </pattern>
+    <marker id="data-sources-merge-risk-1-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="data-sources-merge-risk-1-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#bf4520"/>
+    </marker>
+    <marker id="data-sources-merge-risk-1-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#data-sources-merge-risk-1-seq-dots)" opacity="0.6"/>
+  <!-- Lifelines -->
+  <line x1="80" y1="120" x2="80" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="290" y1="120" x2="290" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="501" y1="120" x2="501" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="712" y1="120" x2="712" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="923" y1="120" x2="923" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="1133" y1="120" x2="1133" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="1344" y1="120" x2="1344" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="1555" y1="120" x2="1555" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="1766" y1="120" x2="1766" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="1976" y1="120" x2="1976" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="2187" y1="120" x2="2187" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="2398" y1="120" x2="2398" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="2609" y1="120" x2="2609" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <line x1="2820" y1="120" x2="2820" y2="724" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4,4" stroke-opacity="0.25"/>
+  <!-- Messages & Annotations -->
+  <line x1="80" y1="160" x2="290" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="111.89999999999999" y="146" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="185.0" y="157" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">1. || -- o{ · lần lấy</text>
+  <line x1="501" y1="208" x2="712" y2="208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="545.8" y="194" width="121.4" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="606.5" y="205" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">2. || -- o{ · gồm</text>
+  <line x1="923" y1="256" x2="1133" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="951.8" y="242" width="152.4" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1028.0" y="253" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">3. || -- o{ · có alias</text>
+  <line x1="923" y1="304" x2="1344" y2="304" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1060.4" y="290" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1133.5" y="301" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">4. || -- o{ · có điểm</text>
+  <line x1="923" y1="352" x2="1555" y2="352" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1159.7" y="338" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1239.0" y="349" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">5. || -- o{ · ảnh hưởng</text>
+  <line x1="923" y1="400" x2="1766" y2="400" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1246.6" y="386" width="195.8" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1344.5" y="397" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">6. || -- o| · nối theo cve_id</text>
+  <line x1="923" y1="448" x2="1976" y2="448" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1367.1" y="434" width="164.8" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1449.5" y="445" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">7. || -- o{ · được sửa ở</text>
+  <line x1="923" y1="496" x2="2187" y2="496" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1450.9" y="482" width="208.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1555.0" y="493" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">8. || -- o{ · trạng thái distro</text>
+  <line x1="501" y1="544" x2="2398" y2="544" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1376.4" y="530" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1449.5" y="541" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">9. || -- o| · tính ra</text>
+  <line x1="2609" y1="592" x2="501" y2="592" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#data-sources-merge-risk-1-arrow)"/>
+  <rect x="1475.7" y="578" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="#2d3142" stroke-width="0.6" stroke-opacity="0.15"/>
+  <text x="1555.0" y="589" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">10. }o -- || · đánh giá</text>
+  <!-- Participant Boxes -->
+  <g transform="translate(10.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">feed_source</text>
+  </g>
+  <g transform="translate(220.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">feed_fetch</text>
+  </g>
+  <g transform="translate(431.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">lifecycle_branch</text>
+  </g>
+  <g transform="translate(642.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">release</text>
+  </g>
+  <g transform="translate(853.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">advisory</text>
+  </g>
+  <g transform="translate(1063.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">advisory_alias</text>
+  </g>
+  <g transform="translate(1274.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">advisory_score</text>
+  </g>
+  <g transform="translate(1485.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">affected_range</text>
+  </g>
+  <g transform="translate(1696.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">kev_entry</text>
+  </g>
+  <g transform="translate(1906.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">fix_evidence</text>
+  </g>
+  <g transform="translate(2117.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">distro_fix</text>
+  </g>
+  <g transform="translate(2328.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">min_patched</text>
+  </g>
+  <g transform="translate(2539.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">risk_assessment</text>
+  </g>
+  <g transform="translate(2750.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="none" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">meta</text>
+  </g>
+</svg>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>erd-console-ops — Sơ đồ 1 (erDiagram)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.5vw + 0.8rem, 2.2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+    .diagram-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(45,49,66,0.12);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+    .footer-bar {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture &amp; Specification · Diagram Design</p>
+    <h1>erd-console-ops — Sơ đồ 1 (erDiagram)</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 3100 1592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-title seq-desc">
+  <title id="seq-title">erd-console-ops — Sơ đồ 1 (erDiagram)</title>
+  <desc id="seq-desc">Sequence diagram with 15 participants and 26 messages.</desc>
+  <defs>
+    <pattern id="seq-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#bf4520"/>
+    </marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#seq-dots)" opacity="0.6"/>
+  <!-- Lifelines -->
+  <line x1="80" y1="120" x2="80" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="290" y1="120" x2="290" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="500" y1="120" x2="500" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="710" y1="120" x2="710" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="920" y1="120" x2="920" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1130" y1="120" x2="1130" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1340" y1="120" x2="1340" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1550" y1="120" x2="1550" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1760" y1="120" x2="1760" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1970" y1="120" x2="1970" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="2180" y1="120" x2="2180" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="2390" y1="120" x2="2390" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="2600" y1="120" x2="2600" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="2810" y1="120" x2="2810" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="3020" y1="120" x2="3020" y2="1492" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <!-- Messages & Annotations -->
+  <line x1="80" y1="160" x2="290" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="99.5" y="146" width="171.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="185.0" y="157" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">1. || -- o{ · có kế hoạch</text>
+  <line x1="500" y1="208" x2="290" y2="208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="325.0" y="194" width="140.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="395.0" y="205" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">2. |o -- o{ · căn cứ</text>
+  <line x1="710" y1="256" x2="290" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="414.5" y="242" width="171.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="500.0" y="253" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">3. |o -- o{ · dấu vân tay</text>
+  <line x1="920" y1="304" x2="290" y2="304" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="516.4" y="290" width="177.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="605.0" y="301" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">4. |o -- o{ · dữ liệu dùng</text>
+  <path d="M 290 352 L 330 352 L 330 376 L 290 376" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="336" y="358" width="159.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="342" y="370" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">|o -- o| · bị thay bởi</text>
+  <line x1="290" y1="396" x2="1130" y2="396" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="624.5" y="382" width="171.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="710.0" y="393" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">5. || -- o{ · thứ tự site</text>
+  <line x1="1340" y1="444" x2="1130" y2="444" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1140.2" y="430" width="189.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1235.0" y="441" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">6. || -- o{ · thuộc kế hoạch</text>
+  <line x1="290" y1="492" x2="1550" y2="492" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="846.9" y="478" width="146.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="920.0" y="489" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">7. || -- |{ · gồm mục</text>
+  <line x1="1340" y1="540" x2="1550" y2="540" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1353.3" y="526" width="183.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1445.0" y="537" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">8. |o -- o{ · mục theo site</text>
+  <line x1="290" y1="588" x2="1760" y2="588" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="933.3" y="574" width="183.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1025.0" y="585" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">9. |o -- o{ · thực hiện qua</text>
+  <line x1="1550" y1="636" x2="1760" y2="636" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1575.7" y="622" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1655.0" y="633" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">10. |o -- o{ · chạy bởi</text>
+  <line x1="1550" y1="684" x2="1760" y2="684" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1563.3" y="670" width="183.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1655.0" y="681" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">11. }o -- o| · job gần nhất</text>
+  <path d="M 1760 732 L 1800 732 L 1800 756 L 1760 756" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1806" y="738" width="191.5" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="1812" y="750" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">|o -- o{ · xác nhận dry-run</text>
+  <line x1="920" y1="776" x2="1760" y2="776" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1239.0" y="762" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1340.0" y="773" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">12. |o -- o{ · dữ liệu lúc tạo</text>
+  <line x1="1760" y1="824" x2="1970" y2="824" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1785.7" y="810" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1865.0" y="821" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">13. || -- o{ · dòng log</text>
+  <line x1="1760" y1="872" x2="2180" y2="872" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1890.7" y="858" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1970.0" y="869" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">14. |o -- o{ · tạo lượt</text>
+  <line x1="290" y1="920" x2="2180" y2="920" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1137.1" y="906" width="195.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1235.0" y="917" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">15. |o -- o{ · thuộc kế hoạch</text>
+  <line x1="290" y1="968" x2="2390" y2="968" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1248.3" y="954" width="183.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1340.0" y="965" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">16. |o -- o{ · nâng runtime</text>
+  <line x1="80" y1="1016" x2="2390" y2="1016" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1134.0" y="1002" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1235.0" y="1013" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">17. |o -- o{ · runtime cũ, mới</text>
+  <line x1="2180" y1="1064" x2="2390" y2="1064" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="2180.9" y="1050" width="208.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="2285.0" y="1061" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">18. |o -- o| · manifest cài, gỡ</text>
+  <line x1="2390" y1="1112" x2="2600" y2="1112" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="2406.4" y="1098" width="177.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="2495.0" y="1109" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">19. |o -- o{ · chuyển site</text>
+  <line x1="1340" y1="1160" x2="2600" y2="1160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1881.4" y="1146" width="177.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1970.0" y="1157" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">20. || -- o{ · lượt chuyển</text>
+  <line x1="290" y1="1208" x2="2600" y2="1208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1350.2" y="1194" width="189.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1445.0" y="1205" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">21. |o -- o{ · theo kế hoạch</text>
+  <line x1="1760" y1="1256" x2="2600" y2="1256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="2100.7" y="1242" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="2180.0" y="1253" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">22. |o -- o{ · chạy bởi</text>
+  <line x1="2180" y1="1304" x2="2600" y2="1304" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="2304.5" y="1290" width="171.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="2390.0" y="1301" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">23. || -- o| · 1 manifest</text>
+  <line x1="2810" y1="1352" x2="3020" y2="1352" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="2851.2" y="1338" width="127.60000000000001" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="2915.0" y="1349" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">24. || -- o{ · ghi</text>
+  <!-- Participant Boxes -->
+  <g transform="translate(10.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">runtime_install</text>
+  </g>
+  <g transform="translate(220.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">upgrade_plan</text>
+  </g>
+  <g transform="translate(430.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">assessment</text>
+  </g>
+  <g transform="translate(640.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">scan_run</text>
+  </g>
+  <g transform="translate(850.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">feed_bundle</text>
+  </g>
+  <g transform="translate(1060.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">plan_site</text>
+  </g>
+  <g transform="translate(1270.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">site</text>
+  </g>
+  <g transform="translate(1480.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">checklist_item</text>
+  </g>
+  <g transform="translate(1690.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">job</text>
+  </g>
+  <g transform="translate(1900.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">job_log</text>
+  </g>
+  <g transform="translate(2110.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">backup_run</text>
+  </g>
+  <g transform="translate(2320.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">migration</text>
+  </g>
+  <g transform="translate(2530.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">site_migration</text>
+  </g>
+  <g transform="translate(2740.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">host</text>
+  </g>
+  <g transform="translate(2950.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">audit_event</text>
+  </g>
+</svg>
+    </div>
+    <div class="footer-bar">
+      <span>BA-Kit Open × Diagram Design</span>
+      <span>Tự động xuất bản HTML + SVG vector</span>
+    </div>
+  </div>
+</body>
+</html>

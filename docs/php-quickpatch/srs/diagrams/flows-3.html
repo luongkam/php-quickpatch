@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flows — Sơ đồ 3 (sequenceDiagram)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.5vw + 0.8rem, 2.2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+    .diagram-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(45,49,66,0.12);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+    .footer-bar {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture &amp; Specification · Diagram Design</p>
+    <h1>flows — Sơ đồ 3 (sequenceDiagram)</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1900 5336" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seq-title seq-desc">
+  <title id="seq-title">flows — Sơ đồ 3 (sequenceDiagram)</title>
+  <desc id="seq-desc">Sequence diagram with 9 participants and 54 messages.</desc>
+  <defs>
+    <pattern id="seq-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#bf4520"/>
+    </marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#seq-dots)" opacity="0.6"/>
+  <!-- Lifelines -->
+  <line x1="80" y1="120" x2="80" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="297" y1="120" x2="297" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="515" y1="120" x2="515" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="732" y1="120" x2="732" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="950" y1="120" x2="950" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1167" y1="120" x2="1167" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1385" y1="120" x2="1385" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1602" y1="120" x2="1602" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <line x1="1820" y1="120" x2="1820" y2="5236" stroke="rgba(45,49,66,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <!-- Messages & Annotations -->
+  <line x1="80" y1="160" x2="297" y2="160" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="109.2" y="146" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="188.5" y="157" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">1. Mở SCR-002 Tổng quan</text>
+  <line x1="297" y1="208" x2="515" y2="208" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="264.7" y="194" width="282.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="205" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">2. GET /api/v1/overview (cookie qp_session)</text>
+  <line x1="515" y1="256" x2="1820" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="989.0" y="242" width="357.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.5" y="253" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">3. Đọc state/last-scan.json, plans/, switches/index.tsv</text>
+  <line x1="515" y1="304" x2="1602" y2="304" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="895.5" y="290" width="326.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1058.5" y="301" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">4. Đọc feeds.db (mode=ro): tuổi dữ liệu từng nguồn</text>
+  <line x1="515" y1="352" x2="297" y2="352" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="196.5" y="338" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="349" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">5. 200 {counts, ranking, plan_deadlines, data_age_h, scan_age_...</text>
+  <line x1="297" y1="400" x2="80" y2="400" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="16.19999999999999" y="386" width="344.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="188.5" y="397" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">6. SCR-002, scan_age_h &gt; 24 giờ → hiện nút &quot;Quét lại&quot;</text>
+  <line x1="80" y1="448" x2="297" y2="448" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="127.8" y="434" width="121.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="188.5" y="445" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">7. Bấm &quot;Quét lại&quot;</text>
+  <line x1="297" y1="496" x2="515" y2="496" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="246.1" y="482" width="319.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="493" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">8. POST /api/v1/jobs {action: &quot;scan&quot;} + X-QP-CSRF</text>
+  <path d="M 515 544 L 555 544 L 555 568 L 515 568" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="561" y="550" width="185.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="567" y="562" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Cổng G1–G5 và J (job read)</text>
+  <line x1="515" y1="588" x2="297" y2="588" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="227.5" y="574" width="357.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="585" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">9. 4xx (ERR-CON-422-01, ERR-JOB-409-01, ERR-JOB-429-01)</text>
+  <line x1="515" y1="636" x2="297" y2="636" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="348.4" y="622" width="115.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="633" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">10. 202 {job_id}</text>
+  <line x1="515" y1="684" x2="732" y2="684" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="426.4" y="670" width="394.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="681" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">11. Popen [script, &quot;scan&quot;, &quot;--json&quot;], env QP_JOB_ID, QP_ACTOR</text>
+  <path d="M 732 732 L 772 732 L 772 756 L 732 756" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="778" y="738" width="308.5" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="784" y="750" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Kiểm Bash ≥ 4.3, flock, curl (FR-CLI-ENV-001)</text>
+  <line x1="732" y1="776" x2="515" y2="776" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="441.9" y="762" width="363.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="773" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">12. exit 2, ERR-CLI-424-02 → job FAILED (ERR-JOB-500-01)</text>
+  <line x1="732" y1="824" x2="1820" y2="824" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1088.2" y="810" width="375.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1276.0" y="821" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">13. flock -s -n STATE_DIR/.lock (khoá chia sẻ, BR-JOB-002)</text>
+  <line x1="732" y1="872" x2="515" y2="872" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="441.9" y="858" width="363.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="869" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">14. exit 2, ERR-CLI-423-01 → job FAILED (ERR-JOB-500-01)</text>
+  <line x1="732" y1="920" x2="950" y2="920" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="631.5" y="906" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="841.0" y="917" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">15. feeds update tăng dần (DIAG-SEQ-QP-FEED-002), chờ tối đa 1...</text>
+  <line x1="732" y1="968" x2="515" y2="968" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="466.7" y="954" width="313.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="965" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">16. exit 2, ERR-FEED-503-01, mọi runtime UNKNOWN</text>
+  <line x1="732" y1="1016" x2="1385" y2="1016" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="849.0" y="1002" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1058.5" y="1013" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">17. Nhận diện môi trường và playbook: tiến trình, nginx -T, ap...</text>
+  <line x1="732" y1="1064" x2="1385" y2="1064" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="849.0" y="1050" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1058.5" y="1061" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">18. Kiểm kê site → runtime theo lệnh inventory của playbook (F...</text>
+  <line x1="732" y1="1112" x2="1167" y2="1112" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="740.0" y="1098" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="949.5" y="1109" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">19. Gói sở hữu binary (dpkg -S, rpm -qf), lệnh liệt kê site/ph...</text>
+  <path d="M 732 1160 L 772 1160 L 772 1184 L 732 1184" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="778" y="1166" width="289.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="784" y="1178" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Đọc phiên bản, giới hạn 10 s (BR-SCAN-002)</text>
+  <path d="M 732 1204 L 772 1204 L 772 1228 L 732 1228" fill="none" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <rect x="778" y="1210" width="341.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="784" y="1222" fill="#bf4520" font-size="10" font-family="'Geist Mono', monospace">Gán SCN-PHP-005/014 hoặc SCN-NODE-008, locked =...</text>
+  <line x1="732" y1="1248" x2="1820" y2="1248" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1069.6" y="1234" width="412.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1276.0" y="1245" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">20. Tra current/lifecycle.tsv, min_patched.tsv (FR-CLI-COMP-002)</text>
+  <path d="M 732 1296 L 772 1296 L 772 1320 L 732 1320" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="778" y="1302" width="341.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="784" y="1314" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Gán kịch bản (FR-SCN-CLS-001/002), trạng thái h...</text>
+  <line x1="732" y1="1340" x2="950" y2="1340" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="631.5" y="1326" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="841.0" y="1337" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">21. OSV hệ distro, tracker distro (SRC-014, SRC-015), changelo...</text>
+  <line x1="732" y1="1388" x2="1602" y2="1388" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="957.5" y="1374" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.0" y="1385" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">22. qp-feeds.py backport: FIXED, NOT_AFFECTED hoặc UNKNOWN (FR...</text>
+  <line x1="732" y1="1436" x2="1820" y2="1436" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1066.5" y="1422" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1276.0" y="1433" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">23. Kiểm kê dự án (find -P sâu 7 cấp), container, dấu hiệu web...</text>
+  <line x1="732" y1="1484" x2="950" y2="1484" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="631.5" y="1470" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="841.0" y="1481" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">24. OSV querybatch cho lockfile (lô ≤ 500, cache 6 giờ, FR-FEE...</text>
+  <line x1="950" y1="1532" x2="732" y2="1532" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="721.4" y="1518" width="239.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="841.0" y="1529" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">25. Advisory theo package, gồm MAL-*</text>
+  <line x1="732" y1="1580" x2="1820" y2="1580" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1066.5" y="1566" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1276.0" y="1577" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">26. So site_binding với lượt chuyển PASSED gần nhất (FR-SCAN-D...</text>
+  <line x1="732" y1="1628" x2="1820" y2="1628" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1122.3" y="1614" width="307.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1276.0" y="1625" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">27. Ghi state/last-scan.json (ghi tạm + rename)</text>
+  <line x1="732" y1="1676" x2="515" y2="1676" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="414.0" y="1662" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="1673" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">28. Envelope qp.scan/1 (bundle_id, freshness, data_age_h), exi...</text>
+  <line x1="515" y1="1724" x2="1820" y2="1724" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="1066.5" y="1710" width="202.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.5" y="1721" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">29. Cập nhật job.json (cổng X)</text>
+  <line x1="515" y1="1772" x2="297" y2="1772" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="320.5" y="1758" width="171.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="1769" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">30. SSE event status, end</text>
+  <line x1="80" y1="1820" x2="297" y2="1820" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="93.7" y="1806" width="189.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="188.5" y="1817" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">31. Chọn 1 runtime → SCR-003</text>
+  <line x1="297" y1="1868" x2="515" y2="1868" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="205.79999999999998" y="1854" width="400.40000000000003" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="1865" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">32. POST /api/v1/jobs {action: &quot;assess&quot;, params: {runtime_id}}</text>
+  <path d="M 515 1916 L 555 1916 L 555 1940 L 515 1940" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="561" y="1922" width="302.0" height="16" rx="3" fill="#f5f5f5" opacity="0.95"/>
+  <text x="567" y="1934" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Cổng G1–G5: runtime_id khớp regex BR-CON-008</text>
+  <line x1="515" y1="1960" x2="297" y2="1960" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="329.8" y="1946" width="152.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="1957" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">33. 422 ERR-CON-422-01</text>
+  <line x1="515" y1="2008" x2="297" y2="2008" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="348.4" y="1994" width="115.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="2005" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">34. 202 {job_id}</text>
+  <line x1="515" y1="2056" x2="732" y2="2056" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="414.0" y="2042" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="2053" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">35. Popen [script, &quot;assess&quot;, &quot;--runtime-id&quot;, ID, &quot;--candidates...</text>
+  <line x1="732" y1="2104" x2="515" y2="2104" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="534.9" y="2090" width="177.20000000000002" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="2101" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">36. exit 2, ERR-CLI-424-01</text>
+  <line x1="732" y1="2152" x2="515" y2="2152" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="531.8" y="2138" width="183.4" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="2149" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">37. exit 2, ERR-ASMT-404-01</text>
+  <line x1="732" y1="2200" x2="1602" y2="2200" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="957.5" y="2186" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.0" y="2197" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">38. Tập U(X), đếm CVE theo CVSS v3.1, KEV, vòng đời, min_patch...</text>
+  <line x1="732" y1="2248" x2="1602" y2="2248" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="957.5" y="2234" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.0" y="2245" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">39. 4 loại ứng viên BR-ASMT-001, selectable theo BR-ASMT-002 (...</text>
+  <line x1="732" y1="2296" x2="1167" y2="2296" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="740.0" y="2282" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="949.5" y="2293" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">40. apt-cache policy, dnf list available, whmapi1 php_get_inst...</text>
+  <line x1="732" y1="2344" x2="1602" y2="2344" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="957.5" y="2330" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.0" y="2341" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">41. Điểm R, ΔR cùng bundle_id và ngày T (FR-ASMT-RISK-001/002,...</text>
+  <line x1="732" y1="2392" x2="515" y2="2392" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="494.6" y="2378" width="257.8" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="623.5" y="2389" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">42. Envelope qp.assess/1, exit 0 hoặc 1</text>
+  <line x1="515" y1="2440" x2="1820" y2="2440" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="970.4" y="2426" width="394.2" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.5" y="2437" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">43. Lưu jobs/{job_id}/result.json, cập nhật job.json (cổng X)</text>
+  <line x1="297" y1="2488" x2="515" y2="2488" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="249.2" y="2474" width="313.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="2485" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">44. GET /api/v1/runtimes/{runtime_id}/assessment</text>
+  <line x1="515" y1="2536" x2="1820" y2="2536" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <rect x="979.7" y="2522" width="375.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="1167.5" y="2533" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">45. Đọc result.json của job assess mới nhất cho runtime_id</text>
+  <line x1="515" y1="2584" x2="297" y2="2584" stroke="#bf4520" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <rect x="326.7" y="2570" width="158.6" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="2581" fill="#bf4520" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">46. 404 ERR-ASMT-404-01</text>
+  <line x1="515" y1="2632" x2="297" y2="2632" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="196.5" y="2618" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="406.0" y="2629" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">47. 200 {current, candidates[], comparison, bundle_id, data_ag...</text>
+  <line x1="297" y1="2680" x2="80" y2="2680" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <rect x="-21.0" y="2666" width="419.0" height="16" rx="3" fill="#f5f5f5" stroke="rgba(45,49,66,0.15)" stroke-width="0.6"/>
+  <text x="188.5" y="2677" fill="#4f5d75" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="middle">48. SCR-003: CVE/KEV, EOL/LTS, bảng so sánh, ΔR, nút &quot;Vá cùng ...</text>
+  <!-- Participant Boxes -->
+  <g transform="translate(10.0, 60)">
+    <rect width="140" height="50" rx="6" fill="rgba(191,69,32,0.06)" stroke="#bf4520" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#bf4520" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#bf4520" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ACTOR</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Operator</text>
+  </g>
+  <g transform="translate(227.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Browser</text>
+  </g>
+  <g transform="translate(445.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Console (Python)</text>
+  </g>
+  <g transform="translate(662.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">CLI (Bash + qp-fee..</text>
+  </g>
+  <g transform="translate(880.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Feed sources</text>
+  </g>
+  <g transform="translate(1097.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Package manager / ..</text>
+  </g>
+  <g transform="translate(1315.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Web server / PHP-FPM</text>
+  </g>
+  <g transform="translate(1532.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">SQLite (feeds.db)</text>
+  </g>
+  <g transform="translate(1750.0, 60)">
+    <rect width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+    <rect x="8" y="6" width="46" height="11" rx="2" fill="transparent" stroke="#2d3142" stroke-width="0.7"/>
+    <text x="31" y="14.5" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+    <text x="70.0" y="36" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">STATE_DIR (tệp)</text>
+  </g>
+</svg>
+    </div>
+    <div class="footer-bar">
+      <span>BA-Kit Open × Diagram Design</span>
+      <span>Tự động xuất bản HTML + SVG vector</span>
+    </div>
+  </div>
+</body>
+</html>

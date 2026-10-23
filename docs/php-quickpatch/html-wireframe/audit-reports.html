@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-010
+title: Wireframe SCR-010 — Audit & báo cáo (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, audit, hash-chain, report, evidence, scr-010, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - FR-CON-AUD-001
+  - FR-JOB-AUD-002
+  - FR-JOB-AUD-003
+  - FR-RPT-ASMT-001
+  - FR-RPT-AUD-001
+  - UC-JOB-003
+  - UC-RPT-001
+  - UC-RPT-002
+related_diagrams:
+  - DIAG-STATE-QP-JOB-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-010: Audit &amp; báo cáo — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--sub)}
+.field-err{display:none;color:var(--err);font-size:12px;font-weight:600;margin-top:4px}.field-err.show{display:block}.field-err.show::before{content:"LỖI · ";font-weight:700}input.invalid{border:2px solid var(--err-line);background:var(--err-bg)}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:170px;background:#fff}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+tr.clk{cursor:pointer}tr.clk:hover td{background:#F9FAFB}tr.sel td{background:#F3F4F6}tr.broken td{background:var(--err-bg);border-bottom:2px solid var(--err-line)}tr.broken td:first-child{border-left:6px solid var(--err-line);font-weight:700}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code id="serve-user">root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html" aria-current="page"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-010 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-010 Audit &amp; báo cáo — UC-JOB-003 (tra cứu, kiểm toàn vẹn audit), UC-RPT-001 (báo cáo đánh giá), UC-RPT-002 (báo cáo bằng chứng); actor chính PER-04</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-AUD-001, FR-JOB-AUD-002, FR-JOB-AUD-003, FR-RPT-ASMT-001, FR-RPT-AUD-001. Liên quan: FR-JOB-AUD-001 (ghi audit), FR-CLI-CMD-004</td></tr>
+      <tr><th>BR</th><td>BR-AUD-001..005, BR-RPT-001..003, BR-SEC-006, BR-AUTH-003, BR-CON-010, BR-JOB-003</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-AUD-409-01, ERR-AUD-500-01, ERR-RPT-422-01, ERR-RPT-409-01 (chỉ CLI), ERR-CON-422-01, ERR-CON-404-01, ERR-CON-405-01, ERR-CON-500-01, ERR-JOB-429-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/audit-events</code> (chỉ GET, phương thức khác → 405), <code>POST /api/v1/audit-verifications</code> (job <code>audit_verify</code>, read), <code>POST /api/v1/reports</code> (job <code>report</code>, read), <code>GET /api/v1/reports/{report_id}[?download=1]</code></td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Bản ghi audit thống nhất với SCR-002/006/007 (job JOB-20261022-104201-5e0b, lượt 20261022-104201, kế hoạch PLN-20261022-110351-4c7e). Giá trị <code>hash</code>/<code>prev_hash</code> rút gọn, minh hoạ. Giá trị <code>result</code> theo erd-console-ops.md §11 (<code>intent</code>, <code>ok</code>, <code>failed</code>, <code>cancelled</code>, <code>denied</code>).</td></tr>
+      <tr><th>Ghi chú</th><td>FR-CON-AUD-001 yêu cầu lọc theo "kết quả" nhưng query của <code>GET /api/v1/audit-events</code> (api-spec-plans.md §5.1) chưa có tham số <code>result</code> → câu hỏi mở cho API; wireframe hiển thị bộ lọc và ghi chú. Màn hình không có thao tác thay đổi hệ thống: kiểm toàn vẹn và tạo báo cáo là job đọc (BR-JOB-003) nên không cần dry-run; hộp thoại vẫn hiển thị lệnh sẽ chạy. Màu trạng thái lỗi theo bảng xám rules/13 §2: cảnh báo lỗi nhấn bằng viền 2px/6px và nhãn chữ "LỖI", dòng audit có <code>chain_status = BROKEN</code> nhấn bằng viền trái 6px, chữ đậm và ký hiệu ✗; không dùng màu đỏ. CSS/JS inline chỉ để wireframe tự chứa; bản thật tuân BR-CON-007.</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §10, §12; business-rules.md §4.10, §4.11; api/api-spec-plans.md §5, §6; api/api-spec-jobs.md §2 (#15, #16); erd-console-ops.md §11; rules/13 §2 (bảng màu xám)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-010: tra cứu audit chỉ đọc có lọc, chi tiết bản ghi, kiểm chuỗi hash, tạo/tải báo cáo đánh giá và bằng chứng</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: đổi màu lỗi đỏ sang bảng xám (rules/13 §2): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6; nhấn cảnh báo lỗi bằng viền 2px/6px và nhãn chữ "LỖI" (cả thông báo lỗi trường nhập), ô nhập sai viền 2px, dòng audit chuỗi hash lệch nhấn bằng viền trái 6px, chữ đậm và ký hiệu ✗; ghi chú bảng màu ở khối thông tin</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="broken">Chuỗi hash lệch</button>
+    <button type="button" data-set="empty">Chưa có bản ghi</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Audit &amp; báo cáo <span class="fr">FR-CON-AUD-001</span></h1>
+      <p class="muted">Nguồn: <code id="aud-dir">/var/lib/php-quickpatch/audit/audit-YYYYMM.jsonl</code> · chỉ nối thêm, tách file theo tháng, giữ ≥ 365 ngày (BR-AUD-002) · <b>không có thao tác sửa/xoá</b></p>
+    </div>
+    <div class="actions"><button class="btn" type="button" id="btn-verify">Kiểm tra toàn vẹn</button><span class="fr">FR-JOB-AUD-002</span><a class="btn" href="#rpt-h">Tạo báo cáo</a></div>
+  </div>
+
+  <section data-state="data broken">
+    <div class="alert" id="nonroot-note" hidden role="status">serve chạy bằng user <b>deploy</b> → chỉ đọc audit trong <code>/home/deploy/.php-quickpatch/audit/</code>; audit của root không hiển thị (spec §2.3, BR-CON-010).</div>
+
+    <section class="card" aria-labelledby="int-h">
+      <h2 id="int-h">Toàn vẹn chuỗi hash <span class="fr">FR-JOB-AUD-002</span></h2>
+      <div id="int-ok"><p><span class="badge">verified = true</span> Lần kiểm gần nhất 2026-10-22 06:00:12 UTC (JOB-20261022-060011-1f7e) · 1.038 bản ghi (seq 1–1038) · <code>first_broken_seq = null</code></p>
+        <div class="tbl-wrap"><table><thead><tr><th>File</th><th>Bản ghi</th><th>Kết quả</th></tr></thead><tbody><tr><td class="mono">audit-202609.jsonl</td><td>871</td><td>ok</td></tr><tr><td class="mono">audit-202610.jsonl</td><td>167</td><td>ok</td></tr></tbody></table></div></div>
+      <div id="int-bad" class="alert error" role="alert" hidden><b>ERR-AUD-409-01</b> — Chuỗi hash audit không khớp tại <code>seq = 1040</code> (<code>audit-202610.jsonl</code>, dòng 169): hash tính lại theo BR-AUD-003 khác giá trị lưu; mọi bản ghi từ 1040 trở đi bị đánh dấu <code>chain_status = BROKEN</code>. Tool không sửa audit; coi đây là dấu hiệu chỉnh sửa ngoài tool (ngoại lệ BR-AUD-002) và xử lý như sự cố bảo mật. Báo cáo bằng chứng tạo sau thời điểm này kèm cảnh báo.</div>
+      <form class="row" id="ver-form" novalidate style="margin-top:8px">
+        <label class="f">Từ ngày<input type="date" id="v-from" value="2026-10-01"></label>
+        <label class="f">Đến ngày<input type="date" id="v-to" value="2026-10-22"></label>
+        <button class="btn" type="submit">Kiểm tra lại khoảng này</button>
+        <span class="hint">Để trống cả 2 = toàn bộ audit. Job đọc <code>audit verify</code>, timeout 600 s.</span>
+      </form>
+      <div class="field-err" id="ver-err"></div>
+    </section>
+
+    <section class="card" aria-labelledby="aud-h">
+      <h2 id="aud-h">Bản ghi audit <span class="fr">FR-JOB-AUD-003</span><span class="muted" style="font-weight:400;font-size:12px">Sắp theo seq giảm dần</span></h2>
+      <form class="row" id="flt-form" novalidate style="margin-bottom:8px;align-items:flex-end">
+        <label class="f">Từ ngày<input type="date" id="f-from" value="2026-09-22"></label>
+        <label class="f">Đến ngày<input type="date" id="f-to" value="2026-10-22"></label>
+        <label class="f">Actor<select id="f-actor"><option value="">Tất cả</option><option>console:root</option><option>cli:root</option></select></label>
+        <label class="f">Hành động<select id="f-action"><option value="">Tất cả</option><option>fix</option><option>plan_cancel</option><option>site_set_hc_urls</option><option>login</option><option>login_failed</option><option>token_issued</option></select></label>
+        <label class="f">Kênh<select id="f-src"><option value="">Tất cả</option><option>cli</option><option>console</option></select></label>
+        <label class="f">Kết quả<select id="f-res"><option value="">Tất cả</option><option>intent</option><option>ok</option><option>failed</option><option>denied</option></select></label>
+        <label class="f">job_id / run_id / plan_id<input type="text" id="f-ref" size="24" placeholder="JOB-20261022-104201-5e0b"></label>
+        <button class="btn primary" type="submit">Lọc</button>
+      </form>
+      <div class="field-err" id="flt-err"></div>
+      <p class="hint" style="margin-bottom:6px">Mặc định 30 ngày gần nhất; khoảng ≤ 366 ngày. Bộ lọc "Kết quả" chưa có trong query của API (câu hỏi mở) — wireframe lọc trên trang hiện tại.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>seq</th><th>ts (UTC)</th><th>actor · sys_user</th><th>Kênh</th><th>Hành động</th><th>Kết quả</th><th>exit</th><th>Liên kết</th><th>prev_hash → hash</th></tr></thead>
+        <tbody id="aud-body"></tbody>
+      </table></div>
+      <div class="row" style="margin-top:6px"><span class="hint" id="aud-count"></span><span class="hint">· page 1 · limit 20</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="det-h">
+      <h2 id="det-h">Chi tiết bản ghi <span class="mono" id="det-seq"></span></h2>
+      <table class="pv" id="det-body"></table>
+      <p class="hint" style="margin-top:6px"><code>args</code> đã che giá trị khớp mẫu bí mật (token <code>serve</code>, cookie, <code>Authorization</code>, <code>X-QP-CSRF</code>, <code>QP_*_KEY</code>, <code>password=</code>…) bằng <code>***</code> (BR-SEC-006, BR-AUD-005). Không có nút sửa/xoá; <code>PATCH</code>/<code>DELETE</code> → 405 <b>ERR-CON-405-01</b>.</p>
+    </section>
+
+    <section class="card" aria-labelledby="rpt-h">
+      <h2 id="rpt-h">Báo cáo <span class="fr">FR-RPT-ASMT-001</span><span class="fr">FR-RPT-AUD-001</span></h2>
+      <div class="grid g2">
+        <form id="rpt-form" novalidate>
+          <h3>Tạo báo cáo mới</h3>
+          <div class="row" style="margin-bottom:8px">
+            <label class="f">Loại<select id="r-type"><option value="assess">assess — đánh giá</option><option value="evidence" selected>evidence — bằng chứng thay đổi</option></select></label>
+            <label class="f">Định dạng<select id="r-fmt"><option>json</option><option>csv</option><option>md</option><option selected>html</option></select></label>
+          </div>
+          <div class="row" id="r-range">
+            <label class="f">Từ ngày<input type="date" id="r-from" value="2026-10-01"></label>
+            <label class="f">Đến ngày<input type="date" id="r-to" value="2026-10-22"></label>
+          </div>
+          <div class="field-err" id="r-err"></div>
+          <p class="hint" id="r-desc" style="margin:8px 0"></p>
+          <button class="btn primary" type="submit">Tạo báo cáo…</button>
+        </form>
+        <div>
+          <h3>Quy tắc định dạng (BR-RPT-001, BR-RPT-002)</h3>
+          <ul class="hint" style="margin-left:16px">
+            <li>JSON <code>qp.report.&lt;loại&gt;/1</code>; CSV RFC 4180, UTF-8, dòng tiêu đề, 1 dòng/finding; Markdown; HTML 1 file ≤ 5 MiB, CSS nhúng, không JavaScript, 0 tài nguyên ngoài.</li>
+            <li>Mọi báo cáo ghi <code>bundle_id</code>, <code>fetched_at</code> từng nguồn, <code>catalog_version</code>, phiên bản tool, <code>hostname</code>, thời điểm tạo (UTC); SHA-256 của file được in ra và ghi audit.</li>
+            <li>File <code>STATE_DIR/reports/&lt;report_id&gt;.&lt;ext&gt;</code> quyền <code>0600</code>, không ghi đè (BR-RPT-003); console luôn cấp <code>report_id</code> mới nên không phát sinh ERR-RPT-409-01 (lỗi này chỉ gặp khi chạy CLI với <code>--out</code> đã tồn tại).</li>
+          </ul>
+        </div>
+      </div>
+      <h3>Báo cáo đã tạo</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>report_id</th><th>Loại · định dạng</th><th>Khoảng</th><th>Job · trạng thái</th><th>Kích thước</th><th>SHA-256</th><th>Tạo lúc (UTC)</th><th></th></tr></thead>
+        <tbody id="rpt-body"></tbody>
+      </table></div>
+    </section>
+  </section>
+
+  <section data-state="empty">
+    <div class="empty">
+      <h2>Chưa có bản ghi audit</h2>
+      <p style="margin:8px 0">Thư mục <code>STATE_DIR/audit/</code> chưa có file (cài mới, chưa có đăng nhập hay thao tác ghi nào). Bản ghi đầu tiên dùng <code>prev_hash</code> = 64 ký tự <code>0</code> (BR-AUD-003). Vẫn tạo được báo cáo đánh giá.</p>
+      <a class="btn primary" href="#rpt-h" id="empty-rpt">Tạo báo cáo đánh giá</a>
+    </div>
+  </section>
+
+  <section data-state="loading" aria-busy="true">
+    <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/audit-events?from=2026-09-22&amp;to=2026-10-22&amp;page=1&amp;limit=20</code>…</p></div>
+  </section>
+
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-AUD-500-01</b> — Không ghi được bản ghi audit intent (phân vùng chứa <code>STATE_DIR</code> đầy). Mọi thao tác thay đổi bị huỷ trước khi bắt đầu (BR-AUD-004); xem và xuất báo cáo vẫn dùng được.</div>
+    <div class="alert error" role="alert"><b>ERR-CON-422-01</b> — Khoảng thời gian không hợp lệ: <code>from</code> 2026-10-22 &gt; <code>to</code> 2026-10-01, hoặc khoảng &gt; 366 ngày.</div>
+    <div class="alert error" role="alert"><b>ERR-CON-404-01</b> — Không có báo cáo <code>RPT-20260901-101010-aaaa</code> (<code>details.resource = report</code>).</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 77ac03e1). <button class="btn sm" type="button" onclick="location.reload()">Thử lại</button></div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr" id="act-fr"></span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code> — BR-CON-008)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" style="margin-top:6px">Job loại <b>read</b> (BR-JOB-003): không thay đổi hệ thống nên không cần dry-run (BR-CON-005 chỉ áp cho job ghi). Kết quả xem ở SCR-006 và bảng trên.</p>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng ERR-JOB-429-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button><button class="btn primary" type="button" id="act-exec">Chạy</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text !== undefined) { e.textContent = text; } return e; }
+  var AUD = [
+    {seq: 1045, ts: '2026-10-22T12:05:12.330Z', actor: 'console:root', u: 'root', src: 'console', act: 'site_set_hc_urls', type: 'EVENT', res: 'ok', exit: 0, job: null, run: null, plan: null, args: '["migrate","hc-urls","example.com","--set","https://example.com/wp-login.php","--json"]', ph: 'c81d…', h: '0f4a…'},
+    {seq: 1044, ts: '2026-10-22T11:03:52.114Z', actor: 'console:root', u: 'root', src: 'console', act: 'plan_cancel', type: 'EVENT', res: 'ok', exit: 0, job: null, run: null, plan: 'PLN-20261022-095512-0b3e', args: '["plan","cancel","PLN-20261022-095512-0b3e","--json"] — huỷ do tạo PLN-20261022-110351-4c7e cho cùng runtime (BR-PLAN-002)', ph: '7e22…', h: 'c81d…'},
+    {seq: 1043, ts: '2026-10-22T10:43:15.930Z', actor: 'console:root', u: 'root', src: 'console', act: 'fix', type: 'RESULT', res: 'ok', exit: 0, job: 'JOB-20261022-104201-5e0b', run: '20261022-104201', plan: null, args: '["fix","--json","--only","php"]', ph: '5b9e…', h: '7e22…'},
+    {seq: 1042, ts: '2026-10-22T10:42:01.402Z', actor: 'console:root', u: 'root', src: 'console', act: 'fix', type: 'INTENT', res: 'intent', exit: null, job: 'JOB-20261022-104201-5e0b', run: '20261022-104201', plan: null, args: '["fix","--json","--only","php"] · confirm_dry_run_job_id = JOB-20261022-104158-3a7d', ph: 'a3f0…', h: '5b9e…'},
+    {seq: 1041, ts: '2026-10-22T10:40:27.551Z', actor: 'console:root', u: 'root', src: 'console', act: 'login', type: 'EVENT', res: 'ok', exit: null, job: null, run: null, plan: null, args: '{"session_ref":"7f3a91c2","token":"***"}', ph: '19bc…', h: 'a3f0…'},
+    {seq: 1040, ts: '2026-10-22T10:40:00.000Z', actor: 'console:-', u: 'root', src: 'console', act: 'login_failed', type: 'EVENT', res: 'denied', exit: null, job: null, run: null, plan: null, args: '{"count_in_minute":2,"token":"***"} — gộp theo phút (BR-AUTH-003)', ph: 'e6d4…', h: '19bc…'},
+    {seq: 1039, ts: '2026-10-22T10:39:40.006Z', actor: 'cli:root', u: 'root', src: 'cli', act: 'token_issued', type: 'EVENT', res: 'ok', exit: null, job: null, run: null, plan: null, args: '["serve","--port","17321"] — không ghi token (BR-AUTH-001)', ph: '2a7f…', h: 'e6d4…'},
+    {seq: 1038, ts: '2026-10-21T22:16:02.774Z', actor: 'cli:root', u: 'root', src: 'cli', act: 'fix', type: 'RESULT', res: 'ok', exit: 1, job: null, run: '20261021-221530', plan: null, args: '["fix"] — PHP 8.2 chưa có gói vá trong kho, đã ghi mitigation', ph: '93c0…', h: '2a7f…'},
+    {seq: 1037, ts: '2026-10-21T22:15:30.118Z', actor: 'cli:root', u: 'root', src: 'cli', act: 'fix', type: 'INTENT', res: 'intent', exit: null, job: null, run: '20261021-221530', plan: null, args: '["fix"]', ph: 'd51e…', h: '93c0…'}
+  ];
+  var RPT = [
+    {id: 'RPT-20261022-121004-0e3c', type: 'evidence', fmt: 'html', range: '2026-10-01 → 2026-10-22', job: 'JOB-20261022-121004-6a90', st: 'SUCCEEDED', size: '418.230 byte', sha: 'e1d0…', at: '2026-10-22 12:10:19'},
+    {id: 'RPT-20261022-093512-71c2', type: 'assess', fmt: 'csv', range: '—', job: 'JOB-20261022-093512-2b8d', st: 'SUCCEEDED', size: '23.604 byte', sha: '4c9a…', at: '2026-10-22 09:35:20'},
+    {id: 'RPT-20261022-121341-d07f', type: 'assess', fmt: 'json', range: '—', job: 'JOB-20261022-121341-90c4', st: 'RUNNING', size: '—', sha: '—', at: '—'}
+  ];
+  var state = 'data', selSeq = 1042;
+  function renderAud() {
+    var tb = $('aud-body'); tb.textContent = '';
+    var fa = $('f-actor').value, fx = $('f-action').value, fs = $('f-src').value, fr = $('f-res').value, ref = $('f-ref').value.trim();
+    var n = 0;
+    AUD.forEach(function (r) {
+      if ((fa && r.actor !== fa) || (fx && r.act !== fx) || (fs && r.src !== fs) || (fr && r.res !== fr)) { return; }
+      if (ref && [r.job, r.run, r.plan].indexOf(ref) < 0) { return; }
+      n++;
+      var tr = el('tr', 'clk' + (r.seq === selSeq ? ' sel' : '') + (state === 'broken' && r.seq >= 1040 ? ' broken' : ''));
+      tr.tabIndex = 0;
+      tr.appendChild(el('td', 'mono', String(r.seq))); tr.appendChild(el('td', 'mono', r.ts));
+      tr.appendChild(el('td', '', r.actor + ' · ' + r.u)); tr.appendChild(el('td', '', r.src)); tr.appendChild(el('td', 'mono', r.act));
+      var tdr = el('td'); tdr.appendChild(el('span', r.res === 'denied' || r.res === 'failed' ? 'badge sev-h' : (r.res === 'intent' ? 'badge sev-m' : 'badge'), r.type + ' · ' + r.res)); tr.appendChild(tdr);
+      tr.appendChild(el('td', '', r.exit === null ? '—' : String(r.exit)));
+      var tdl = el('td', 'mono'); [r.job, r.run, r.plan].filter(Boolean).forEach(function (x, i) { if (i) { tdl.appendChild(el('br')); } var a = el('a', '', x); a.href = x.indexOf('JOB-') === 0 ? 'jobs-log.html' : (x.indexOf('PLN-') === 0 ? 'upgrade-plan-checklist.html' : 'rollback-history.html'); tdl.appendChild(a); }); if (!tdl.children.length) { tdl.textContent = '—'; } tr.appendChild(tdl);
+      tr.appendChild(el('td', 'mono', r.ph + ' → ' + r.h + (state === 'broken' && r.seq >= 1040 ? ' ✗' : '')));
+      function pick() { selSeq = r.seq; renderAud(); renderDet(); }
+      tr.addEventListener('click', pick); tr.addEventListener('keydown', function (e) { if (e.key === 'Enter') { pick(); } });
+      tb.appendChild(tr);
+    });
+    if (!n) { var tr0 = el('tr'); var td0 = el('td', 'hint', 'Không có bản ghi khớp bộ lọc.'); td0.colSpan = 9; tr0.appendChild(td0); tb.appendChild(tr0); }
+    $('aud-count').textContent = n + ' / ' + AUD.length + ' bản ghi trong khoảng';
+  }
+  function renderDet() {
+    var r = AUD.filter(function (x) { return x.seq === selSeq; })[0] || AUD[0];
+    $('det-seq').textContent = 'seq ' + r.seq;
+    var t = $('det-body'); t.textContent = '';
+    [['ts', r.ts], ['record_type · result', r.type + ' · ' + r.res], ['actor · sys_user · source', r.actor + ' · ' + r.u + ' · ' + r.src], ['action', r.act], ['args (đã che)', r.args], ['job_id · run_id · plan_id', [r.job || '—', r.run || '—', r.plan || '—'].join(' · ')], ['exit_code', r.exit === null ? '—' : String(r.exit)],
+     ['prev_hash', r.ph + ' (64 ký tự hex; rút gọn)'], ['hash', r.h + ' = SHA-256(prev_hash ‖ JSON chuẩn hoá, khoá sắp theo bảng chữ cái) — BR-AUD-003'], ['File', 'audit-' + r.ts.slice(0, 4) + r.ts.slice(5, 7) + '.jsonl'],
+     ['chain_status', state === 'broken' && r.seq >= 1040 ? 'BROKEN (ERR-AUD-409-01)' : 'OK (kiểm lúc 2026-10-22 06:00:12 UTC)']].forEach(function (x) {
+      var tr = el('tr'); tr.appendChild(el('th', '', x[0])); tr.appendChild(el('td', x[0] === 'args (đã che)' || x[0] === 'action' ? 'mono' : '', x[1])); t.appendChild(tr);
+    });
+  }
+  function renderRpt() {
+    var tb = $('rpt-body'); tb.textContent = '';
+    RPT.forEach(function (r) {
+      var tr = el('tr');
+      tr.appendChild(el('td', 'mono', r.id)); tr.appendChild(el('td', '', r.type + ' · ' + r.fmt)); tr.appendChild(el('td', '', r.range));
+      var tdj = el('td'); var a = el('a', 'mono', r.job); a.href = 'jobs-log.html'; tdj.appendChild(a); tdj.appendChild(el('br'));
+      tdj.appendChild(el('span', r.st === 'RUNNING' ? 'badge sev-m' : 'badge', r.st));
+      if (state === 'broken' && r.type === 'evidence') { tdj.appendChild(el('br')); tdj.appendChild(el('span', 'badge sev-h', 'Cảnh báo ERR-AUD-409-01')); }
+      tr.appendChild(tdj);
+      tr.appendChild(el('td', '', r.size)); tr.appendChild(el('td', 'mono', r.sha)); tr.appendChild(el('td', '', r.at));
+      var tda = el('td'); var b = el('button', 'btn sm', 'Tải file'); b.type = 'button';
+      b.addEventListener('click', function () {
+        if (r.st === 'RUNNING') { toast('ERR-CON-404-01 — Báo cáo chưa tạo xong file (details.reason = not_ready). Thử lại khi job SUCCEEDED.'); return; }
+        toast('GET /api/v1/reports/' + r.id + '?download=1 → 200, Content-Disposition: attachment; filename="' + r.id + '.' + r.fmt + '"; X-QP-SHA256: ' + r.sha + (r.fmt === 'html' ? '; Content-Security-Policy: sandbox' : ''));
+      });
+      tda.appendChild(b); tr.appendChild(tda); tb.appendChild(tr);
+    });
+  }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 5000); }
+  function setState(s) {
+    state = s;
+    document.querySelectorAll('[data-state]').forEach(function (e) { e.classList.toggle('show', e.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+    $('int-ok').hidden = s === 'broken'; $('int-bad').hidden = s !== 'broken';
+    if (s === 'broken') { selSeq = 1040; }
+    renderAud(); renderDet(); renderRpt();
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) {
+    $('nonroot-note').hidden = !e.target.checked; $('serve-user').textContent = e.target.checked ? 'deploy@127.0.0.1:17321' : 'root@127.0.0.1:17321';
+    $('aud-dir').textContent = e.target.checked ? '/home/deploy/.php-quickpatch/audit/audit-YYYYMM.jsonl' : '/var/lib/php-quickpatch/audit/audit-YYYYMM.jsonl';
+  });
+  $('empty-rpt').addEventListener('click', function () { setState('data'); });
+
+  function days(a, b) { return (new Date(b) - new Date(a)) / 86400000; }
+  function rangeErr(from, to, code) {
+    if (!from || !to) { return ''; }
+    if (from > to) { return code + ' — Ngày bắt đầu (' + from + ') sau ngày kết thúc (' + to + ').'; }
+    if (days(from, to) > 366) { return code + ' — Khoảng thời gian dài hơn 366 ngày.'; }
+    return '';
+  }
+  function showErr(id, msg) { $(id).textContent = msg; $(id).classList.toggle('show', !!msg); }
+  $('flt-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = rangeErr($('f-from').value, $('f-to').value, 'ERR-CON-422-01'); showErr('flt-err', m);
+    $('f-from').classList.toggle('invalid', !!m); $('f-to').classList.toggle('invalid', !!m);
+    if (!m) { renderAud(); }
+  });
+
+  /* Hộp thoại job đọc */
+  var pending = null;
+  function openJob(cfg) {
+    pending = cfg; $('act-title').textContent = cfg.title; $('act-fr').textContent = cfg.fr; $('act-desc').textContent = cfg.desc; $('act-cmd').textContent = cfg.cmd; $('act-err').hidden = true;
+    $('act-modal').classList.add('open'); $('act-exec').focus();
+  }
+  function closeModal() { $('act-modal').classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  function verify(from, to) {
+    openJob({title: 'Kiểm tra toàn vẹn chuỗi hash audit', fr: 'FR-JOB-AUD-002', desc: 'Tính lại chuỗi hash theo BR-AUD-003 qua các file tháng; báo seq đầu tiên bị lệch. POST /api/v1/audit-verifications.',
+      cmd: 'php-quickpatch.sh audit verify --json' + (from ? ' --from ' + from : '') + (to ? ' --to ' + to : ''), job: 'JOB-20261022-122015-4d1b',
+      done: state === 'broken' ? 'Job FAILED (mã thoát 2): ERR-AUD-409-01, first_broken_seq = 1040.' : 'Job SUCCEEDED: verified = true, records = 174, first_broken_seq = null.'});
+  }
+  $('btn-verify').addEventListener('click', function () { verify('', ''); });
+  $('ver-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = rangeErr($('v-from').value, $('v-to').value, 'ERR-CON-422-01'); showErr('ver-err', m);
+    if (!m) { verify($('v-from').value, $('v-to').value); }
+  });
+  var DESC = {assess: 'Báo cáo đánh giá: máy chủ, môi trường, runtime + đánh giá + ứng viên, CVE/KEV, EOL/LTS, dependency, WordPress, kế hoạch và hạn duyệt, nguồn dữ liệu + fetched_at, bundle_id, phiên bản tool (FR-RPT-ASMT-001). Không dùng khoảng thời gian.',
+    evidence: 'Báo cáo bằng chứng: trích audit + manifest + switch.json + hc.json trong khoảng; trạng thái trước/sau (phiên bản, gói), người chạy, người duyệt, miễn trừ, rollback; kèm kết quả kiểm chuỗi hash (FR-RPT-AUD-001). Bắt buộc từ ngày/đến ngày.'};
+  function syncType() { var ev = $('r-type').value === 'evidence'; $('r-range').hidden = !ev; $('r-desc').textContent = DESC[$('r-type').value]; showErr('r-err', ''); }
+  $('r-type').addEventListener('change', syncType);
+  $('rpt-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = $('r-type').value, f = $('r-fmt').value, from = $('r-from').value, to = $('r-to').value, m = '';
+    if (t === 'evidence' && (!from || !to)) { m = 'ERR-RPT-422-01 — Báo cáo bằng chứng bắt buộc có từ ngày và đến ngày.'; }
+    else if (t === 'evidence') { m = rangeErr(from, to, 'ERR-RPT-422-01'); }
+    showErr('r-err', m); if (m) { return; }
+    var id = 'RPT-20261022-122108-5f2e';
+    openJob({title: 'Tạo báo cáo ' + t + ' (' + f + ')', fr: t === 'assess' ? 'FR-RPT-ASMT-001' : 'FR-RPT-AUD-001', desc: 'POST /api/v1/reports {type: "' + t + '", format: "' + f + '"' + (t === 'evidence' ? ', from: "' + from + '", to: "' + to + '"' : '') + '} → 202 + report_id ' + id + '.',
+      cmd: 'php-quickpatch.sh report ' + t + ' --format ' + f + ' --out /var/lib/php-quickpatch/reports/' + id + '.' + f + (t === 'evidence' ? ' --from ' + from + ' --to ' + to : '') + ' --json', job: 'JOB-20261022-122108-a03c',
+      done: 'Job QUEUED; file quyền 0600; SHA-256 in ra stdout và ghi audit (BR-RPT-002).',
+      add: {id: id, type: t, fmt: f, range: t === 'evidence' ? from + ' → ' + to : '—', job: 'JOB-20261022-122108-a03c', st: 'RUNNING', size: '—', sha: '—', at: '—'}});
+  });
+  $('act-exec').addEventListener('click', function () {
+    closeModal(); if (pending.add) { RPT.unshift(pending.add); renderRpt(); }
+    toast('202 Accepted: ' + pending.job + ' (read). ' + pending.done);
+  });
+  $('act-sim').addEventListener('click', function () { var e = $('act-err'); e.hidden = false; e.textContent = 'ERR-JOB-429-01 — Hàng đợi đã có 20 job QUEUED; thử lại sau khi bớt job.'; });
+  syncType(); setState('data');
+})();
+</script>
+</body>
+</html>

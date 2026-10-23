@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-003
+title: Wireframe SCR-003 — Đánh giá runtime & so sánh phiên bản (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, assessment, cve, kev, eol, lts, candidates, risk-score, scr-003, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-FEED-002
+  - FR-CON-ASMT-001
+  - FR-ASMT-CUR-001
+  - FR-ASMT-CAND-001
+  - FR-ASMT-CAND-002
+  - FR-ASMT-CMP-001
+  - FR-ASMT-RISK-002
+  - UC-ASMT-001
+related_diagrams:
+  - DIAG-STATE-QP-FEED-001
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-003: Đánh giá runtime &amp; so sánh phiên bản — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}.page-head .actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 16px}.kv div{border-bottom:1px solid var(--line);padding:4px 0}.kv span{display:block;font-size:11.5px;color:var(--sub)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}tr.excluded td{color:var(--sub);text-decoration:line-through}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.sev-c{background:#111827;color:#fff;border-color:#111827}.sev-h{background:#4B5563;color:#fff;border-color:#4B5563}.sev-m{background:#E5E7EB}.sev-l{color:#374151}
+.kev{border:2px solid #111827;color:#111827}.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left-width:6px;background:var(--err-bg);color:var(--err)}.alert.error::before{content:"LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.root-reason{display:none;font-size:11.5px;color:var(--sub)}body.no-root .root-reason{display:inline}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}
+input:focus,select:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.delta{font-weight:700}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:760px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.pv th{width:170px;background:#fff}.pv ul{margin-left:16px}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html" aria-current="page"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-003 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-003 Đánh giá runtime &amp; so sánh phiên bản — UC-ASMT-001 (PER-01, PER-02, PER-04)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-ASMT-001, FR-ASMT-CUR-001, FR-ASMT-CAND-001, FR-ASMT-CAND-002, FR-ASMT-CMP-001, FR-ASMT-RISK-002. Liên quan: FR-ASMT-RISK-001, FR-CLI-CMD-001 (job <code>assess</code>), FR-PTCH-PHP-001, FR-PTCH-MIT-001, FR-PTCH-NODE-001</td></tr>
+      <tr><th>BR</th><td>BR-ASMT-001, BR-ASMT-002, BR-ASMT-003, BR-UPG-004, BR-SEC-001, BR-SEC-002, BR-FEED-022, BR-FEED-029, BR-FEED-040..044, BR-SCN-007, BR-ENV-010, BR-CON-005</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-ASMT-404-01, ERR-FEED-412-01, ERR-SCN-503-01, ERR-CON-500-01, ERR-JOB-428-01, ERR-CLI-403-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/runtimes</code>, <code>GET /api/v1/runtimes/{runtime_id}</code>, <code>…/assessment</code>, <code>…/candidates</code>, <code>GET /api/v1/advisories?runtime_id=</code>, <code>POST /api/v1/jobs</code> (assess, fix)</td></tr>
+      <tr><th>Dữ liệu mẫu đã kiểm chứng</th><td>NVD API 2.0 (2026-10-22): <code>virtualMatchString=cpe:2.3:a:php:php:7.4.33</code> trả 6 CVE; tính vào U(X): CVE-2026-109618 (9,8; CPE <code>&lt; 8.2.35</code> không cận dưới), CVE-2026-109619 (9,8), CVE-2022-4900 (5,5; <code>&lt; 8.0.22</code>), CVE-2024-5458 (5,3; từ 7.4.15 không cận trên); loại: CVE-2024-25117 (php:php là nền tảng, <code>vulnerable=false</code>), CVE-2024-3566 (cấu hình AND với Windows). Kết quả 2/0/2/0, R 70 trùng data-sources-merge-risk.md §8.5 ví dụ 7. Không CVE nào trong CISA KEV catalogVersion 2026.10.21. R của ứng viên Node.js 24/26 do BA tính theo BR-FEED-040 trên dữ liệu mẫu.</td></tr>
+      <tr><th>Ghi chú</th><td>Đơn vị trong bảng là số CVE chưa vá theo mức CVSS v3.1. Bảng so sánh tính trên cùng bundle và cùng ngày T (BR-ASMT-003). CSS/JS inline chỉ để wireframe tự chứa (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §4; api/api-spec-core.md §4; api/api-spec-cli-json.md §6; data-sources-merge-risk.md §5, §8; version-scenarios-php.md §2, §10.7; version-scenarios-node.md §2; https://services.nvd.nist.gov/rest/json/cves/2.0 (truy cập 2026-10-22)</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-003: đánh giá hiện tại, thành phần điểm R, danh sách CVE, ứng viên + khả năng cài, bảng so sánh ΔR, vá cùng nhánh qua dry-run</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Sửa theo review: bỏ màu đỏ của trạng thái lỗi theo rules/13 §2 (bảng màu xám đơn sắc): <code>--err</code> #111827, <code>--err-line</code> #1E293B, <code>--err-bg</code> #F3F4F6; nhấn cảnh báo lỗi (ERR-FEED-412-01, ERR-ASMT-404-01, ERR-SCN-503-01, ERR-CON-500-01, ERR-JOB-428-01 trong hộp thoại) bằng viền 2 px, viền trái 6 px và nhãn chữ "LỖI"</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="outdated">Kết quả cũ</button>
+    <button type="button" data-set="empty">Chưa đánh giá</button>
+    <button type="button" data-set="loading">Đang đánh giá</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-root"> serve không root</label>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Đánh giá runtime &amp; so sánh phiên bản <span class="fr">FR-CON-ASMT-001</span></h1>
+      <p class="hint">Job <span class="mono" id="m-job"></span> · đánh giá ngày T = 2026-10-22 · bundle <code>b-20261022T093000Z-3f2a9c1e</code> (AGING, 12 giờ) · catalog <code>2026.10.20-1</code> <span class="fr">BR-ASMT-003</span></p>
+    </div>
+    <div class="actions">
+      <label for="rt-select" class="hint" style="align-self:center">Runtime</label>
+      <select id="rt-select" aria-label="Chọn runtime">
+        <option value="php74">PHP 7.4.33 — /usr/bin/php7.4 (php:7c41d09e2a15)</option>
+        <option value="php82">PHP 8.2.34 — /usr/bin/php8.2 (php:3f9a0c1d2e4b)</option>
+        <option value="node22">Node.js 22.23.3 — /usr/bin/node (node:9e8d7c6b5a41)</option>
+      </select>
+      <button class="btn" type="button" id="btn-assess" title="Job đọc assess --runtime-id … --candidates --json">Đánh giá lại</button>
+    </div>
+  </div>
+
+  <section data-state="outdated">
+    <div class="alert" role="status"><b>Kết quả cũ.</b> <code>meta.outdated = true</code>: bundle của kết quả (<code>b-20261021T213000Z-77c0d1aa</code>) khác bundle hiện tại hoặc <code>scan_fingerprint</code> đã đổi. <button class="btn sm" type="button" id="btn-assess2">Đánh giá lại</button></div>
+    <div class="alert error" role="alert"><b>ERR-FEED-412-01</b> — Dữ liệu dùng để đánh giá đã cũ 9 ngày (nguồn: SRC-004, SRC-006). Áp dụng cho mọi kết quả trên trang (BR-DATA-001).</div>
+  </section>
+
+  <div data-state="data outdated">
+    <section class="card" aria-labelledby="cur-h">
+      <h2 id="cur-h">Đánh giá phiên bản hiện tại <span class="fr">FR-ASMT-CUR-001</span> <span id="cur-risk"></span></h2>
+      <div class="kv" id="cur-kv"></div>
+      <p class="hint" id="cur-label" style="margin-top:8px"></p>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" type="button" id="btn-fix" data-root>Vá cùng nhánh / mitigation (dry-run)</button><span class="root-reason">Vô hiệu: ERR-CLI-403-01 — serve không chạy bằng root (BR-CON-010)</span>
+        <a class="btn" id="btn-plan" href="upgrade-plan-checklist.html">Lập kế hoạch nâng cấp</a>
+        <span class="hint" id="fix-note"></span>
+      </div>
+    </section>
+
+    <div class="grid g2">
+      <section class="card" aria-labelledby="risk-h">
+        <h2 id="risk-h">Thành phần điểm rủi ro R <span class="fr">BR-FEED-040</span></h2>
+        <table><tbody id="risk-body"></tbody></table>
+        <p class="hint" style="margin-top:6px">R = max(làm tròn R_raw, sàn theo mức ưu tiên kịch bản: Nghiêm trọng 70 · Cao 40 · Trung bình 20 · Thấp 0) (BR-FEED-041).</p>
+      </section>
+      <section class="card" aria-labelledby="cve-h">
+        <h2 id="cve-h">CVE chưa vá <span class="fr">FR-ASMT-CUR-001</span></h2>
+        <div class="row" style="margin-bottom:6px">
+          <label class="hint">Mức <select id="f-sev"><option value="">Tất cả</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select></label>
+          <label class="hint"><input type="checkbox" id="f-kev"> Chỉ KEV</label>
+          <label class="hint"><input type="checkbox" id="f-excl"> Hiện advisory bị loại</label>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Mã</th><th>CVSS</th><th>Mức</th><th>KEV</th><th>Nguồn</th><th>Công bố</th><th>Bản sửa</th></tr></thead>
+          <tbody id="cve-body"></tbody></table></div>
+        <p class="hint" style="margin-top:6px">Sắp: KEV → CVSS giảm dần → ngày công bố (BR-SEC-001). Advisory có <code>in_kev = 1</code> đẩy mức tối thiểu lên CRITICAL.</p>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="cand-h">
+      <h2 id="cand-h">Phiên bản ứng viên <span class="fr">FR-ASMT-CAND-001</span><span class="fr">FR-ASMT-CAND-002</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Phiên bản</th><th>Loại (BR-ASMT-001)</th><th>Vòng đời</th><th>LTS</th><th>EOL</th><th>Chọn được</th><th>Khả năng cài</th><th></th></tr></thead>
+        <tbody id="cand-body"></tbody></table></div>
+      <p class="hint" style="margin-top:6px">Khác nhánh: chọn được khi EOL ≥ hôm nay + 365 ngày; chọn thủ công kèm lý do ≥ 20 ký tự khi EOL ≥ hôm nay + 90 ngày (BR-ASMT-002, đề xuất Q-SRS-05). Không chấp nhận EOL, PRE_RELEASE, UNKNOWN, "6.x" (BR-UPG-004). Khả năng cài tra theo playbook; lệnh <code>verified=false</code> không chạy → <code>unknown</code> (BR-ENV-010).</p>
+    </section>
+
+    <section class="card" aria-labelledby="cmp-h">
+      <h2 id="cmp-h">So sánh hiện tại với ứng viên <span class="fr">FR-ASMT-CMP-001</span><span class="fr">FR-ASMT-RISK-002</span></h2>
+      <div class="tbl-wrap"><table id="cmp-table"></table></div>
+      <p class="hint" style="margin-top:6px">ΔR = R(ứng viên) − R(hiện tại), cùng bundle, cùng ngày T (BR-FEED-044). Hit tương thích lấy từ kế hoạch gần nhất của runtime; "chưa quét" khi chưa có kế hoạch tới nhánh đó.</p>
+    </section>
+  </div>
+
+  <section data-state="empty">
+    <div class="empty">
+      <h2>Chưa có kết quả đánh giá cho runtime này</h2>
+      <p style="margin:8px 0"><b>ERR-ASMT-404-01</b> (<code>details.reason = no_assessment</code>) — chưa có job <code>assess</code> cho <code>php:7c41d09e2a15</code>. Console không tự tính, chỉ đọc <code>result.json</code> của job <code>assess</code> mới nhất.</p>
+      <button class="btn primary" type="button" data-job="assess">Đánh giá ngay</button>
+    </div>
+  </section>
+
+  <section data-state="loading" aria-busy="true">
+    <div class="card"><h2>Đang chạy job assess <span class="mono">JOB-20261022-121530-0aa1</span></h2><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      <p class="hint">Tiến độ qua SSE <code>/api/v1/jobs/{job_id}/events</code>; timeout 1.800 s (BR-JOB-008). Dòng gần nhất: <code>[i] checking install source: apt-cache policy php8.5-fpm</code></p></div>
+  </section>
+
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-ASMT-404-01</b> — Không tìm thấy runtime php:7c41d09e2a15; hãy quét lại. (<code>details.reason = runtime_not_found</code>: binary đã bị gỡ hoặc đổi đường dẫn sau lần scan gần nhất.) <button class="btn sm" type="button" data-job="scan">Quét lại</button></div>
+    <div class="alert error" role="alert"><b>ERR-SCN-503-01</b> — Dữ liệu vòng đời đã cũ 94 ngày; tạm ngừng đề xuất nâng nhánh. Mọi ứng viên khác nhánh có <code>not_selectable_reason = DATA_EXPIRED</code>; chỉ "Vá cùng nhánh" còn dùng được.</div>
+    <div class="alert error" role="alert"><b>ERR-CON-500-01</b> — Lỗi nội bộ console (mã tham chiếu 51d0be22).</div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="act-modal" role="dialog" aria-modal="true" aria-labelledby="act-title">
+  <div class="modal">
+    <div class="row"><h2 id="act-title">—</h2><span class="fr">FR-CON-SAFE-001</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p class="muted" id="act-desc" style="margin:6px 0"></p>
+    <h3>Lệnh sẽ chạy (argv cố định, <code>shell=False</code> — BR-CON-008)</h3>
+    <pre class="cmd" id="act-cmd"></pre>
+    <p class="hint" id="act-status" aria-live="polite" style="margin-top:6px"></p>
+    <div id="act-preview" hidden>
+      <h3>Kết quả dry-run — 4/4 mục bắt buộc (NFR-USE-006)</h3>
+      <table class="pv"><tr><th>Thay đổi</th><td><ul id="pv-changes"></ul></td></tr><tr><th>Đối tượng ảnh hưởng</th><td id="pv-affected"></td></tr><tr><th>Gián đoạn dự kiến</th><td id="pv-disruption"></td></tr><tr><th>Khả năng hoàn tác</th><td id="pv-revert"></td></tr></table>
+    </div>
+    <div class="alert error" id="act-err" hidden role="alert"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn sm" type="button" id="act-sim">Mô phỏng ERR-JOB-428-01</button>
+      <button class="btn" type="button" data-close>Huỷ</button>
+      <button class="btn" type="button" id="act-dry">Dry-run</button>
+      <button class="btn primary" type="button" id="act-exec" disabled>Thực thi</button>
+    </div>
+    <p class="hint" style="margin-top:8px">Bản đầy đủ: <a href="dry-run-confirm-dialog.html">SCR-011</a>.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var D = {
+    php74: {job: 'JOB-20261022-103020-1b77 (10:30:41 UTC)', rid: 'php:7c41d09e2a15', risk: [70, 'CRITICAL', 'sev-c'],
+      kv: [['Binary', '/usr/bin/php7.4 · SAPI cli, fpm'], ['Nguồn cài', 'dpkg php7.4-cli 7.4.33 · ppa:ondrej/php (PB-001)'], ['Kịch bản', 'SCN-PHP-007 (VERSION) · ưu tiên Nghiêm trọng'], ['Vòng đời', 'EOL từ 2022-11-28 (quá 1.424 ngày)'], ['LTS', 'Không áp dụng (PHP)'], ['Bản patch mới nhất cùng nhánh', '7.4.33 (đang chạy)'], ['min_patched', 'NONE — nhánh không còn bản vá'], ['CVE chưa vá C/H/M/L', '2 / 0 / 2 / 0'], ['KEV', '0'], ['Site dùng runtime', 'example.com, shop.example.com']],
+      label: 'Nhánh EOL — nguồn không còn đánh giá CVE mới (BR-FEED-029): số CVE có thể thiếu, vì vậy R lấy sàn 70 của mức Nghiêm trọng (BR-FEED-041).',
+      riskRows: [['S_cvss = 4 × 9,8', '39,2'], ['S_cnt = 4×2 + 0,5×2', '9'], ['S_kev', '0'], ['S_life (EOL)', '10'], ['S_eol (d = −1.424)', '10'], ['R_raw', '68,2'], ['Sàn (Nghiêm trọng: EOL > 365 ngày)', '70'], ['R', '70 CRITICAL']],
+      cves: [['CVE-2026-109618', 9.8, 'critical', 0, 'NVD (SRC-004) CPE < 8.2.35', '2026-10-21', '8.2.35 / 8.3.36 / 8.4.27 / 8.5.12; nhánh 7.4: không có'], ['CVE-2026-109619', 9.8, 'critical', 0, 'NVD (SRC-004) CPE < 8.2.35', '2026-10-21', 'như trên'], ['CVE-2022-4900', 5.5, 'medium', 0, 'NVD (SRC-004) CPE < 8.0.22', '2023-11-02', '8.0.22; nhánh 7.4: không có'], ['CVE-2024-5458', 5.3, 'medium', 0, 'NVD (SRC-004) CPE ≥ 7.4.15', '2024-06-09', '8.1.29 / 8.2.20 / 8.3.8; nhánh 7.4: không có']],
+      excluded: [['CVE-2024-3566', 9.8, 'critical', 0, 'Loại: cấu hình AND với microsoft:windows (BR-FEED-022)', '2024-04-10', '—'], ['CVE-2024-25117', 9.8, 'critical', 0, 'Loại: php:php là nền tảng (vulnerable=false), lỗ hổng của dompdf/php-svg-lib', '2024-02-21', '—']],
+      cands: [['8.2.35', 'NEXT_SUPPORTED', 'SECURITY_ONLY', '—', '2026-12-31', 'Không — EOL_WITHIN_90D (70 ngày)', 'yes · repo:ppa:ondrej/php', false], ['8.5.12', 'RECOMMENDED, LATEST_STABLE', 'ACTIVE', '—', '2029-12-31', 'Có', 'yes · repo:ppa:ondrej/php', true]],
+      cmpHead: ['7.4.33 (hiện tại)', '8.2.35', '8.5.12'],
+      cmp: [['CVE C/H/M/L', '2/0/2/0', '0/0/0/0', '0/0/0/0'], ['KEV', '0', '0', '0'], ['Trạng thái hỗ trợ', 'EOL', 'SECURITY_ONLY', 'ACTIVE'], ['LTS', '—', '—', '—'], ['EOL', '2022-11-28', '2026-12-31', '2029-12-31'], ['Số ngày còn lại', '−1.424', '70', '1.166'], ['Khoảng cách major', '0', '1', '1'], ['Hit tương thích error / warning', '—', 'chưa quét', '2 / 14 (PLN-20261022-110351-4c7e)'], ['R', '70 CRITICAL', '40 HIGH', '0 LOW'], ['ΔR', '—', '−30', '−70']],
+      fix: 'fix74', fixNote: 'Nhánh 7.4 không có bản vá cùng nhánh → fix chỉ giữ/ghi mitigation tạm (FR-PTCH-MIT-001).', plan: 'upgrade-plan-checklist.html'},
+    php82: {job: 'JOB-20261022-081220-9d04 (08:12:40 UTC) · job mới JOB-20261022-121005-c7e2 đang chạy', rid: 'php:3f9a0c1d2e4b', risk: [60, 'HIGH', 'sev-h'],
+      kv: [['Binary', '/usr/bin/php8.2 · SAPI cli, fpm'], ['Nguồn cài', 'dpkg php8.2-cli 8.2.34-1+ubuntu22.04.1+deb.sury.org+1 (PB-001)'], ['Kịch bản', 'SCN-PHP-010 (VERSION) · ưu tiên Cao'], ['Vòng đời', 'SECURITY_ONLY · EOL 2026-12-31 (còn 70 ngày)'], ['LTS', 'Không áp dụng (PHP)'], ['Bản patch mới nhất cùng nhánh', '8.2.35 (2026-10-21)'], ['min_patched', '8.2.35'], ['CVE chưa vá C/H/M/L', '2 / 0 / 0 / 0'], ['KEV', '0'], ['Site dùng runtime', 'blog.example.com']],
+      label: 'Vá cùng nhánh lên 8.2.35 trước khi nâng nhánh (BR-UPG-006); hạn duyệt kế hoạch nâng cấp 2026-12-01.',
+      riskRows: [['S_cvss = 4 × 9,8', '39,2'], ['S_cnt = 4×2', '8'], ['S_kev', '0'], ['S_life (SECURITY_ONLY)', '5'], ['S_eol (d = 70)', '8'], ['R_raw', '60,2'], ['Sàn (Cao)', '40'], ['R', '60 HIGH']],
+      cves: [['CVE-2026-109618', 9.8, 'critical', 0, 'NVD (SRC-004), php.net NEWS (SRC-003)', '2026-10-21', '8.2.35'], ['CVE-2026-109619', 9.8, 'critical', 0, 'NVD (SRC-004), php.net NEWS (SRC-003)', '2026-10-21', '8.2.35']], excluded: [],
+      cands: [['8.2.35', 'SAME_BRANCH_LATEST', 'SECURITY_ONLY', '—', '2026-12-31', 'Có (cùng nhánh)', 'yes · package', true], ['8.3.36', 'NEXT_SUPPORTED', 'SECURITY_ONLY', '—', '2027-12-31', 'Có (435 ngày)', 'yes · repo:ppa:ondrej/php', true], ['8.5.12', 'RECOMMENDED, LATEST_STABLE', 'ACTIVE', '—', '2029-12-31', 'Có', 'yes · repo:ppa:ondrej/php', true]],
+      cmpHead: ['8.2.34 (hiện tại)', '8.2.35', '8.3.36', '8.5.12'],
+      cmp: [['CVE C/H/M/L', '2/0/0/0', '0/0/0/0', '0/0/0/0', '0/0/0/0'], ['KEV', '0', '0', '0', '0'], ['Trạng thái hỗ trợ', 'SECURITY_ONLY', 'SECURITY_ONLY', 'SECURITY_ONLY', 'ACTIVE'], ['EOL', '2026-12-31', '2026-12-31', '2027-12-31', '2029-12-31'], ['Số ngày còn lại', '70', '70', '435', '1.166'], ['Khoảng cách major', '0', '0', '0', '0'], ['Hit tương thích error / warning', '—', '—', 'chưa quét', 'chưa quét'], ['R', '60 HIGH', '40 HIGH', '20 MEDIUM', '0 LOW'], ['ΔR', '—', '−20', '−40', '−60']],
+      fix: 'fix82', fixNote: 'Bản vá cùng nhánh 8.2.35 có trong kho; NFR-USE-001: ≤ 3 thao tác (Vá → Dry-run → Thực thi).', plan: 'upgrade-plan-checklist.html'},
+    node22: {job: 'JOB-20261022-102215-5f3a (10:22:31 UTC)', rid: 'node:9e8d7c6b5a41', risk: [47, 'HIGH', 'sev-h'],
+      kv: [['Binary', '/usr/bin/node · ABI 127 · npm 10.9.9'], ['Nguồn cài', 'gói nodejs 22.23.3-1nodesource1 (PB-014)'], ['Kịch bản', 'SCN-NODE-005 (VERSION) · ưu tiên Cao khi chưa vá'], ['Vòng đời', 'MAINTENANCE_LTS từ 2025-10-21 · EOL 2027-04-30 (còn 190 ngày)'], ['LTS', 'Có (Jod)'], ['Bản patch mới nhất cùng dòng', '22.23.4 (2026-10-20, security)'], ['min_patched', '22.23.4'], ['CVE chưa vá C/H/M/L', '0 / 3 / 3 / 1'], ['KEV', '0'], ['Ứng dụng', 'app:pm2:api (/srv/api)']],
+      label: '7 advisory đợt Security Release 2026-10-21 (SRC-011) chưa có điểm CVSS → dùng điểm thay thế theo mức chữ (BR-FEED-043). Mã CVE lấy từ bundle khi chạy; wireframe không liệt kê mã chưa kiểm chứng.',
+      riskRows: [['S_cvss = 4 × 8,0 (proxy high)', '32'], ['S_cnt = 2×3 + 0,5×3 + 0,1×1', '7,6'], ['S_kev', '0'], ['S_life (MAINTENANCE_LTS)', '5'], ['S_eol (d = 190)', '2'], ['R_raw', '46,6'], ['Sàn (Cao)', '40'], ['R', '47 HIGH']],
+      cves: [], excluded: [],
+      cands: [['22.23.4', 'SAME_BRANCH_LATEST', 'MAINTENANCE_LTS', 'Jod', '2027-04-30', 'Có (cùng dòng)', 'yes · nodesource', true], ['24.22.1', 'NEXT_SUPPORTED', 'MAINTENANCE_LTS', 'Krypton', '2028-04-30', 'Có (556 ngày)', 'needs_repo · nodesource node_24.x', true], ['26.12.1', 'RECOMMENDED, LATEST_STABLE', 'CURRENT → ACTIVE_LTS 2026-10-28', 'từ 2026-10-28', '2029-04-30', 'Chỉ môi trường không production tới 2026-10-28 (BR-SCN-007)', 'needs_repo · nodesource node_26.x', false]],
+      cmpHead: ['22.23.3 (hiện tại)', '22.23.4', '24.22.1', '26.12.1'],
+      cmp: [['CVE C/H/M/L', '0/3/3/1', '0/0/0/0', '0/0/0/0', '0/0/0/0'], ['KEV', '0', '0', '0', '0'], ['Trạng thái hỗ trợ', 'MAINTENANCE_LTS', 'MAINTENANCE_LTS', 'MAINTENANCE_LTS', 'CURRENT'], ['LTS', 'Có', 'Có', 'Có', 'Từ 2026-10-28'], ['EOL', '2027-04-30', '2027-04-30', '2028-04-30', '2029-04-30'], ['Số ngày còn lại', '190', '190', '556', '921'], ['Khoảng cách major', '0', '0', '2', '4'], ['Hit tương thích (engines.node, native addon)', '—', '—', 'chưa quét', 'chưa quét'], ['R', '47 HIGH', '20 MEDIUM', '20 MEDIUM', '0 LOW'], ['ΔR', '—', '−27', '−27', '−47']],
+      fix: 'fixnode', fixNote: 'Vá cùng dòng lên 22.23.4 qua gói NodeSource (FR-PTCH-NODE-001).', plan: 'upgrade-plan-checklist.html'}
+  };
+  var ACT = {
+    fix74: {title: 'Vá cùng nhánh / mitigation PHP (fix --only php)', desc: 'Áp cho mọi runtime PHP: PHP 7.4 không có bản vá nên giữ mitigation tạm; PHP 8.2 được nâng lên 8.2.35.', dry: 'php-quickpatch.sh fix --json --only php --dry-run', exec: 'php-quickpatch.sh fix --json --only php', job: 'JOB-20261022-121150-77b0', execJob: 'JOB-20261022-121240-e0d9',
+      changes: ['PHP 7.4.33: không có bản vá cùng nhánh; mitigation /etc/php/7.4/{fpm,cli}/conf.d/zz-php-quickpatch-mitigation.ini đã có (memory_limit = -1) → không ghi lại', 'package upgrade php8.2-* 8.2.34 → 8.2.35 (apt-get install --only-upgrade)', 'file delete mitigation của PHP 8.2 sau khi vá (FR-PTCH-MIT-002)', 'service restart php8.2-fpm.service'],
+      affected: 'runtime php:3f9a0c1d2e4b · site blog.example.com (PHP 7.4 và 2 site của nó: không đổi)', disruption: '≈ 5 s, phạm vi runtime PHP 8.2 (ước tính của CLI, chưa đo)', revert: 'Một phần — rollback <run_id> khôi phục file mitigation; gói đã nâng không bị hạ cấp (BR-PTCH-008)'},
+    fix82: null, fixnode: {title: 'Vá cùng dòng Node.js (fix --only node)', desc: 'Nâng nodejs 22.23.3 → 22.23.4 (NodeSource).', dry: 'php-quickpatch.sh fix --json --only node --dry-run', exec: 'php-quickpatch.sh fix --json --only node', job: 'JOB-20261022-121402-3c90', execJob: 'JOB-20261022-121433-71fe',
+      changes: ['package upgrade nodejs 22.23.3-1nodesource1 → 22.23.4-1nodesource1', 'pm2 restart api'], affected: 'runtime node:9e8d7c6b5a41 · ứng dụng app:pm2:api', disruption: 'Phạm vi ứng dụng; expected_s = null (chưa ước tính được)', revert: 'Một phần — gói không bị hạ cấp khi rollback (BR-PTCH-008)'}
+  };
+  ACT.fix82 = ACT.fix74;
+  function $(id) { return document.getElementById(id); }
+  function el(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) { e.textContent = text; } if (cls) { e.className = cls; } return e; }
+  function sevBadge(s) { var m = {critical: 'sev-c', high: 'sev-h', medium: 'sev-m', low: 'sev-l'}; return el('span', s, 'badge ' + (m[s] || '')); }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4000); }
+  var key = 'php74';
+  function render() {
+    var d = D[key];
+    $('m-job').textContent = d.job;
+    var r = $('cur-risk'); r.textContent = ''; r.appendChild(el('span', 'R ' + d.risk[0] + ' · ' + d.risk[1], 'badge ' + d.risk[2]));
+    var kv = $('cur-kv'); kv.textContent = '';
+    d.kv.forEach(function (p) { var div = el('div'); div.appendChild(el('span', p[0])); div.appendChild(document.createTextNode(p[1])); kv.appendChild(div); });
+    $('cur-label').textContent = d.label; $('fix-note').textContent = d.fixNote;
+    var rb = $('risk-body'); rb.textContent = '';
+    d.riskRows.forEach(function (p) { var tr = el('tr'); tr.appendChild(el('th', p[0])); tr.appendChild(el('td', p[1])); rb.appendChild(tr); });
+    renderCves();
+    var cb = $('cand-body'); cb.textContent = '';
+    d.cands.forEach(function (c) {
+      var tr = el('tr'); tr.appendChild(el('td', c[0], 'mono')); tr.appendChild(el('td', c[1])); tr.appendChild(el('td', c[2])); tr.appendChild(el('td', c[3])); tr.appendChild(el('td', c[4])); tr.appendChild(el('td', c[5])); tr.appendChild(el('td', c[6]));
+      var td = el('td'); var a = el('a', c[7] ? 'Chọn làm đích' : 'Không chọn được', 'btn sm'); a.href = c[7] ? d.plan : '#';
+      if (!c[7]) { a.setAttribute('aria-disabled', 'true'); a.style.opacity = '.45'; a.addEventListener('click', function (e) { e.preventDefault(); }); }
+      td.appendChild(a); tr.appendChild(td); cb.appendChild(tr);
+    });
+    var t = $('cmp-table'); t.textContent = '';
+    var thead = el('thead'), hr = el('tr'); hr.appendChild(el('th', 'Tiêu chí')); d.cmpHead.forEach(function (h) { hr.appendChild(el('th', h)); }); thead.appendChild(hr); t.appendChild(thead);
+    var tb = el('tbody'); d.cmp.forEach(function (row) { var tr = el('tr'); row.forEach(function (c, i) { tr.appendChild(el(i === 0 ? 'th' : 'td', c, row[0] === 'ΔR' && i > 0 ? 'delta' : '')); }); tb.appendChild(tr); }); t.appendChild(tb);
+  }
+  function renderCves() {
+    var d = D[key], sev = $('f-sev').value, kevOnly = $('f-kev').checked, cb = $('cve-body'); cb.textContent = '';
+    var rows = d.cves.map(function (c) { return [c, false]; });
+    if ($('f-excl').checked) { rows = rows.concat(d.excluded.map(function (c) { return [c, true]; })); }
+    rows = rows.filter(function (r) { return (!sev || r[0][2] === sev) && (!kevOnly || r[0][3] === 1); });
+    if (!rows.length) { var tr0 = el('tr'); var td0 = el('td', d.cves.length ? 'Không có CVE khớp bộ lọc.' : d.label); td0.colSpan = 7; tr0.appendChild(td0); cb.appendChild(tr0); return; }
+    rows.forEach(function (r) {
+      var c = r[0], tr = el('tr', undefined, r[1] ? 'excluded' : ''); tr.appendChild(el('td', c[0], 'mono')); tr.appendChild(el('td', String(c[1]).replace('.', ',')));
+      var ts = el('td'); ts.appendChild(sevBadge(c[2])); tr.appendChild(ts);
+      var tk = el('td'); tk.appendChild(c[3] ? el('span', 'KEV', 'badge kev') : el('span', 'Không', 'muted')); tr.appendChild(tk);
+      tr.appendChild(el('td', c[4])); tr.appendChild(el('td', c[5])); tr.appendChild(el('td', c[6])); cb.appendChild(tr);
+    });
+  }
+  ['f-sev', 'f-kev', 'f-excl'].forEach(function (id) { $(id).addEventListener('change', renderCves); });
+  $('rt-select').addEventListener('change', function (e) { key = e.target.value; render(); });
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (x) { x.classList.toggle('show', x.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  $('toggle-root').addEventListener('change', function (e) {
+    document.body.classList.toggle('no-root', e.target.checked);
+    document.querySelectorAll('[data-root]').forEach(function (b) { b.disabled = e.target.checked; });
+  });
+  function assessToast() { toast('POST /api/v1/jobs {action: "assess", params: {runtime_id: "' + D[key].rid + '"}} → 202 JOB-20261022-121530-0aa1 (job đọc, không cần dry-run).'); }
+  $('btn-assess').addEventListener('click', assessToast); $('btn-assess2').addEventListener('click', assessToast);
+  document.querySelectorAll('[data-job]').forEach(function (b) { b.addEventListener('click', function () { toast('POST /api/v1/jobs {action: "' + b.getAttribute('data-job') + '"} → 202 QUEUED.'); }); });
+  var cur = null;
+  function closeModal() { $('act-modal').classList.remove('open'); }
+  $('btn-fix').addEventListener('click', function () {
+    cur = ACT[D[key].fix];
+    $('act-title').textContent = cur.title; $('act-desc').textContent = cur.desc; $('act-cmd').textContent = 'Dry-run: ' + cur.dry;
+    $('act-status').textContent = 'Bước 1: dry-run (job đọc). Bước 2: xác nhận trong ≤ 15 phút (BR-CON-005).';
+    $('act-preview').hidden = true; $('act-err').hidden = true; $('act-exec').disabled = true;
+    $('act-modal').classList.add('open'); $('act-dry').focus();
+  });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); } });
+  $('act-dry').addEventListener('click', function () { if (!cur) { return; }
+    $('act-status').textContent = 'Đang chạy dry-run ' + cur.job + '…';
+    setTimeout(function () {
+      var ul = $('pv-changes'); ul.textContent = ''; cur.changes.forEach(function (c) { ul.appendChild(el('li', c)); });
+      $('pv-affected').textContent = cur.affected; $('pv-disruption').textContent = cur.disruption; $('pv-revert').textContent = cur.revert;
+      $('act-preview').hidden = false; $('act-exec').disabled = false;
+      $('act-cmd').textContent = 'Dry-run: ' + cur.dry + '\nThực thi: ' + cur.exec + '\n# confirm_dry_run_job_id = ' + cur.job;
+      $('act-status').textContent = 'Dry-run ' + cur.job + ' SUCCEEDED_WITH_ISSUES, có preview, errors rỗng → hợp lệ 15 phút (BR-CON-005).';
+    }, 900);
+  });
+  $('act-exec').addEventListener('click', function () { if (!cur) { return; } closeModal(); toast('POST /api/v1/jobs → 202: ' + cur.execJob + ' QUEUED (write). Xem SCR-006.'); });
+  $('act-sim').addEventListener('click', function () {
+    var e = $('act-err'); e.hidden = false; $('act-exec').disabled = true; $('act-preview').hidden = true;
+    e.textContent = 'ERR-JOB-428-01 — Cần xem trước (dry-run) trong vòng 15 phút trước khi thực hiện. details.constraint = "fingerprint_changed" (bundle_id đổi sau khi feeds update).';
+  });
+  render(); setState('data');
+})();
+</script>
+</body>
+</html>

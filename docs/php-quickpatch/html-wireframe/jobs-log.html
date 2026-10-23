@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+---
+id: DOC-WF-QP-SCR-006
+title: Wireframe SCR-006 — Jobs & Log (php-quickpatch console)
+version: 1.0.1
+phase: Screen Design
+domain: Security Patch Management
+tags: [wireframe, html, console, jobs, log, sse, cancel, healthcheck-report, scr-006, openba]
+depends_on:
+  - DOC-SRS-QP-001
+  - DOC-SRS-QP-FR-001
+  - DOC-SRS-QP-BR-001
+  - DOC-SRS-QP-ERR-001
+  - DOC-SRS-QP-ENV-002
+  - FR-CON-JOB-001
+  - FR-CON-JOB-002
+  - FR-JOB-LOG-002
+  - FR-UPG-HC-006
+  - UC-JOB-001
+  - UC-JOB-002
+related_diagrams:
+  - DIAG-STATE-QP-JOB-001
+  - DIAG-STATE-QP-ENV-002
+author: BA Agent
+last_updated: 2026-10-22
+---
+-->
+<title>Wireframe SCR-006: Jobs &amp; Log — php-quickpatch console</title>
+<style>
+:root{--bg:#F8F9FA;--card:#FFFFFF;--line:#E5E7EB;--line2:#D1D5DB;--text:#111827;--sub:#6B7280;--accent:#1E293B;--muted:#F3F4F6;--err:#111827;--err-line:#1E293B;--err-bg:#F3F4F6}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--bg)}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+a{color:var(--accent)} h1{font-size:20px} h2{font-size:15px} h3{font-size:13px;margin:10px 0 6px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--card);border-bottom:2px solid var(--line2)}
+.brand{font-weight:700;font-size:15px}.brand small{font-weight:400;color:var(--sub)}
+.topbar .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--sub);font-size:12.5px}.topbar .spacer{flex:1}
+.layout{display:flex;min-height:calc(100vh - 50px)}
+.sidebar{flex:0 0 250px;background:var(--card);border-right:1px solid var(--line2);padding:10px 8px}
+.sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:10px 8px 4px}
+.sidebar ol{list-style:none}.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
+.sidebar a b{display:block;font-size:11px;color:var(--sub)}.sidebar a:hover{background:var(--muted)}
+.sidebar a[aria-current=page]{background:var(--accent);color:#fff}.sidebar a[aria-current=page] b{color:#D1D5DB}
+main{flex:1;min-width:0;padding:16px 20px 56px}
+.page-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--muted);color:var(--sub);font-size:12px;font-weight:600}
+tr.job{cursor:pointer}tr.job:hover td{background:var(--muted)}tr.job[aria-selected=true] td{background:#E5E7EB}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}.btn.danger{border:2px solid var(--err-line);color:var(--err);font-weight:700}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;font-weight:600;white-space:nowrap;background:#fff}
+.s-RUNNING{border-style:dashed;border-color:#111827}.s-SUCCEEDED{background:#111827;color:#fff;border-color:#111827}.s-SUCCEEDED_WITH_ISSUES{background:#4B5563;color:#fff;border-color:#4B5563}
+.s-FAILED,.s-INTERRUPTED{border:2px solid var(--err-line);color:var(--err);font-weight:700}.s-FAILED::before,.s-INTERRUPTED::before{content:"✘ "}.s-CANCELLED,.s-QUEUED{background:var(--muted)}
+.stale{border-style:dashed;border-color:#111827;background:var(--muted)}
+.fr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--sub);border:1px dashed var(--line2);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap;vertical-align:middle;font-weight:400}
+body.hide-fr .fr{display:none}
+.alert{border:1px solid var(--line2);border-left:4px solid var(--accent);background:var(--card);padding:10px 12px;border-radius:6px;margin-bottom:10px}
+.alert.error{border:2px solid var(--err-line);border-left:6px solid var(--err);background:var(--err-bg);color:var(--err)}.alert.error::before{content:"✘ LỖI · ";font-weight:700}
+.state-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px;border:1px dashed var(--line2);border-radius:6px;background:#fff;font-size:12px;color:var(--sub)}
+.state-bar button{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line2);border-radius:4px;background:#fff;cursor:pointer}
+.state-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-state]{display:none}[data-state].show{display:block}
+[data-panel]{display:none}[data-panel].show{display:block}
+details.docinfo{background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12.5px}details.docinfo summary{cursor:pointer;font-weight:600}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line2);margin-bottom:10px}
+.tabs button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:none;cursor:pointer}
+.tabs button[aria-selected=true]{border-color:var(--line2);background:#fff;font-weight:600;margin-bottom:-1px}
+.log{background:#111827;color:#E5E7EB;padding:10px;border-radius:6px;height:300px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:pre-wrap}
+.sse{font-size:12px;color:var(--sub);margin:6px 0}
+.skeleton{height:14px;border-radius:4px;margin:10px 0;background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}@keyframes sk{to{background-position:-200% 0}}
+.empty{border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--sub);background:#fff}
+.muted{color:var(--sub)}.hint{color:var(--sub);font-size:12px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,input,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#FAFAFA}textarea{width:100%;min-height:60px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible,summary:focus-visible,tr.job:focus{outline:2px solid var(--accent);outline-offset:1px}
+.invalid{border:2px solid var(--err-line)!important;background:var(--err-bg)!important}.field-err{display:none;color:var(--err);font-size:12px;font-weight:700;margin-top:4px}.field-err::before{content:"✘ "}.field-err.show{display:block}
+.ok{font-weight:700}.bad{font-weight:700;color:var(--err)}
+.modal-bg{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;background:rgba(17,24,39,.55);z-index:50;overflow:auto}
+.modal-bg.open{display:flex}.modal{background:#fff;border:2px solid var(--accent);border-radius:8px;max-width:720px;width:100%;padding:18px}
+.cmd{background:#111827;color:#F9FAFB;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-all}
+.toast{position:fixed;right:16px;bottom:16px;z-index:60;display:none;max-width:460px;padding:10px 14px;border-radius:6px;background:var(--accent);color:#fff}
+.card,details.docinfo{overflow-x:auto}
+@media (max-width:900px){.layout{flex-direction:column}.sidebar{flex:none;border-right:0;border-bottom:1px solid var(--line2)}.sidebar ol{display:flex;flex-wrap:wrap;gap:4px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">php-quickpatch console <small>v2.0.0 · Phase 1</small></div>
+  <div class="meta">
+    <span>Máy chủ: <b>web01.example.com</b> · Ubuntu 22.04 · serve <code>root@127.0.0.1:17321</code></span>
+    <span>Feed cập nhật: <b>2026-10-22 09:30 UTC</b> <span class="badge stale" title="Tuổi dữ liệu 12 giờ, quá TTL 6 giờ của SRC-008 (mức AGING, BR-FEED-005)">Dữ liệu cũ 12 giờ</span><span class="fr">FR-FEED-AGE-001</span></span>
+    <a href="jobs-log.html">Job: 1 đang chạy · 1 đang chờ</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="muted" style="font-size:12.5px">Phiên còn 28 phút</span>
+  <button class="btn sm" type="button" title="Console mặc định tiếng Việt, chuyển tiếng Anh (BR-CLI-006)">VI | EN</button>
+  <a class="btn sm" href="console-login.html#logged-out">Đăng xuất</a><span class="fr">FR-CON-AUTH-004</span>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Danh mục màn hình">
+  <h2>Phase 1 — console cục bộ</h2>
+  <ol>
+    <li><a href="console-login.html"><b>SCR-001</b>Đăng nhập token</a></li>
+    <li><a href="overview-dashboard.html"><b>SCR-002</b>Tổng quan</a></li>
+    <li><a href="runtime-assessment.html"><b>SCR-003</b>Đánh giá runtime &amp; so sánh phiên bản</a></li>
+    <li><a href="upgrade-plan-checklist.html"><b>SCR-004</b>Kế hoạch nâng cấp &amp; checklist</a></li>
+    <li><a href="dependency-findings.html"><b>SCR-005</b>Findings thư viện / dependency</a></li>
+    <li><a href="jobs-log.html" aria-current="page"><b>SCR-006</b>Jobs &amp; Log</a></li>
+    <li><a href="rollback-history.html"><b>SCR-007</b>Rollback &amp; lịch sử thay đổi</a></li>
+    <li><a href="feed-status.html"><b>SCR-008</b>Nguồn dữ liệu (feed status)</a></li>
+    <li><a href="sites-runtime-map.html"><b>SCR-009</b>Site &amp; ánh xạ runtime</a></li>
+    <li><a href="audit-reports.html"><b>SCR-010</b>Audit &amp; báo cáo</a></li>
+    <li><a href="dry-run-confirm-dialog.html"><b>SCR-011</b>Hộp thoại xem trước dry-run &amp; xác nhận</a></li>
+  </ol>
+  <h2>Phase 2 — chỉ đặc tả</h2>
+  <ol>
+    <li><a href="fleet-servers.html"><b>SCR-020</b>Phase 2 — Danh sách server</a></li>
+    <li><a href="fleet-dashboard.html"><b>SCR-021</b>Phase 2 — Dashboard tổng hợp nhiều server</a></li>
+    <li><a href="fleet-rollout.html"><b>SCR-022</b>Phase 2 — Đợt chạy từ xa &amp; phân phối snapshot</a></li>
+  </ol>
+</nav>
+<main id="main">
+  <details class="docinfo">
+    <summary>Thông tin tài liệu · DOC-WF-QP-SCR-006 · v1.0.1 · Lịch sử sửa đổi</summary>
+    <table>
+      <tr><th>Màn hình</th><td>SCR-006 Jobs &amp; Log — UC-JOB-001 (PER-01..04), UC-JOB-002 (PER-01, PER-02)</td></tr>
+      <tr><th>FR chính</th><td>FR-CON-JOB-001, FR-CON-JOB-002, FR-JOB-LOG-002, FR-UPG-HC-006. Liên quan: FR-JOB-RUN-001..004, FR-JOB-LOG-001, FR-JOB-LOG-003, FR-UPG-HC-004, FR-UPG-HC-005, FR-UPG-RBK-002</td></tr>
+      <tr><th>BR</th><td>BR-JOB-001..008, BR-CON-005, BR-HC-010, BR-HC-011, BR-SCN-010, BR-SEC-006</td></tr>
+      <tr><th>ERR mô phỏng</th><td>ERR-JOB-404-01, ERR-JOB-409-02, ERR-JOB-410-01, ERR-JOB-423-01, ERR-JOB-429-01, ERR-JOB-500-01, ERR-JOB-500-02, ERR-JOB-504-01, ERR-SCN-500-01, ERR-AUTH-401-02, ERR-CON-422-01</td></tr>
+      <tr><th>API</th><td><code>GET /api/v1/jobs</code>, <code>GET /api/v1/jobs/{job_id}</code>, <code>GET …/log</code>, <code>GET …/events</code> (SSE), <code>POST …/cancellations</code>, <code>GET /api/v1/switches/{run_id}</code></td></tr>
+      <tr><th>Dữ liệu mẫu</th><td>Dòng log theo định dạng v0.1 (tiếng Anh mặc định, BR-CLI-006: <code>[i]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[VULN]</code>). Tham số health check theo api-spec-jobs §5.4 (cửa sổ 600 s, 60 s/vòng, timeout 10 s). Lượt chuyển 2025-11 là lịch sử minh hoạ; mã job, PID, URL là minh hoạ.</td></tr>
+      <tr><th>Ghi chú</th><td>Huỷ job được miễn dry-run (BR-CON-005) nên nút Dry-run trong hộp thoại huỷ bị vô hiệu có chú thích. CSS/JS inline chỉ để wireframe tự chứa (BR-CON-007).</td></tr>
+      <tr><th>Tài liệu tham chiếu</th><td>functional-requirements.md §9, §10; business-rules.md (JOB); states.md §2, §4; api/api-spec-jobs.md §3–§5; environment-playbooks-healthcheck.md §6, §9.1</td></tr>
+    </table>
+    <h3>Lịch sử sửa đổi (Revision History)</h3>
+    <table><tr><th>Phiên bản</th><th>Ngày</th><th>Người thực hiện</th><th>Tóm tắt thay đổi</th></tr>
+      <tr><td>1.0.0</td><td>2026-10-22</td><td>BA Agent</td><td>Khởi tạo wireframe SCR-006: bảng job có lọc, log trực tiếp qua SSE, kết quả job, báo cáo health check, huỷ job theo vùng tới hạn</td></tr>
+      <tr><td>1.0.1</td><td>2026-10-22</td><td>BA Agent</td><td>Bỏ màu đỏ của trạng thái lỗi theo rule 13 §2 (bảng màu xám đơn sắc): --err #111827, --err-line #1E293B, --err-bg #F3F4F6; nhấn lỗi bằng viền đậm 2 px (viền trái 6 px cho alert) và nhãn chữ "✘ LỖI" / "✘" cho alert, badge FAILED/INTERRUPTED, trường không hợp lệ, nút huỷ</td></tr></table>
+  </details>
+
+  <div class="state-bar" role="group" aria-label="Mô phỏng trạng thái">
+    <strong>Mô phỏng:</strong>
+    <button type="button" data-set="data">Có dữ liệu</button>
+    <button type="button" data-set="hcrun">Job chuyển site đang HC_RUNNING</button>
+    <button type="button" data-set="empty">Chưa có job</button>
+    <button type="button" data-set="loading">Đang tải</button>
+    <button type="button" data-set="error">Lỗi</button>
+    <label><input type="checkbox" id="toggle-fr" checked> Hiện mã FR</label>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Jobs &amp; Log <span class="fr">FR-CON-JOB-001</span></h1>
+      <p class="hint">Tối đa 1 job write + 2 job read + 1 job data cùng RUNNING; hàng đợi ≤ 20 QUEUED, FIFO (BR-JOB-001). Khoá dùng chung với CLI qua <code>flock</code> (BR-JOB-002).</p>
+    </div>
+  </div>
+
+  <section data-state="hcrun">
+    <div class="alert" role="status"><b>Mô phỏng sau khi kế hoạch PLN-20261022-110351-4c7e được duyệt:</b> job <span class="mono">JOB-20261022-131458-a7f0</span> <code>migrate_switch</code> example.com → 8.5 đang ở <code>phase = HC_RUNNING</code>, vòng 4/10. Huỷ job lúc này sẽ dừng health check và rollback site với lý do <code>MANUAL</code> (BR-JOB-004).
+      <div class="row" style="margin-top:6px"><button class="btn sm danger" type="button" data-cancel="hc">Huỷ job (rollback site)</button><span class="fr">FR-CON-JOB-002</span></div></div>
+  </section>
+
+  <div data-state="data hcrun">
+    <section class="card" aria-labelledby="flt-h">
+      <h2 id="flt-h">Lọc</h2>
+      <form class="row" id="flt" novalidate>
+        <label class="hint">Trạng thái <select id="f-st"><option value="">Tất cả</option><option>QUEUED</option><option>RUNNING</option><option>SUCCEEDED</option><option>SUCCEEDED_WITH_ISSUES</option><option>FAILED</option><option>CANCELLED</option><option>INTERRUPTED</option></select></label>
+        <label class="hint">Loại <select id="f-kind"><option value="">Tất cả</option><option>read</option><option>write</option><option>data</option></select></label>
+        <label class="hint">Hành động <select id="f-act"><option value="">Tất cả</option><option>scan</option><option>assess</option><option>fix</option><option>plan_create</option><option>feeds_update</option><option>migrate_switch</option></select></label>
+        <label class="hint"><input type="checkbox" id="f-dry"> Chỉ dry-run</label>
+        <label class="hint">Từ <input type="date" id="f-from" value="2025-11-01"></label>
+        <label class="hint">Đến <input type="date" id="f-to" value="2026-10-22"></label>
+        <button class="btn sm" type="submit">Áp dụng</button>
+        <span class="field-err" id="e-date"></span>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="jobs-h">
+      <h2 id="jobs-h">Danh sách job <span class="muted" style="font-weight:400;font-size:12px">1–10 / 37 · sắp theo created_at giảm dần · chọn 1 dòng để xem chi tiết</span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Job</th><th>Hành động</th><th>Loại</th><th>Trạng thái</th><th>Phase</th><th>Tạo (UTC)</th><th>Thời lượng</th><th>Actor</th><th>Liên quan</th><th></th></tr></thead>
+        <tbody id="job-body"></tbody></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="det-h">
+      <h2 id="det-h">Chi tiết <span class="mono" id="d-id"></span> <span id="d-state"></span></h2>
+      <p class="hint" id="d-argv"></p>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="log" aria-selected="true">Log trực tiếp</button>
+        <button type="button" role="tab" data-tab="res" aria-selected="false">Kết quả (result.json)</button>
+        <button type="button" role="tab" data-tab="hc" aria-selected="false">Báo cáo health check</button>
+      </div>
+      <div data-panel="log" class="show">
+        <p class="sse" id="sse-line" aria-live="polite"></p>
+        <div class="log" id="log" role="log" aria-live="polite"></div>
+        <div class="alert error" id="log-gone" hidden role="alert"><b>ERR-JOB-410-01</b> — Log của job JOB-20251118-150510-4e7a đã bị xoá theo chính sách lưu giữ 30 ngày. <code>job.json</code>, <code>result.json</code> (job ghi giữ ≥ 365 ngày) và báo cáo health check trong <code>backups/20251118-150512/</code> vẫn còn (BR-JOB-006, BR-HC-011).</div>
+        <div class="row" style="margin-top:6px"><label class="hint"><input type="checkbox" id="autoscroll" checked> Tự cuộn</label><span class="hint">Dòng log hiển thị bằng textContent, đã che bí mật (BR-SEC-006, NFR-SEC-009). Log job ≤ 20 MiB, vượt → <code>truncated=true</code> (FR-JOB-LOG-001).</span><span class="fr">FR-JOB-LOG-002</span></div>
+      </div>
+      <div data-panel="res"><pre class="cmd" id="res"></pre></div>
+      <div data-panel="hc">
+        <div id="hc-na" class="hint">Không áp dụng: job không phải lượt chuyển site.</div>
+        <div id="hc-rep" hidden>
+          <p><b>Lượt 20251118-150512</b> · shop.example.com · 7.4 → 8.2 · kết luận <span class="badge s-FAILED">KHÔNG ĐẠT</span> · trạng thái lượt <code>ROLLED_BACK</code> · rollback_reason <code>HC-C7</code> <span class="fr">FR-UPG-HC-006</span></p>
+          <div class="alert error" role="alert" style="margin-top:6px"><b>ERR-SCN-500-01</b> — Site shop.example.com không đạt kiểm tra sau khi chuyển sang 8.2; đã hoàn tác về 7.4.</div>
+          <h3>Tham số (hc_mode = full)</h3>
+          <p class="hint">Cửa sổ 600 s · 10 vòng × 60 s · timeout 10 s/request · P95 ≤ min(max(1,5 × P95_b, P95_b + 100 ms), P95_b + 1.000 ms) · lệch kích thước 15–40 % thích nghi (BR-HC-007)</p>
+          <h3>Baseline trên PHP 7.4 (5 mẫu, BR-HC-004)</h3>
+          <table><thead><tr><th>URL</th><th>Mã</th><th>Kích thước</th><th>P95</th></tr></thead><tbody>
+            <tr><td class="mono">https://shop.example.com/</td><td>200</td><td>61.204 B</td><td>210 ms</td></tr><tr><td class="mono">https://shop.example.com/cart</td><td>200</td><td>18.932 B</td><td>240 ms</td></tr></tbody></table>
+          <h3>Vòng thăm dò (chỉ GET, chống cache — BR-HC-002, BR-HC-009)</h3>
+          <table><thead><tr><th>Vòng</th><th>Thời điểm</th><th>URL</th><th>Mã</th><th>Kích thước</th><th>ms</th><th>Đạt</th></tr></thead><tbody>
+            <tr><td>1</td><td>15:06:12</td><td class="mono">/</td><td>200</td><td>61.180 B</td><td>205</td><td class="ok">✔</td></tr><tr><td>1</td><td>15:06:12</td><td class="mono">/cart</td><td>200</td><td>18.940 B</td><td>236</td><td class="ok">✔</td></tr>
+            <tr><td>2</td><td>15:07:12</td><td class="mono">/</td><td>200</td><td>61.198 B</td><td>198</td><td class="ok">✔</td></tr><tr><td>2</td><td>15:07:12</td><td class="mono">/cart</td><td>500</td><td>1.204 B</td><td>95</td><td class="bad">✘ HC-C2</td></tr></tbody></table>
+          <h3>Vi phạm và quyết định (FR-UPG-HC-005)</h3>
+          <ul style="margin-left:18px"><li>HC-C7 — 1 dòng Fatal mới thuộc site: <code>PHP Fatal error:  Uncaught Error: Call to undefined function each() in /var/www/shop/lib/legacy/cart.php:88</code></li><li>HC-C2 — <code>/cart</code> trả 500 ở vòng 2</li><li>Tự rollback: phát hiện 15:07:12 → bắt đầu 15:07:14 (2 s ≤ 5 s) → hoàn tất 15:07:41 (29 s ≤ 60 s, NFR-ENV-03); vòng thăm dò sau rollback trên 7.4: <code>/</code> 200, <code>/cart</code> 200 = mã baseline</li><li>Các site còn lại của kế hoạch PLN-20251118-135502-71aa bị dừng (BR-UPG-003)</li></ul>
+          <p class="hint">Lưu ≤ 50 dòng log vi phạm và <code>hc.json</code> trong <code>backups/20251118-150512/</code> (BR-HC-011). <a href="rollback-history.html">Xem lượt ở SCR-007</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section data-state="empty"><div class="empty"><h2>Chưa có job nào</h2><p style="margin-top:8px">Job được tạo khi bấm Quét, Đánh giá, Vá, Sinh kế hoạch… ở các màn hình khác. <code>GET /api/v1/jobs</code> trả <code>items: []</code>.</p></div></section>
+  <section data-state="loading" aria-busy="true"><div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><p class="hint">Đang tải <code>GET /api/v1/jobs?page=1&amp;limit=20</code>…</p></div></section>
+  <section data-state="error">
+    <div class="alert error" role="alert"><b>ERR-JOB-404-01</b> — Không tìm thấy job JOB-20261022-090000-ffff. (SSE trả 404 → trình duyệt không tự nối lại; JS gọi <code>GET /api/v1/jobs/{job_id}</code> để hiện lý do.)</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-409-02</b> — Một lượt php-quickpatch khác (PID 48211) giữ khoá quá 30 phút; job JOB-20261022-121240-e0d9 chưa chạy → FAILED.</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-500-01</b> — Job JOB-20261021-201533-77e1 thất bại: ERR-ENV-424-01 (lệnh cài song song thất bại: gói php8.5-fpm không có trong kho).</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-500-02</b> — Job JOB-20261021-163002-1f2e bị gián đoạn; kiểm tra trạng thái trước khi chạy lại. Job ghi không bao giờ tự chạy lại (BR-JOB-005).</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-504-01</b> — Job JOB-20261020-081500-0d0d vượt thời gian 1.800 giây và đã bị dừng (scan, BR-JOB-008).</div>
+    <div class="alert error" role="alert"><b>ERR-JOB-429-01</b> — Hàng đợi đã đầy (20 job). Chờ job hiện tại hoàn thành.</div>
+    <div class="alert" role="status"><b>ERR-AUTH-401-02</b> — Luồng SSE nhận sự kiện <code>end</code> với <code>reason = session_expired</code> → chuyển về <a href="console-login.html#expired">SCR-001</a>.</div>
+  </section>
+</main>
+</div>
+
+<div class="modal-bg" id="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="c-title">
+  <div class="modal">
+    <div class="row"><h2 id="c-title">Huỷ job</h2><span class="fr">FR-CON-JOB-002</span><button class="btn sm" type="button" data-close style="margin-left:auto">Đóng</button></div>
+    <p id="c-effect" style="margin:8px 0"></p>
+    <h3>Yêu cầu sẽ gửi</h3>
+    <pre class="cmd" id="c-cmd"></pre>
+    <label for="c-reason" style="display:block;margin-top:8px">Lý do (tuỳ chọn, ≤ 500 ký tự, ghi audit)</label>
+    <textarea id="c-reason" maxlength="500"></textarea><div class="field-err" id="e-c"></div>
+    <div class="alert error" id="c-err" hidden role="alert" style="margin-top:8px"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" type="button" data-close>Không huỷ</button>
+      <button class="btn" type="button" disabled title="Huỷ job được miễn dry-run (BR-CON-005)">Dry-run</button>
+      <button class="btn primary" type="button" id="c-ok">Thực thi huỷ</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  // [job_id, action, kind, dry, state, phase, created, duration, actor, related, argv, detail]
+  var JOBS = [
+    ['JOB-20261022-121240-e0d9','fix','write',false,'QUEUED',null,'2026-10-22 12:12:40','—','console:root','confirm_dry_run JOB-20261022-121150-77b0','fix --json --only php','queued'],
+    ['JOB-20261022-121150-77b0','fix','read',true,'SUCCEEDED_WITH_ISSUES',null,'2026-10-22 12:11:50','9 s','console:root','dry-run hợp lệ tới 12:26:50','fix --json --only php --dry-run','dry'],
+    ['JOB-20261022-121005-c7e2','assess','read',false,'RUNNING',null,'2026-10-22 12:10:05','đang chạy','console:root','runtime php:3f9a0c1d2e4b','assess --runtime-id php:3f9a0c1d2e4b --candidates --json','run'],
+    ['JOB-20261022-110204-6f1b','plan_create','read',false,'SUCCEEDED_WITH_ISSUES',null,'2026-10-22 11:02:04','1 phút 48 s','console:root','PLN-20261022-110351-4c7e','plan create --runtime-id php:7c41d09e2a15 --target 8.5 --json','plan'],
+    ['JOB-20261022-103020-1b77','assess','read',false,'SUCCEEDED',null,'2026-10-22 10:30:20','21 s','console:root','runtime php:7c41d09e2a15','assess --runtime-id php:7c41d09e2a15 --candidates --json','assess'],
+    ['JOB-20261022-100448-0c21','scan','read',false,'SUCCEEDED_WITH_ISSUES',null,'2026-10-22 10:04:48','23 s','console:root','host','scan --json','scan'],
+    ['JOB-20261021-170455-8c3b','feeds_update','data',false,'CANCELLED',null,'2026-10-21 17:04:55','41 s','console:root','huỷ bởi console:root','feeds update --json','cancel'],
+    ['JOB-20261021-163002-1f2e','scan','read',false,'INTERRUPTED',null,'2026-10-21 16:30:02','—','console:root','ERR-JOB-500-02','scan --json','intr'],
+    ['JOB-20251118-150510-4e7a','migrate_switch','write',false,'SUCCEEDED_WITH_ISSUES',null,'2025-11-18 15:05:10','2 phút 31 s','console:root','shop.example.com · run 20251118-150512 · ROLLED_BACK','migrate switch shop.example.com --target 8.2 --plan PLN-20251118-135502-71aa --yes --json','sw-fail'],
+    ['JOB-20251118-142003-7b21','migrate_switch','write',false,'SUCCEEDED',null,'2025-11-18 14:20:03','11 phút 19 s','console:root','blog.example.com · run 20251118-142005 · PASSED','migrate switch blog.example.com --target 8.2 --plan PLN-20251118-135502-71aa --yes --json','sw-ok']
+  ];
+  var LOG = ['php-quickpatch 2.0.0 mode=assess log=/var/lib/php-quickpatch/php-quickpatch.log',
+    '  [i] bundle b-20261022T093000Z-3f2a9c1e (AGING, data age 12 h); catalog 2026.10.20-1',
+    '  [i] runtime php:3f9a0c1d2e4b /usr/bin/php8.2 8.2.34 (dpkg php8.2-cli 8.2.34-1+ubuntu22.04.1+deb.sury.org+1)',
+    '  [i] scenario SCN-PHP-010 (VERSION); lifecycle SECURITY_ONLY, EOL 2026-12-31 (70 days)',
+    '  [VULN] PHP 8.2.34: CVE-2026-109618, CVE-2026-109619 unpatched; minimum patched 8.2.35',
+    '  [i] candidates: 8.2.35 (SAME_BRANCH_LATEST), 8.3.36 (NEXT_SUPPORTED), 8.5.12 (RECOMMENDED, LATEST_STABLE)',
+    '  [i] install source check: apt-cache policy php8.3-fpm php8.5-fpm',
+    '  [i] risk: current R=60 HIGH; 8.2.35 R=40; 8.3.36 R=20; 8.5.12 R=0',
+    '  [OK] assessment written: jobs/JOB-20261022-121005-c7e2/result.json'];
+  var RES = {
+    dry: '{"schema": "qp.fix/1", "exit_code": 1, "dry_run": true,\n "result": {"preview": {"changes": [{"type": "package", "action": "upgrade", "target": "php8.2-fpm", "from": "8.2.34-1+ubuntu22.04.1+deb.sury.org+1", "to": "8.2.35-1+ubuntu22.04.1+deb.sury.org+1", "verified": true}, "…"],\n   "affected": [{"kind": "runtime", "id": "php:3f9a0c1d2e4b"}, {"kind": "site", "id": "blog.example.com"}],\n   "disruption": {"expected_s": 5, "scope": "runtime"}, "reversibility": {"level": "partial"}},\n  "fingerprint": {"bundle_id": "b-20261022T093000Z-3f2a9c1e", "scan_fingerprint": "5d0c9a…", "catalog_version": "2026.10.20-1"}},\n "issues": [{"severity": "critical", "message": "PHP 7.4.33 (/usr/bin/php7.4): end-of-life, interim mitigation in place"}], "errors": []}',
+    sw: '{"schema": "qp.migrate/1", "exit_code": 1,\n "result": {"switch": {"run_id": "20251118-150512", "site_id": "shop.example.com", "status": "ROLLED_BACK", "from_branch": "7.4", "to_branch": "8.2", "rollback_reason": "HC-C7"},\n  "hc": {"verdict": "FAIL", "mode": "full", "window_s": 600, "rounds_done": 2, "violations": [{"criterion": "HC-C7"}, {"criterion": "HC-C2", "url": "https://shop.example.com/cart"}], "report_ref": "backups/20251118-150512/hc.json"}},\n "errors": [{"code": "ERR-SCN-500-01"}]}'
+  };
+  var sel = 'JOB-20261022-121005-c7e2', sseTimer = null;
+  function $(id) { return document.getElementById(id); }
+  function el(t, x, c) { var e = document.createElement(t); if (x !== undefined) { e.textContent = x; } if (c) { e.className = c; } return e; }
+  function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 4200); }
+  function renderTable() {
+    var f = {st: $('f-st').value, kind: $('f-kind').value, act: $('f-act').value, dry: $('f-dry').checked, from: $('f-from').value, to: $('f-to').value};
+    var body = $('job-body'); body.textContent = '';
+    JOBS.forEach(function (j) {
+      var day = j[6].slice(0, 10);
+      if ((f.st && j[4] !== f.st) || (f.kind && j[2] !== f.kind) || (f.act && j[1] !== f.act) || (f.dry && !j[3]) || (f.from && day < f.from) || (f.to && day > f.to)) { return; }
+      var tr = el('tr', undefined, 'job'); tr.tabIndex = 0; tr.setAttribute('aria-selected', String(j[0] === sel));
+      tr.appendChild(el('td', j[0], 'mono')); tr.appendChild(el('td', j[1] + (j[3] ? ' (dry-run)' : ''))); tr.appendChild(el('td', j[2]));
+      var ts = el('td'); ts.appendChild(el('span', j[4], 'badge s-' + j[4])); tr.appendChild(ts);
+      tr.appendChild(el('td', j[5] || '—')); tr.appendChild(el('td', j[6])); tr.appendChild(el('td', j[7])); tr.appendChild(el('td', j[8])); tr.appendChild(el('td', j[9]));
+      var ta = el('td');
+      if (j[4] === 'QUEUED' || j[4] === 'RUNNING') { var b = el('button', 'Huỷ', 'btn sm danger'); b.type = 'button'; b.addEventListener('click', function (e) { e.stopPropagation(); openCancel(j[4] === 'QUEUED' ? 'queued' : 'read', j[0]); }); ta.appendChild(b); }
+      tr.appendChild(ta);
+      tr.addEventListener('click', function () { select(j[0]); });
+      tr.addEventListener('keydown', function (e) { if (e.key === 'Enter') { select(j[0]); } });
+      body.appendChild(tr);
+    });
+  }
+  function select(id) {
+    sel = id; renderTable(); clearInterval(sseTimer);
+    var j = JOBS.filter(function (x) { return x[0] === id; })[0];
+    $('d-id').textContent = j[0]; var s = $('d-state'); s.textContent = ''; s.appendChild(el('span', j[4], 'badge s-' + j[4]));
+    $('d-argv').textContent = 'argv (đã che): php-quickpatch.sh ' + j[10];
+    var log = $('log'); log.textContent = ''; $('log-gone').hidden = true; log.hidden = false;
+    $('hc-na').hidden = j[11].indexOf('sw') === 0; $('hc-rep').hidden = j[11] !== 'sw-fail';
+    if (j[11] === 'sw-ok') { $('hc-na').hidden = false; $('hc-na').textContent = 'Lượt 20251118-142005 blog.example.com 7.4 → 8.2: ĐẠT 10/10 vòng, 10/10 tiêu chí; P95 trang chủ 182 ms (baseline 176 ms). Báo cáo đầy đủ từ GET /api/v1/switches/20251118-142005.'; }
+    else { $('hc-na').textContent = 'Không áp dụng: job không phải lượt chuyển site.'; }
+    $('res').textContent = j[11] === 'dry' ? RES.dry : (j[11] === 'sw-fail' ? RES.sw : (j[4] === 'RUNNING' || j[4] === 'QUEUED' ? 'null — job chưa kết thúc' : '{"schema": "qp.' + j[1].replace('_create', '').replace('feeds_update', 'feeds.update') + '/1", "exit_code": ' + (j[4] === 'SUCCEEDED' ? 0 : 1) + ', "…": "envelope --json đầy đủ (api-spec-cli-json.md)"}'));
+    if (j[11] === 'sw-fail' || j[11] === 'sw-ok') { log.hidden = true; $('log-gone').hidden = false; $('sse-line').textContent = 'GET …/events → 410 ERR-JOB-410-01; trình duyệt không nối lại.'; return; }
+    if (j[11] === 'run') { stream(); return; }
+    if (j[11] === 'queued') { $('sse-line').textContent = 'SSE mở · event status {"state":"QUEUED"} · chờ khoá STATE_DIR/.lock do CLI ngoài console giữ (PID 48211), thử lại mỗi 5 s tối đa 30 phút (FR-JOB-RUN-002).'; return; }
+    $('sse-line').textContent = 'Job đã kết thúc: đọc log qua GET /api/v1/jobs/' + j[0] + '/log?offset=0 (eof = true).';
+    log.textContent = j[11] === 'intr' ? 'php-quickpatch 2.0.0 mode=scan …\n  [i] scanning PHP runtimes\n(log dừng: tiến trình mất khi console khởi động lại lúc 16:31:40 — job INTERRUPTED, ERR-JOB-500-02)' : 'php-quickpatch 2.0.0 mode=' + j[1] + ' log=/var/lib/php-quickpatch/php-quickpatch.log\n  [i] …\n  [OK] done';
+  }
+  function stream() {
+    var i = 0, log = $('log'), off = 0;
+    $('sse-line').textContent = 'SSE GET /api/v1/jobs/JOB-20261022-121005-c7e2/events · retry: 2000 · event status {"state":"RUNNING"}';
+    sseTimer = setInterval(function () {
+      if (i < LOG.length) { log.textContent += LOG[i] + '\n'; off += LOG[i].length + 1; i += 1;
+        $('sse-line').textContent = 'SSE: event log id=' + off + ' (byte offset, Last-Event-ID khi nối lại) · heartbeat 15 s · độ trễ ≤ 2 s (NFR-PERF-003)';
+        if ($('autoscroll').checked) { log.scrollTop = log.scrollHeight; } }
+      else { clearInterval(sseTimer); $('sse-line').textContent = 'SSE: event end {"state":"SUCCEEDED_WITH_ISSUES","exit_code":1} → EventSource.close()';
+        JOBS[2][4] = 'SUCCEEDED_WITH_ISSUES'; JOBS[2][7] = '12 s'; JOBS[2][11] = 'assess'; renderTable(); var s = $('d-state'); s.textContent = ''; s.appendChild(el('span', 'SUCCEEDED_WITH_ISSUES', 'badge s-SUCCEEDED_WITH_ISSUES')); }
+    }, 1200);
+  }
+  document.querySelectorAll('[data-tab]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+      document.querySelectorAll('[data-panel]').forEach(function (p) { p.classList.toggle('show', p.getAttribute('data-panel') === b.getAttribute('data-tab')); });
+    });
+  });
+  $('flt').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = $('f-from').value, t = $('f-to').value, msg = '';
+    if (f && t && f > t) { msg = 'ERR-CON-422-01 — "Từ" phải ≤ "Đến".'; }
+    else if (f && t && (new Date(t) - new Date(f)) / 86400000 > 366) { msg = 'ERR-CON-422-01 — Khoảng thời gian tối đa 366 ngày.'; }
+    $('e-date').textContent = msg; $('e-date').classList.toggle('show', !!msg); $('f-from').classList.toggle('invalid', !!msg);
+    if (!msg) { renderTable(); }
+  });
+  var C = null;
+  function openCancel(kind, id) {
+    var cfg = {
+      queued: ['Job ' + id + ' đang QUEUED → chuyển CANCELLED ngay (HTTP 200, effect CANCELLED). Chưa có thay đổi nào.', 'CANCELLED'],
+      read: ['Job ' + id + ' (đọc) đang RUNNING → gửi SIGTERM tới nhóm tiến trình, SIGKILL sau 10 s (HTTP 202, effect SIGTERM_SENT).', 'SIGTERM_SENT'],
+      hc: ['Job JOB-20261022-131458-a7f0 (migrate_switch, phase HC_RUNNING) → dừng health check và rollback example.com về PHP 7.4 theo R1–R7, rollback_reason = MANUAL (HTTP 202, effect HC_ROLLBACK_STARTED). Đây là thay đổi hệ thống: graceful reload nginx, rollback ≤ 60 s P95 (NFR-ENV-02).', 'HC_ROLLBACK_STARTED'],
+      crit: ['Job ghi đang ở phase CHANGING (vùng tới hạn).', '']
+    }[kind];
+    C = {kind: kind, id: kind === 'hc' ? 'JOB-20261022-131458-a7f0' : id, effect: cfg[1]};
+    $('c-effect').textContent = cfg[0]; $('c-cmd').textContent = 'POST /api/v1/jobs/' + C.id + '/cancellations\n{"reason": "<0–500 ký tự>"}'; $('c-reason').value = ''; $('c-err').hidden = true;
+    $('cancel-modal').classList.add('open'); $('c-ok').focus();
+  }
+  $('c-ok').addEventListener('click', function () {
+    if (C.kind === 'crit') { var e = $('c-err'); e.hidden = false; e.textContent = 'ERR-JOB-423-01 — Job đang áp dụng thay đổi (CHANGING); không thể huỷ lúc này.'; return; }
+    $('cancel-modal').classList.remove('open'); toast('Huỷ ' + C.id + ': effect ' + C.effect + '. Ghi audit (BR-AUD-001).');
+  });
+  document.querySelectorAll('[data-cancel]').forEach(function (b) { b.addEventListener('click', function () { openCancel(b.getAttribute('data-cancel')); }); });
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { $('cancel-modal').classList.remove('open'); }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { $('cancel-modal').classList.remove('open'); } });
+  function setState(s) {
+    document.querySelectorAll('[data-state]').forEach(function (x) { x.classList.toggle('show', x.getAttribute('data-state').split(' ').indexOf(s) >= 0); });
+    document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === s)); });
+  }
+  document.querySelectorAll('.state-bar [data-set]').forEach(function (b) { b.addEventListener('click', function () { setState(b.getAttribute('data-set')); }); });
+  $('toggle-fr').addEventListener('change', function (e) { document.body.classList.toggle('hide-fr', !e.target.checked); });
+  // Nút mô phỏng huỷ bị từ chối
+  var simBtn = el('button', 'Mô phỏng huỷ trong vùng tới hạn (ERR-JOB-423-01)', 'btn sm'); simBtn.type = 'button';
+  simBtn.addEventListener('click', function () { openCancel('crit', 'JOB-20261022-131458-a7f0'); });
+  document.querySelector('#jobs-h').appendChild(simBtn);
+  setState('data'); select(sel);
+})();
+</script>
+</body>
+</html>
