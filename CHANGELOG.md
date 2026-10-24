@@ -1,5 +1,54 @@
 # Changelog
 
+## 2.0.0-alpha.2 — 2026-10-24 (Phase 1, milestone M2)
+
+Development build of v2 (not a release).
+
+### Added
+- Online data layer `qp-feeds.py` (Python 3.6+, standard library only):
+  collectors for SRC-001..016 (endoflife.date, php.net releases/ChangeLog/
+  NEWS/eol.php, NVD 2.0 with paging and incremental `lastMod` windows,
+  CVE.org, CISA KEV, OSV, GitHub advisories, nodejs.org index/schedule,
+  Node.js Security WG, WordPress.org, optional Wordfence key), HTTPS only,
+  TLS >= 1.2, retries 3x, `Retry-After`, rate limits, conditional GET,
+  time budget, fallback chain with `data_origin` (FR-FEED-*).
+- Normalized bundle `STATE_DIR/feeds/bundles/<bundle_id>/` (9 TSV files +
+  `sources.tsv`, `feeds.db`, `manifest.json`, `SHA256SUMS`); `current` and
+  `previous` symlinks switched with one `rename(2)`; readers hold a shared
+  lock so a bundle in use is never removed (BR-FEED-051).
+- Merge rules, `min_patched` per branch, temporary advisories for security
+  releases without CVE details, distro backport chain (OSV distro, Ubuntu/
+  Red Hat trackers, local changelog), risk score R 0-100 computed in integer
+  tenths in both Bash and Python (BR-FEED-020..031, 040..044).
+- Commands `feeds update|status|verify|export|import|schedule` (aliases
+  `sync`, `snapshot export|import`), each with `--json` (`qp.feeds.<sub>/1`).
+  `import` and `schedule install|remove` are write commands: `--yes` or a
+  TTY, `--dry-run`, audit records.
+- Packaged snapshot support: `share/php-quickpatch/feeds-snapshot.tar.gz`
+  pinned by `QP_SNAPSHOT_SHA256` is installed by Bash on first use, without
+  Python (FR-FEED-SNAP-001). The snapshot itself ships with the release (M7).
+- `scan --json`: `data` (bundle id, freshness, data age, stale sources),
+  per-runtime `lifecycle_status`, `priority`, `eol_date`, `days_to_eol`,
+  `min_patched`, `latest_patch`, `driver_ids`, `backport`, `risk`;
+  `ranking[]`; dependency findings with severity, KEV flag and fixed
+  versions; WordPress findings with advisories and risk.
+
+### Changed (compared with 2.0.0-alpha.1)
+- The hard-coded `PHP_FIXED`, `PHP_CVES`, `NODE_FIXED`, `WP_FIXED` are gone:
+  patched versions, CVE lists and EOL come from the bundle
+  (FR-CLI-COMP-002). Text lines that named the 2026-10 data ("PHP2Shell",
+  "wp2shell", "October 2026 security release") now name the CVEs, and issue
+  severities follow the risk level (e.g. PHP 8.2.34 is HIGH, R=60).
+- WordPress: 7.0.2 is no longer reported patched (CVE-2026-87902, in KEV);
+  the patched versions are 6.9.10, 7.0.7 and 7.1.3 (BR-FEED-025).
+- `scan`/`fix` refresh the data first (at most 120 s) when a source is older
+  than its TTL, unless `--offline` (BR-FEED-001). With no bundle, no
+  snapshot and no network, runtimes are `unknown` and the exit code is 2
+  (ERR-FEED-503-01).
+- With Python available, Composer/npm lookups go through `qp-feeds.py`
+  (cache per lockfile SHA-256, stale cache up to 7 days when OSV fails);
+  without Python the v0.1 `curl` lookup is kept.
+
 ## 2.0.0-alpha.1 — 2026-10-24 (Phase 1, milestone M1)
 
 Development build of v2 (not a release). Base: 0.1.1.

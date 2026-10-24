@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:php-quickpatch:schema:qp.feeds:1",
   "title": "qp.feeds/1",
-  "description": "Output of other `feeds` subcommands (update, verify, export, import, schedule)",
+  "description": "Error envelope of `feeds` with an unknown subcommand",
   "$defs": {
     "envelope": {
       "type": "object",

@@ -8,6 +8,10 @@ QP_TEST_USER=${QP_TEST_USER:-nobody}   # unprivileged user that runs the tool
 QP_OTHER_UID=${QP_OTHER_UID:-4242}     # "another local user" (numeric, need not exist)
 T_PASS=0
 T_FAIL=0
+# Safety net: nothing in a test may reach the real data sources. The fake
+# source server (tests/fakesrv.py) listens on 127.0.0.1, which bypasses this.
+export HTTPS_PROXY=http://127.0.0.1:9 https_proxy=http://127.0.0.1:9 HTTP_PROXY=http://127.0.0.1:9 http_proxy=http://127.0.0.1:9
+export NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost
 
 pass() { T_PASS=$((T_PASS + 1)); printf 'ok   - %s\n' "$*"; }
 fail() { T_FAIL=$((T_FAIL + 1)); printf 'FAIL - %s\n' "$*"; }
@@ -82,3 +86,20 @@ for e in errs[:10]: print(e)
 sys.exit(1 if errs else 0)
 PY
 }
+
+# feeds_fixture: start the fake source server and build the fixture bundle
+# into /var/lib/php-quickpatch (private mount namespace). feeds_restore puts
+# that bundle back after a test removed the state dir.
+feeds_fixture() {
+  # shellcheck source=tests/bash/feeds.sh
+  . "$QP_ROOT/tests/bash/feeds.sh"
+  feeds_server_start || exit 1
+  FIXTURE_BUNDLE=$(fixture_bundle)
+  [ -n "$FIXTURE_BUNDLE" ] || { echo "# fixture bundle failed:"; cat "$FEEDS_SRV/fixture-update.err"; exit 1; }
+  FEEDS_PRISTINE=$(mktemp -d); cp -a /var/lib/php-quickpatch/feeds "$FEEDS_PRISTINE/"
+}
+feeds_restore() {
+  mkdir -p /var/lib/php-quickpatch; chmod 0750 /var/lib/php-quickpatch; rm -rf /var/lib/php-quickpatch/feeds
+  cp -a "$FEEDS_PRISTINE/feeds" /var/lib/php-quickpatch/
+}
+feeds_cleanup() { [ -n "${FEEDS_PID:-}" ] && feeds_server_stop; rm -rf "${FEEDS_PRISTINE:-/nonexistent}"; }

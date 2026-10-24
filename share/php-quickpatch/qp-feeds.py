@@ -22,6 +22,7 @@ class Args(object):
     """Tiny option parser that reports ERR-CLI-400-01 like the Bash CLI."""
 
     def __init__(self, argv, flags=(), options=(), multi=()):
+        self.raw = list(argv)
         self.flags = set()
         self.opts = {}
         self.multi = {m: [] for m in multi}
@@ -88,7 +89,7 @@ def cmd_audit(env, argv, warn):
     return 2, res
 
 
-NOT_YET = {'feeds': 'M2', 'assess': 'M3', 'plan': 'M3', 'report': 'M7'}
+NOT_YET = {'assess': 'M3', 'plan': 'M3', 'report': 'M7'}
 SCHEMAS = {'audit': 'qp.audit/1', 'assess': 'qp.assess/1', 'plan': 'qp.plan/1', 'report': 'qp.report/1',
            'feeds': 'qp.feeds/1'}
 
@@ -112,6 +113,12 @@ def main(argv):
     try:
         if command == 'audit':
             code, result = cmd_audit(env, rest, warnings)
+        elif command == 'feeds':
+            from qplib.feeds import cli as feeds_cli
+            code, result = feeds_cli.run(env, rest, warnings, Args)
+        elif command in ('osv-check', 'backport', 'risk', 'build-snapshot'):
+            from qplib.feeds import tools
+            code, result = tools.COMMANDS[command](env, rest, Args, warnings)
         elif command in NOT_YET:
             raise errors.error('ERR-CLI-400-01', '{arg} is not available in this build yet (milestone %s).' % NOT_YET[command],
                                arg=command)
@@ -120,10 +127,18 @@ def main(argv):
     except QPError as e:
         env.error(e.code, e.message, 'host')
         detail = ' '.join('%s=%s' % kv for kv in sorted(e.details.items()))
-        sys.stderr.write('%s%s\n' % (e.message, (' [%s] %s' % (e.code, detail)) if detail else ''))
+        sys.stderr.write('%s [%s]%s\n' % (e.message, e.code, (' ' + detail) if detail else ''))
         code, result = e.exit_code, None
+    except Exception as e:  # noqa: BLE001 - keep the --json contract on a bug
+        import traceback
+        traceback.print_exc()
+        warnings.append((None, 'internal error: %s: %s' % (type(e).__name__, e)))
+        code, result = 2, None
     for w in warnings:
-        env.warning(None, w)
+        code_w, msg = w if isinstance(w, tuple) else (None, w)
+        env.warning(code_w, msg)
+        if not json_mode and command != 'feeds':
+            sys.stderr.write('WARN: %s\n' % msg)
     if json_mode:
         env.emit(code, result)
     return code

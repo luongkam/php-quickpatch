@@ -13,18 +13,15 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH
   exit 2
 fi
 
-QP_VERSION="2.0.0-alpha.1"
+QP_VERSION="2.0.0-alpha.2"
 
-# --- Advisory data: bump these when a new security release ships ----------
-# Lowest patched release per PHP branch (PHP2Shell, 2026-10-21).
-PHP_FIXED=(8.2.35 8.3.36 8.4.27 8.5.12)
-PHP_CVES=(CVE-2026-109618 CVE-2026-109619)
-# Lowest patched release per Node.js line (security release 2026-10-21).
-NODE_FIXED=(22.23.4 24.22.1 26.12.1)
-# WordPress core "wp2shell" (CVE-2026-63030, CVE-2026-60137).
-WP_FIXED=(6.9.5 7.0.2)
+# --- Advisory data ----------------------------------------------------------
+# Patched versions, CVEs and lifecycle come from the normalized feeds bundle
+# (STATE_DIR/feeds/current, FR-CLI-COMP-002). SHA-256 pin of the packaged
+# snapshot share/php-quickpatch/feeds-snapshot.tar.gz (FR-FEED-SNAP-001);
+# set by the release pipeline (FR-FEED-SNAP-004). Empty: no packaged snapshot.
+QP_SNAPSHOT_SHA256=""
 
-PHP_RELEASES_URL="https://www.php.net/releases/index.php?json&version="
 NODE_BASE_URL="https://nodejs.org/dist"
 OSV_BATCH_URL="https://api.osv.dev/v1/querybatch"
 COMPOSER_PHAR_URL="https://getcomposer.org/download/latest-stable/composer.phar"
@@ -235,7 +232,7 @@ emit_envelope() {
   host_json; local host=$REPLY
   jas ${argv[@]+"${argv[@]}"}; local jargv=$REPLY
   jo name=s:"$name" subcommand=j:"$sub" argv=j:"$jargv" job_id=S:"${QP_JOB_ID:-}" actor=S:"${QP_ACTOR:-}"; local cmd=$REPLY
-  jo bundle_id=j:null freshness=j:null data_age_h=j:null stale_sources=j:"[]"; local data=$REPLY
+  jo bundle_id=S:"$DATA_BUNDLE_ID" freshness=S:"$DATA_FRESHNESS" data_age_h=n:"$DATA_AGE_H" stale_sources=j:"$DATA_STALE"; local data=$REPLY
   jarr J_ISSUES; local issues=$REPLY; jarr J_ERRORS; local errors=$REPLY; jarr J_WARNINGS; local warnings=$REPLY
   local now; now=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
   jo schema=s:"$schema" schema_version=s:"1.0.0" tool=j:'{"name":"php-quickpatch","version":"'"$QP_VERSION"'"}' \
@@ -284,13 +281,6 @@ has() { command -v "$1" >/dev/null 2>&1; }
 # ver_lt A B: true when version A sorts before version B.
 ver_lt() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; }
 
-# fixed_for PREFIX LIST...: print the entry of LIST that starts with "PREFIX."
-fixed_for() {
-  local prefix=$1 f; shift
-  for f in "$@"; do [[ $f == "$prefix".* ]] && { echo "$f"; return 0; }; done
-  return 1
-}
-
 sha1_12() { printf '%s' "$1" | sha1sum | cut -c1-12; }
 runtime_id() { REPLY="$1:$(sha1_12 "$2")"; }   # runtime_id php|node PATH
 
@@ -302,7 +292,7 @@ probe() { local t=$1; shift; if has timeout; then timeout "$t" "$@"; else "$@"; 
 run() {
   if (( DRY_RUN )); then say "    [dry-run] $*"; return 0; fi
   log "+ $*"
-  "$@" >>"$LOG" 2>&1 9>&- 3>&-
+  "$@" >>"$LOG" 2>&1 9>&- 3>&- 7<&-
 }
 
 # run_in_dir_as_owner DIR CMD...: run CMD in DIR as the owner of DIR so
@@ -414,6 +404,401 @@ pkg_has_cves() { # pkg_has_cves MANAGER PACKAGE CVE...
   for cve in "$@"; do grep -q "$cve" <<<"$text" || return 1; done
 }
 
+# --- Feeds bundle (FR-CLI-COMP-002, DOC-SRS-QP-FEED-003 §2.5, §3.4) ------
+# scan/fix read the normalized bundle feeds/current/*.tsv with awk, so they
+# work without Python (C-01). The bundle path is resolved once per run and a
+# shared flock on its .lock is held on fd 7 until exit (BR-FEED-051).
+FEEDS_DIR=""; QP_FEEDS_BUNDLE=""; TODAY=""; TODAY_DAY=0
+DATA_BUNDLE_ID=""; DATA_FRESHNESS=""; DATA_AGE_H=""; DATA_STALE="[]"; DATA_LINE=""
+BUNDLE_ERR=""
+# Scheduled sources whose age counts for data_age_h (SRC-013 is optional).
+COUNTED_SOURCES=" SRC-001 SRC-002 SRC-003 SRC-004 SRC-006 SRC-008 SRC-009 SRC-010 SRC-011 SRC-012 "
+
+# iso_epoch YYYY-MM-DD[THH:MM:SS[Z]]: REPLY = seconds since 1970 (UTC), pure Bash.
+iso_epoch() {
+  [[ $1 =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})(T([0-9]{2}):([0-9]{2}):([0-9]{2}))? ]] || return 1
+  local y=$((10#${BASH_REMATCH[1]})) m=$((10#${BASH_REMATCH[2]})) d=$((10#${BASH_REMATCH[3]}))
+  local H=$((10#${BASH_REMATCH[5]:-0})) M=$((10#${BASH_REMATCH[6]:-0})) S=$((10#${BASH_REMATCH[7]:-0}))
+  local era yoe doy doe
+  (( m <= 2 )) && y=$((y - 1))
+  era=$(( (y >= 0 ? y : y - 399) / 400 )); yoe=$(( y - era * 400 ))
+  doy=$(( (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1 )); doe=$(( yoe * 365 + yoe / 4 - yoe / 100 + doy ))
+  REPLY=$(( (era * 146097 + doe - 719468) * 86400 + H * 3600 + M * 60 + S ))
+}
+
+# feeds_dir_ready: STATE_DIR/feeds (0755 root, 0700 otherwise) and its subdirs.
+feeds_dir_ready() {
+  local r mode=0700; (( IS_ROOT )) && mode=0755
+  FEEDS_DIR="$STATE_DIR/feeds"
+  if [ ! -e "$FEEDS_DIR" ] && [ ! -L "$FEEDS_DIR" ]; then mkdir -m "$mode" -- "$FEEDS_DIR" 2>/dev/null || return 1; fi
+  r=$(unsafe_reason "$FEEDS_DIR" dir) && { [ "$r" = mode ] && (( IS_ROOT )) || { BUNDLE_ERR="feeds dir $FEEDS_DIR is unsafe ($r)"; FEEDS_DIR=""; return 1; }; }
+  mkdir -p -- "$FEEDS_DIR"/{raw,parts,cache,bundles,state,snapshots} 2>/dev/null
+  return 0
+}
+
+# manifest_field FILE KEY: top-level "key": "value" of a bundle manifest (indent 1).
+manifest_field() { sed -n "s/^ \"$2\": \"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -n1; }
+
+# bundle_swap DIR ID: W2-W5 of BR-FEED-051 for a checked bundle directory.
+bundle_swap() {
+  local dir=$1 id=$2 old b keep1 keep2
+  [ -e "$FEEDS_DIR/bundles/$id" ] && return 1
+  : >"$dir/.lock"
+  mv -- "$dir" "$FEEDS_DIR/bundles/$id" || return 1
+  old=$(readlink "$FEEDS_DIR/current" 2>/dev/null)
+  rm -f "$FEEDS_DIR/.current.new"; ln -s "bundles/$id" "$FEEDS_DIR/.current.new" && mv -T "$FEEDS_DIR/.current.new" "$FEEDS_DIR/current" || return 1
+  if [ -n "$old" ] && [ "$old" != "bundles/$id" ]; then
+    rm -f "$FEEDS_DIR/.previous.new"; ln -s "$old" "$FEEDS_DIR/.previous.new" && mv -T "$FEEDS_DIR/.previous.new" "$FEEDS_DIR/previous"
+  fi
+  keep1=$(basename "$(readlink "$FEEDS_DIR/current")"); keep2=$(basename "$(readlink "$FEEDS_DIR/previous" 2>/dev/null)")
+  for b in "$FEEDS_DIR"/bundles/*; do
+    [ -d "$b" ] || continue
+    case ${b##*/} in "$keep1"|"$keep2") continue ;; esac
+    if [ -f "$b/.lock" ]; then flock -n -x "$b/.lock" rm -rf -- "$b" 2>/dev/null; else rm -rf -- "$b"; fi
+  done
+  return 0
+}
+
+# bundle_install_packaged: BR-FEED-053/054 without Python. The packaged
+# snapshot is used when there is no current bundle or it is newer; it must
+# match QP_SNAPSHOT_SHA256, be a safe tar and match every SHA256SUMS line
+# (BR-FEED-010), otherwise ERR-FEED-422-02 and it is not used.
+bundle_install_packaged() {
+  local snap="$SHARE_DIR/feeds-snapshot.tar.gz" gen cur_gen sum work id total
+  [ -n "$SHARE_DIR" ] && [ -f "$snap" ] || return 0
+  gen=$(tar -xzOf "$snap" manifest.json 2>/dev/null | sed -n 's/^ "generated_at": "\([^"]*\)".*/\1/p' | head -n1)
+  [ -n "$gen" ] || return 0
+  if [ -L "$FEEDS_DIR/current" ]; then
+    cur_gen=$(manifest_field "$FEEDS_DIR/current/manifest.json" generated_at)
+    [ -n "$cur_gen" ] && [[ ! $gen > $cur_gen ]] && return 0
+  fi
+  sum=$(sha256sum "$snap" | awk '{print $1}')
+  if [ -z "$QP_SNAPSHOT_SHA256" ] || [ "$sum" != "$QP_SNAPSHOT_SHA256" ]; then
+    msg ERR-FEED-422-02 "The data snapshot does not match its SHA-256; it was rejected."
+    warn "$REPLY ($snap)"; add_warning ERR-FEED-422-02 "$REPLY (expected=${QP_SNAPSHOT_SHA256:-unset} actual=$sum)" host
+    return 0
+  fi
+  # Refuse links, devices, absolute paths, '..' and more than 50 MB unpacked (§4.3).
+  if tar -tvzf "$snap" 2>/dev/null | awk '{ if (substr($1,1,1) != "-" && substr($1,1,1) != "d") bad=1; t += $3 } END { exit (bad || t > 52428800) }' &&
+     ! tar -tzf "$snap" 2>/dev/null | grep -qE '(^/|(^|/)\.\.(/|$))'; then :; else
+    msg ERR-FEED-422-02 "The data snapshot does not match its SHA-256; it was rejected."
+    warn "$REPLY (unsafe archive $snap)"; add_warning ERR-FEED-422-02 "$REPLY (unsafe archive)" host; return 0
+  fi
+  exec 6>>"$FEEDS_DIR/.lock"
+  flock -w 10 6 || { exec 6>&-; return 0; }
+  work=$(mktemp -d "$FEEDS_DIR/staging-snapshot.XXXXXX") || { exec 6>&-; return 0; }
+  if tar -xzf "$snap" -C "$work" --no-same-owner 2>/dev/null &&
+     (cd "$work" && sha256sum -c --quiet --strict SHA256SUMS >/dev/null 2>&1) &&
+     (cd "$work/bundle" && sha256sum -c --quiet --strict SHA256SUMS >/dev/null 2>&1) &&
+     id=$(manifest_field "$work/bundle/manifest.json" bundle_id) && [[ $id =~ ^b-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$ ]] &&
+     total=$(awk '{print $2}' "$work/SHA256SUMS" | sed 's#^bundle/##' | sort | tr '\n' ' ') &&
+     [ "$total" = "$(cd "$work/bundle" && for n in * .[!.]*; do [ -e "$n" ] && echo "$n"; done | sort | tr '\n' ' ')" ] &&
+     bundle_swap "$work/bundle" "$id"; then
+    rm -f "$FEEDS_DIR"/parts/* "$FEEDS_DIR"/state/{nvd-cursor,counts,sync-status}.json
+    printf '{"generated_at": "%s", "sha256": "%s", "type": "snapshot"}\n' "$gen" "$sum" >"$FEEDS_DIR/state/base.json"
+    log "packaged snapshot $gen installed as bundle $id"
+  else
+    msg ERR-FEED-422-02 "The data snapshot does not match its SHA-256; it was rejected."
+    warn "$REPLY ($snap: SHA256SUMS)"; add_warning ERR-FEED-422-02 "$REPLY (SHA256SUMS)" host
+  fi
+  rm -rf -- "$work"
+  exec 6>&-
+}
+
+# python_ok: Python 3.6+ and qp-feeds.py are available (BR-FEED-012).
+python_ok() {
+  [ -n "$SHARE_DIR" ] && [ -f "$SHARE_DIR/qp-feeds.py" ] && has python3 || return 1
+  local v; v=$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null) || return 1
+  ! ver_lt "$v" 3.6
+}
+
+# qp_py ARGS...: run an internal qp-feeds.py command (stdout = its output).
+qp_py() { python3 -I "$SHARE_DIR/qp-feeds.py" --script "$SCRIPT_PATH" "$@" 9>&- 3>&-; }
+
+# sources_due: true when an enabled source is older than its TTL (BR-FEED-001 (a)).
+sources_due() {
+  local cur="$FEEDS_DIR/current/sources.tsv" now
+  [ -f "$cur" ] || return 0
+  now=$(date -u +%s)
+  local src st ok ttl
+  while IFS=$'\t' read -r src _ _ st ok ttl _; do
+    [[ $src == SRC-* ]] || continue
+    [[ $COUNTED_SOURCES == *" $src "* ]] && [ "$st" != DISABLED ] || continue
+    iso_epoch "$ok" || continue          # never fetched: nothing to refresh from age
+    (( now - REPLY > ${ttl:-6} * 3600 )) && return 0
+  done < <(awk -F'\t' -v OFS='\t' 'NR > 1 { for (i = 1; i <= NF; i++) if ($i == "") $i = "-"; print }' "$cur")
+  return 1
+}
+
+# bundle_open: packaged snapshot, refresh when stale (<= 120 s), resolve and lock.
+bundle_open() {
+  TODAY=$(date -u +%F); iso_epoch "$TODAY"; TODAY_DAY=$((REPLY / 86400))
+  feeds_dir_ready || return 0
+  bundle_install_packaged
+  if (( ! OFFLINE )) && python_ok && sources_due; then
+    note "refreshing CVE/lifecycle data (feeds update, at most 120 s)..."
+    if has timeout; then timeout 130 python3 -I "$SHARE_DIR/qp-feeds.py" --script "$SCRIPT_PATH" feeds update --quiet --budget 110 >>"$LOG" 2>&1 9>&- 3>&-
+    else python3 -I "$SHARE_DIR/qp-feeds.py" --script "$SCRIPT_PATH" feeds update --quiet --budget 110 >>"$LOG" 2>&1 9>&- 3>&-; fi
+  fi
+  local i real root
+  root=$(readlink -f "$FEEDS_DIR/bundles")
+  for i in 1 2 3; do
+    [ -L "$FEEDS_DIR/current" ] || break
+    real=$(readlink -f "$FEEDS_DIR/current") || break
+    [ "${real%/*}" = "$root" ] || break
+    if { exec 7<"$real/.lock"; } 2>/dev/null; then
+      flock -s 7; QP_FEEDS_BUNDLE=$real; export QP_FEEDS_BUNDLE; break
+    fi
+  done
+  [ -n "$QP_FEEDS_BUNDLE" ] && bundle_freshness
+}
+
+# bundle_freshness: data_age_h, freshness and stale sources (BR-FEED-005, FR-FEED-AGE-001).
+bundle_freshness() {
+  local now src name st ok ttl err age lvl worst=0 oldest=-1 oldest_src="" oldest_name="" oldest_err=""
+  local -a stale=()
+  now=$(date -u +%s)
+  DATA_BUNDLE_ID=$(manifest_field "$QP_FEEDS_BUNDLE/manifest.json" bundle_id)
+  while IFS=$'\t' read -r src name _ st ok ttl err _; do
+    [[ $src == SRC-* ]] || continue
+    [[ $COUNTED_SOURCES == *" $src "* ]] && [ "$st" != DISABLED ] && [ "$ok" != - ] || continue
+    iso_epoch "$ok" || continue
+    age=$(( (now - REPLY) / 3600 )); (( age < 0 )) && age=0
+    if (( age <= ttl )); then lvl=0; elif (( age <= 168 )); then lvl=1; elif (( age <= 2160 )); then lvl=2; else lvl=3; fi
+    (( lvl > worst )) && worst=$lvl
+    if (( age > oldest )); then oldest=$age; oldest_src=$src; oldest_name=$name; oldest_err=${err#-}; fi
+    if (( age > ttl )); then jo src_id=s:"$src" age_h=n:$age last_error=S:"${err#-}"; stale+=("$age"$'\t'"$REPLY"); fi
+  done < <(awk -F'\t' -v OFS='\t' 'NR > 1 { for (i = 1; i <= NF; i++) if ($i == "") $i = "-"; print }' "$QP_FEEDS_BUNDLE/sources.tsv")
+  local levels=(FRESH AGING STALE EXPIRED) s out=""
+  if (( oldest < 0 )); then DATA_FRESHNESS=""; DATA_AGE_H=""; else DATA_FRESHNESS=${levels[$worst]}; DATA_AGE_H=$oldest; fi
+  while IFS=$'\t' read -r _ s; do [ -n "$s" ] && out+="${out:+,}$s"; done < <(printf '%s\n' ${stale[@]+"${stale[@]}"} | sort -t$'\t' -k1,1nr)
+  DATA_STALE="[$out]"
+  DATA_LINE="CVE/lifecycle data: bundle $DATA_BUNDLE_ID"
+  [ -n "$DATA_AGE_H" ] && DATA_LINE+=" - data $DATA_AGE_H h old (oldest source: $oldest_src $oldest_name${oldest_err:+, error $oldest_err})"
+}
+
+# bundle_report: the data line under Environment (§3.5) and STALE/EXPIRED warnings.
+bundle_report() {
+  if [ -z "$QP_FEEDS_BUNDLE" ]; then
+    msg ERR-FEED-503-01 "Could not get data from {source}; using {origin} ({age_h} h old)." source="feeds (no bundle, no snapshot)" origin="nothing" age_h="-"
+    warn "$REPLY Runtimes are reported as unknown."; add_error ERR-FEED-503-01 "$REPLY" host
+    [ -n "$BUNDLE_ERR" ] && warn "$BUNDLE_ERR"
+    return 0
+  fi
+  case $DATA_FRESHNESS in
+    STALE)
+      local since; since=$(date -u -d "@$(( $(date -u +%s) - DATA_AGE_H * 3600 ))" +%F 2>/dev/null)
+      warn "$DATA_LINE. Results may miss CVEs published after ${since:-the data date}."
+      msg ERR-FEED-412-01 "Data used for this assessment is {age_d} days old (sources: {sources})." age_d=$((DATA_AGE_H / 24)) sources="$(sed -n 's/.*"src_id":"\(SRC-[0-9]*\)".*/\1/p' <<<"${DATA_STALE//\},/$'}\n'}" | paste -sd, -)"
+      add_warning ERR-FEED-412-01 "$REPLY" host ;;
+    EXPIRED)
+      warn "$DATA_LINE."
+      msg ERR-SCN-503-01 "Lifecycle data is {days} days old; branch upgrade proposals are paused." days=$((DATA_AGE_H / 24))
+      warn "$REPLY"; add_warning ERR-SCN-503-01 "$REPLY" host ;;
+    *) note "$DATA_LINE" ;;
+  esac
+}
+
+# tsv_row FILE K1 K2: first row whose columns 1 and 2 are K1 K2 (REPLY, tab-separated).
+tsv_row() { REPLY=$(awk -F'\t' -v a="$2" -v b="$3" '$1 == a && $2 == b { print; exit }' "$QP_FEEDS_BUNDLE/$1" 2>/dev/null); [ -n "$REPLY" ]; }
+
+# branch_of PRODUCT VERSION -> REPLY
+branch_of() { if [ "$1" = node ]; then REPLY=${2%%.*}; [ "$REPLY" = 0 ] && REPLY=0.$(cut -d. -f2 <<<"$2"); else REPLY=$(cut -d. -f1-2 <<<"$2"); fi; }
+
+# bundle_exposure PRODUCT VERSION [EXCLUDE_CSV]: unpatched advisories of one
+# version (exposure.tsv, else matched on affected.tsv), summarized like
+# normalize.summarize. REPLY = "n_c n_h n_m n_l cvss10 n_kev ids sec_ids found"
+bundle_exposure() {
+  local p=$1 v=$2 ex=${3:-}
+  REPLY=$(awk -F'\t' -v p="$p" -v v="$v" -v ex=",$ex," '
+    function vcmp(a, b,   x, y, n, m, i, k, xa, yb) {
+      n = split(a, x, /[^0-9]+/); m = split(b, y, /[^0-9]+/); k = (n > m ? n : m)
+      for (i = 1; i <= k; i++) { xa = (i <= n && x[i] != "" ? x[i] + 0 : 0); yb = (i <= m && y[i] != "" ? y[i] + 0 : 0)
+        if (xa < yb) return -1; if (xa > yb) return 1 }
+      return 0 }
+    function hit(  c) {
+      if ($12 != "1" || $9 != "any" || $10 == "1" || $2 != p) return 0
+      if ($3 == "NODE_WG") { semver = 1; return 0 }
+      if ($16 != "" && index(v, $16) != 1) return 0
+      if ($8 != "") return vcmp(v, $8) == 0
+      if ($4 != "") { c = vcmp(v, $4); if (c < 0 || (c == 0 && $5 == "0")) return 0 }
+      if ($6 != "") { c = vcmp(v, $6); if (c > 0 || (c == 0 && $7 == "0")) return 0 }
+      return 1 }
+    FILENAME ~ /advisories.tsv$/ { if ($4 == p) { st[$1] = $3; kind[$1] = $2; rep[$1] = $5; kev[$1] = $7 } ; next }
+    FILENAME ~ /exposure.tsv$/ { if ($1 == p && $2 == v) { found = 1; n = split($9, a, ","); for (i = 1; i <= n; i++) if (a[i] != "") ids[a[i]] = 1 } ; next }
+    !found && FNR > 1 && hit() { ids[$1] = 1 }
+    END {
+      for (id in ids) {
+        if (index(ex, "," id ",")) continue
+        if (st[id] == "REJECTED" || st[id] == "WITHDRAWN" || kind[id] == "MALWARE") continue
+        s = rep[id]; if (s == "") s = "7.5"
+        split(s, q, "."); c10 = q[1] * 10 + q[2]
+        if (c10 >= 90) nc++; else if (c10 >= 70) nh++; else if (c10 >= 40) nm++; else if (c10 >= 1) nl++
+        if (c10 > max) max = c10
+        if (kev[id] == "1") nk++
+        all = all (all == "" ? "" : ",") id
+        if (c10 >= 70 || kev[id] == "1") sec = sec (sec == "" ? "" : ",") id
+      }
+      printf "%d %d %d %d %d %d %s %s %d\n", nc, nh, nm, nl, max, nk, (all == "" ? "-" : all), (sec == "" ? "-" : sec), (found || !semver) ? 1 : 0
+    }' "$QP_FEEDS_BUNDLE/advisories.tsv" "$QP_FEEDS_BUNDLE/exposure.tsv" "$QP_FEEDS_BUNDLE/affected.tsv" 2>/dev/null)
+  [ -n "$REPLY" ] || REPLY="0 0 0 0 0 0 - - 0"
+}
+
+# lifecycle_status PRODUCT VERSION: DOC-SRS-QP-SCN-000 §2.1 (same rules as risk.py). REPLY.
+lifecycle_status() {
+  local p=$1 v=$2 b ga lts sup eol pre phpnet
+  if [[ $v =~ (alpha|beta|RC|rc|-dev|-pre|nightly) ]]; then REPLY=PRE_RELEASE; return; fi
+  branch_of "$p" "$v"; b=$REPLY
+  tsv_row lifecycle.tsv "$p" "$b" || { REPLY=UNKNOWN; return; }
+  ga=$(cut -f3 <<<"$REPLY"); lts=$(cut -f4 <<<"$REPLY"); sup=$(cut -f5 <<<"$REPLY")
+  eol=$(cut -f6 <<<"$REPLY"); pre=$(cut -f7 <<<"$REPLY"); phpnet=$(cut -f8 <<<"$REPLY")
+  if [ "$p" = wordpress ]; then
+    local newest mp
+    newest=$(awk -F'\t' '$1 == "wordpress" { print $3 }' "$QP_FEEDS_BUNDLE/releases.tsv" | sort -V | tail -n1 | cut -d. -f1-2)
+    tsv_row min_patched.tsv wordpress "$b" && mp=$(cut -f3 <<<"$REPLY")
+    if [ "${mp:-}" = NONE ]; then REPLY=EOL
+    elif [ "$newest" = "$b" ]; then REPLY=ACTIVE
+    elif awk -F'\t' -v b="$b" '$1 == "wordpress" && $2 == b && ($6 == "latest" || $6 == "outdated") { f = 1 } END { exit !f }' "$QP_FEEDS_BUNDLE/releases.tsv"; then REPLY=SECURITY_ONLY
+    elif [ -n "$eol" ] && [[ $eol < $TODAY ]]; then REPLY=EOL
+    else REPLY=UNKNOWN; fi
+    return
+  fi
+  if [ -n "$eol" ] && [[ $TODAY > $eol ]] && ! { [ "$p" = php ] && [ "$phpnet" = 1 ]; }; then REPLY=EOL; return; fi
+  if [ -n "$ga" ] && [[ $TODAY < $ga ]]; then REPLY=PRE_RELEASE; return; fi
+  if [ -z "$ga" ] && [ -n "$pre" ]; then REPLY=PRE_RELEASE; return; fi
+  [ -n "$ga" ] || { REPLY=UNKNOWN; return; }
+  if [ "$p" = node ]; then
+    if [ -z "$lts" ] || [[ $TODAY < $lts ]]; then REPLY=CURRENT
+    elif [ -z "$sup" ] || [[ ! $TODAY > $sup ]]; then REPLY=ACTIVE_LTS
+    else REPLY=MAINTENANCE_LTS; fi
+    return
+  fi
+  if [ -n "$sup" ] && [[ $TODAY > $sup ]]; then REPLY=SECURITY_ONLY; else REPLY=ACTIVE; fi
+}
+
+t10() { REPLY="$(( $1 / 10 )).$(( $1 % 10 ))"; }   # 392 -> 39.2
+
+# risk_score STATUS DAYS(or -) NC NH NM NL NKEV CVSS10: BR-FEED-040/041 in
+# integer tenths, same arithmetic as risk.py. Sets RISK_R RISK_LEVEL RISK_PRIO RISK_JSON.
+risk_score() {
+  local st=$1 d=$2 nc=$3 nh=$4 nm=$5 nl=$6 nk=$7 c10=$8 s_cvss s_cnt s_kev s_life s_eol r10 floor
+  s_cvss=$((4 * c10)); s_cnt=$((40 * nc + 20 * nh + 5 * nm + nl)); (( s_cnt > 200 )) && s_cnt=200
+  s_kev=0; (( nk >= 1 )) && s_kev=200
+  case $st in ACTIVE|ACTIVE_LTS|CURRENT) s_life=0 ;; SECURITY_ONLY|MAINTENANCE_LTS) s_life=50 ;; PRE_RELEASE) s_life=80 ;; *) s_life=100 ;; esac
+  if [ "$d" = - ] || (( d > 365 )); then s_eol=0; elif (( d < 0 )); then s_eol=100; elif (( d <= 90 )); then s_eol=80
+  elif (( d <= 180 )); then s_eol=50; else s_eol=20; fi
+  r10=$((s_cvss + s_cnt + s_kev + s_life + s_eol))
+  if [ "$st" = UNKNOWN ] || { [ "$d" != - ] && (( d < -365 )); } || (( nk > 0 )); then RISK_PRIO=CRITICAL
+  elif { [ "$d" != - ] && (( d >= -365 && d <= 90 )); } || (( c10 >= 70 )); then RISK_PRIO=HIGH
+  elif [[ $st == SECURITY_ONLY || $st == MAINTENANCE_LTS ]] && { [ "$d" = - ] || (( d > 90 )); }; then RISK_PRIO=MEDIUM
+  elif [[ $st == ACTIVE || $st == ACTIVE_LTS || $st == CURRENT ]] && [ "$d" != - ] && (( d <= 365 )); then RISK_PRIO=MEDIUM
+  else RISK_PRIO=LOW; fi
+  case $RISK_PRIO in CRITICAL) floor=70 ;; HIGH) floor=40 ;; MEDIUM) floor=20 ;; *) floor=0 ;; esac
+  RISK_R=$(( (r10 + 5) / 10 )); (( RISK_R < floor )) && RISK_R=$floor
+  if (( RISK_R >= 70 )); then RISK_LEVEL=CRITICAL; elif (( RISK_R >= 40 )); then RISK_LEVEL=HIGH
+  elif (( RISK_R >= 20 )); then RISK_LEVEL=MEDIUM; else RISK_LEVEL=LOW; fi
+  local c k l e f; t10 $s_cvss; c=$REPLY; t10 $s_cnt; k=$REPLY; t10 $s_kev; l=$REPLY; t10 $s_life; e=$REPLY; t10 $s_eol; f=$REPLY
+  t10 $r10
+  RISK_JSON="{\"R\":$RISK_R,\"level\":\"$RISK_LEVEL\",\"components\":{\"cvss\":\"$c\",\"count\":\"$k\",\"kev\":\"$l\",\"life\":\"$e\",\"eol\":\"$f\",\"floor\":$floor,\"R_raw\":\"$REPLY\"}}"
+}
+
+# assess PRODUCT VERSION [MANAGER PACKAGE]: lookups of one runtime version.
+# Sets A_STATE (ok|ok-backport|vulnerable|eol|unknown), A_LC, A_EOL, A_DAYS,
+# A_MIN, A_LATEST, A_DRIVERS (space list), A_SEC, A_RISK, A_PRIO, A_BACKPORT, ...
+assess() {
+  local p=$1 v=$2 mgr=${3:-} pkg=${4:-} b nc nh nm nl c10 nk ids sec excl="" offline=()
+  A_STATE=unknown; A_LC=UNKNOWN; A_EOL=""; A_DAYS=""; A_MIN=""; A_LATEST=""; A_DRIVERS=""; A_SEC=""; A_IDS=""
+  A_RISK=null; A_PRIO=""; A_BACKPORT=null; A_LTS=""; A_CODENAME=""
+  (( OFFLINE )) && offline=(--offline)
+  [ -n "$QP_FEEDS_BUNDLE" ] && [ -n "$v" ] || return 0
+  branch_of "$p" "$v"; b=$REPLY
+  lifecycle_status "$p" "$v"; A_LC=$REPLY
+  if tsv_row lifecycle.tsv "$p" "$b"; then
+    A_EOL=$(cut -f6 <<<"$REPLY"); A_LTS=$(cut -f4 <<<"$REPLY"); A_CODENAME=$(cut -f11 <<<"$REPLY")
+    if [ -n "$A_EOL" ] && iso_epoch "$A_EOL"; then A_DAYS=$(( REPLY / 86400 - TODAY_DAY )); fi
+  fi
+  if tsv_row min_patched.tsv "$p" "$b"; then
+    A_MIN=$(cut -f3 <<<"$REPLY"); A_LATEST=$(cut -f5 <<<"$REPLY"); A_DRIVERS=$(cut -f6 <<<"$REPLY"); A_DRIVERS=${A_DRIVERS//,/ }
+  fi
+  [ "$A_LC" = UNKNOWN ] && return 0
+  bundle_exposure "$p" "$v"; read -r nc nh nm nl c10 nk ids sec _ <<<"$REPLY"
+  A_IDS=${ids#-}; A_SEC=${sec#-}
+  if [ "$A_LC" = EOL ]; then A_STATE=eol
+  elif [ -z "$A_MIN" ] || { [[ $A_MIN != NONE && $A_MIN != PENDING_RELEASE ]] && ! ver_lt "$v" "$A_MIN"; }; then A_STATE=ok
+  else A_STATE=vulnerable; fi
+  [ -z "$A_SEC" ] && [ "$A_STATE" = vulnerable ] && A_SEC=${A_DRIVERS// /,}
+  # Backport of a distro package (BR-FEED-026, §7): Python chain, else the local changelog (SRC-016).
+  if [ -n "$mgr" ] && [[ $A_STATE == vulnerable || $A_STATE == eol ]] && [ -n "$A_SEC" ]; then
+    local out line cve st origin fx pver bp_cves=() fixed_ids=() state=""
+    pver=$(pkg_version "$mgr" "$pkg")
+    if python_ok && out=$(qp_py backport --manager "$mgr" --package "$pkg" --version "${pver:-$v}" --cves "$A_SEC" ${offline[@]+"${offline[@]}"} 2>>"$LOG"); then
+      state=$(head -n1 <<<"$out" | cut -f1)
+      while IFS=$'\t' read -r cve st origin fx; do
+        [[ $cve == CVE-* ]] || continue
+        jo adv_id=s:"$cve" state=s:"$st" origin=S:"$origin" fixed_version=S:"$fx"; bp_cves+=("$REPLY")
+        [[ $st == FIXED || $st == NOT_AFFECTED ]] && fixed_ids+=("$cve")
+      done < <(tail -n +2 <<<"$out")
+    else
+      local sec_list=(); IFS=, read -r -a sec_list <<<"$A_SEC"
+      if pkg_has_cves "$mgr" "$pkg" "${sec_list[@]}"; then state="ok-backport"; fixed_ids=("${sec_list[@]}"); else state=vulnerable; fi
+      local c; for c in ${A_SEC//,/ }; do
+        if [[ " ${fixed_ids[*]-} " == *" $c "* ]]; then st=FIXED; else st=UNKNOWN; fi
+        jo adv_id=s:"$c" state=s:"$st" origin=s:LOCAL_CHANGELOG fixed_version=j:null; bp_cves+=("$REPLY")
+      done
+    fi
+    jarr bp_cves; jo state=s:"${state:-vulnerable}" manager=s:"$mgr" package=s:"$pkg" version=S:"$pver" cves=j:"$REPLY"; A_BACKPORT=$REPLY
+    if [ "$state" = "ok-backport" ]; then A_STATE="ok-backport"; fi
+    if (( ${#fixed_ids[@]} )); then
+      excl=$(IFS=,; echo "${fixed_ids[*]}")
+      bundle_exposure "$p" "$v" "$excl"; read -r nc nh nm nl c10 nk ids sec _ <<<"$REPLY"
+    fi
+  fi
+  risk_score "$A_LC" "${A_DAYS:--}" "$nc" "$nh" "$nm" "$nl" "$nk" "$c10"
+  A_RISK=$RISK_JSON; A_PRIO=$RISK_PRIO; A_NKEV=$nk; A_C10=$c10
+}
+
+# rank_add OBJECT_REF: one ranking[] entry from the last assess (FEAT-033 order).
+RANKING=(); EOL_90=0; KEV_FINDINGS=0
+rank_add() {
+  [ "$A_RISK" != null ] || return 0
+  local reasons=() k=5
+  (( A_NKEV > 0 )) && { reasons+=(KEV); KEV_FINDINGS=$((KEV_FINDINGS + 1)); }
+  (( A_C10 >= 90 )) && reasons+=(CVSS_CRITICAL)
+  [ "$A_LC" = EOL ] && reasons+=(EOL)
+  (( A_C10 >= 70 && A_C10 < 90 )) && reasons+=(CVSS_HIGH)
+  if [ -n "$A_DAYS" ] && (( A_DAYS >= 0 && A_DAYS <= 90 )); then reasons+=(EOL_SOON); EOL_90=$((EOL_90 + 1)); fi
+  case ${reasons[0]:-} in KEV) k=0 ;; CVSS_CRITICAL) k=1 ;; EOL) k=2 ;; CVSS_HIGH) k=3 ;; EOL_SOON) k=4 ;; esac
+  jas ${reasons[@]+"${reasons[@]}"}
+  jo object_ref=s:"$1" R=n:"$RISK_R" level=s:"$RISK_LEVEL" reason_codes=j:"$REPLY"
+  RANKING+=("$(printf '%03d\t%d\t%s' "$((100 - RISK_R))" "$k" "$REPLY")")
+}
+A_NKEV=0; A_C10=0
+
+# assess_json: the bundle fields of a runtime object (FR-ASMT-RISK-001).
+assess_json() {
+  local drivers=() d; for d in $A_DRIVERS; do drivers+=("$d"); done
+  jas ${drivers[@]+"${drivers[@]}"}; local jd=$REPLY
+  local lts=false; [ -n "$A_LTS" ] && lts=true
+  local lc=null prio=null; [ -n "$QP_FEEDS_BUNDLE" ] && [ -n "$A_LC" ] && { _js "$A_LC"; lc=$REPLY; }; [ -n "$A_PRIO" ] && { _js "$A_PRIO"; prio=$REPLY; }
+  jo lifecycle_status=j:"$lc" priority=j:"$prio" eol_date=S:"$A_EOL" days_to_eol=n:"$A_DAYS" is_lts=b:"$lts" \
+     lts_codename=S:"$A_CODENAME" latest_patch=S:"$A_LATEST" min_patched=S:"$A_MIN" driver_ids=j:"$jd" \
+     backport=j:"$A_BACKPORT" risk=j:"$A_RISK"
+}
+
+# supported_branches PRODUCT: branches not EOL today, oldest first (REPLY, space list).
+supported_branches() {
+  REPLY=$(awk -F'\t' -v p="$1" -v t="$TODAY" '$1 == p && ($6 == "" || $6 >= t || ($8 == "1" && p == "php")) && $3 != "" && $3 <= t { print $2 }' \
+            "$QP_FEEDS_BUNDLE/lifecycle.tsv" 2>/dev/null | sort -V | tr '\n' ' ')
+  REPLY=${REPLY% }
+}
+
+# lts_branches: Node.js branches in ACTIVE_LTS or MAINTENANCE_LTS, newest last.
+lts_branches() {
+  REPLY=$(awk -F'\t' -v t="$TODAY" '$1 == "node" && $4 != "" && $4 <= t && ($6 == "" || $6 >= t) { print $2 }' \
+            "$QP_FEEDS_BUNDLE/lifecycle.tsv" 2>/dev/null | sort -n | tr '\n' ' ')
+  REPLY=${REPLY% }
+}
+
 # --- JSON helpers (php, node or jq, whichever exists) ---------------------
 json_tool() {
   if has php; then echo php; elif has node; then echo node; elif has jq; then echo jq; else return 1; fi
@@ -516,22 +901,29 @@ discover_php_bins() {
 
 php_version() { local v; v=$(probe 10 "$1" -n -r 'echo PHP_VERSION;' 2>/dev/null) || return 1; v=${v%%[^0-9.]*}; [ -n "$v" ] || return 1; echo "$v"; }
 
-# php_state BIN -> prints one of: ok | ok-backport | vulnerable | eol | unknown
-php_state() {
-  local bin=$1 v branch fix owner newest
-  v=$(php_version "$bin") || { echo unknown; return; }
-  branch=${v%.*}
-  newest=${PHP_FIXED[-1]%.*}
-  if fix=$(fixed_for "$branch" "${PHP_FIXED[@]}"); then
-    ver_lt "$v" "$fix" || { echo ok; return; }
-  elif ver_lt "$newest" "$branch"; then
-    echo unknown; return
-  fi
-  owner=$(pkg_owner "$bin")
-  # shellcheck disable=SC2086  # "MANAGER PACKAGE" splits on purpose
-  if [ -n "$owner" ] && pkg_has_cves $owner "${PHP_CVES[@]}"; then echo ok-backport; return; fi
-  if fixed_for "$branch" "${PHP_FIXED[@]}" >/dev/null; then echo vulnerable; else echo eol; fi
+# php_assess BIN: A_STATE = ok | ok-backport | vulnerable | eol | unknown and
+# the other A_* fields from the bundle (min_patched, backport, risk).
+php_assess() {
+  local v mgr="" pkg=""
+  if ! v=$(php_version "$1"); then assess php ""; return; fi
+  read -r mgr pkg <<<"$(pkg_owner "$1")"
+  assess php "$v" "$mgr" "$pkg"
 }
+
+# cve_list: the CVEs behind the current verdict, space separated (for messages).
+cve_list() {
+  local l=${A_SEC//,/ }; [ -n "$l" ] || l=$A_DRIVERS
+  REPLY=${l:-known CVEs}
+}
+
+# risk_sev [DEFAULT]: issue severity from the risk level (FR-CLI-COMP-002, BR-FEED-042).
+risk_sev() {
+  case $A_RISK in *'"level":"CRITICAL"'*) REPLY=critical ;; *'"level":"HIGH"'*) REPLY=high ;;
+    *'"level":"MEDIUM"'*) REPLY=medium ;; *'"level":"LOW"'*) REPLY=low ;; *) REPLY=${1:-high} ;; esac
+}
+
+# json_merge OBJ1 OBJ2: REPLY = OBJ1 with the members of OBJ2 appended.
+json_merge() { if [ "$2" = "{}" ]; then REPLY=$1; else REPLY="${1%\}},${2#\{}"; fi; }
 
 php_sapis_note() {
   local s=""
@@ -596,8 +988,9 @@ php_scan_dirs() {
 PHP_MITIGATION_FILE=zz-php-quickpatch-mitigation.ini
 
 php_mitigation_ini() { # php_mitigation_ini VERSION
-  echo "; Added by php-quickpatch $(date +%F): interim PHP2Shell mitigation"
-  echo "; (${PHP_CVES[*]}). It only reduces exposure. Upgrade PHP, then delete this file."
+  cve_list
+  echo "; Added by php-quickpatch $(date +%F): interim mitigation"
+  echo "; ($REPLY). It only reduces exposure. Upgrade PHP, then delete this file."
   echo "session.upload_progress.enabled = 0"
   (( NO_MEMLIMIT )) || echo "memory_limit = -1"
   [[ $1 == 8.5.* ]] && echo "fatal_error_backtraces = 0"
@@ -621,7 +1014,8 @@ php_mitigate() {
     if (( DRY_RUN )); then say "    [dry-run] write $f"; act mitigation_add planned "$f"; continue; fi
     record created "$f" && php_mitigation_ini "$v" >"$f" && note "wrote $f"
     act mitigation_add "done" "$f"
-    jas "${PHP_CVES[@]}"; jo runtime_id=s:"${CUR_REF#runtime:}" file=s:"$f" action=s:added driver_ids=j:"$REPLY"; J_MITIG+=("$REPLY")
+    # shellcheck disable=SC2086
+    jas $A_DRIVERS; jo runtime_id=s:"${CUR_REF#runtime:}" file=s:"$f" action=s:added driver_ids=j:"$REPLY"; J_MITIG+=("$REPLY")
   done <<<"$dirs"
   (( NO_MEMLIMIT )) || note "memory_limit=-1 removes PHP's memory cap; apps calling ini_set('memory_limit') can still override it."
   RESTART_PHP=1
@@ -674,7 +1068,8 @@ php_runtime_json() {
      sapis=j:"$js_sapis" ini_scan_dirs=j:"$js_dirs" extensions=j:"$js_exts" owner_pkg=j:"$jpkg" \
      install_source=s:"$src" scenario_ids=j:"[]" state=s:"$st" locked=b:0 lock_reason=j:null \
      abi=j:null npm_version=j:null apps=j:"[]" site_ids=j:"[]"
-  J_RUNTIMES+=("$REPLY")
+  local rt=$REPLY; assess_json; json_merge "$rt" "$REPLY"
+  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"
   count_state "$st"
 }
 
@@ -697,22 +1092,23 @@ check_php() {
     if ! v=$(php_version "$bin"); then
       msg ERR-SCN-422-01 "Unrecognized {runtime} version '{raw}'. Automation for this runtime is locked." runtime="PHP ($bin)" raw=""
       warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"
-      php_runtime_json "$bin" "" unknown; CUR_REF=""; continue
+      assess php ""; php_runtime_json "$bin" "" unknown; CUR_REF=""; continue
     fi
-    st=$(php_state "$bin"); label="PHP $v ($bin)"; before=$v
+    php_assess "$bin"; st=$A_STATE; label="PHP $v ($bin)"; before=$v
     php_runtime_json "$bin" "$v" "$st"
     affected runtime "$rid" "PHP $v $bin"
     case $st in
       ok)          ok "$label is patched."; [ "$MODE" = fix ] && php_unmitigate "$bin" ;;
-      ok-backport) ok "$label has the vendor backport for ${PHP_CVES[*]}."; [ "$MODE" = fix ] && php_unmitigate "$bin" ;;
+      ok-backport) cve_list; ok "$label has the vendor backport for $REPLY."; [ "$MODE" = fix ] && php_unmitigate "$bin" ;;
       unknown)     warn "$label: newer than the advisory data, not checked." ;;
       vulnerable|eol)
-        if [ "$st" = eol ]; then bad "$label is end-of-life upstream and has no ${PHP_CVES[*]} fix."
-        else bad "$label is vulnerable to ${PHP_CVES[*]} (fixed in $(fixed_for "${v%.*}" "${PHP_FIXED[@]}"))."; fi
-        if [ "$MODE" != fix ]; then issue critical "$label: PHP2Shell RCE"; CUR_REF=""; continue; fi
-        if (( ! IS_ROOT )); then issue_c ERR-PTCH-403-01 critical "$label: needs root (or the hosting panel) to upgrade"; act runtime_patch skipped "needs root" ERR-PTCH-403-01; CUR_REF=""; continue; fi
+        cve_list; local cves=$REPLY sev; risk_sev critical; sev=$REPLY
+        if [ "$st" = eol ]; then bad "$label is end-of-life upstream and has no $cves fix."
+        else bad "$label is vulnerable to $cves (fixed in $A_MIN)."; fi
+        if [ "$MODE" != fix ]; then issue "$sev" "$label: unpatched $cves (risk $RISK_R $RISK_LEVEL)"; CUR_REF=""; continue; fi
+        if (( ! IS_ROOT )); then issue_c ERR-PTCH-403-01 "$sev" "$label: needs root (or the hosting panel) to upgrade"; act runtime_patch skipped "needs root" ERR-PTCH-403-01; CUR_REF=""; continue; fi
         if php_upgrade "$bin" && (( ! DRY_RUN )); then
-          st=$(php_state "$bin"); v=$(php_version "$bin")
+          php_assess "$bin"; st=$A_STATE; v=$(php_version "$bin")
           if [[ $st == ok* ]]; then
             local pv; pv=$(read -r m p <<<"$(pkg_owner "$bin")"; [ "${m:-}" = dpkg ] && dpkg-query -W -f=' (package ${Version})' "$p"; [ "${m:-}" = rpm ] && rpm -q --qf ' (package %{VERSION}-%{RELEASE})' "$p")
             ok "PHP $v$pv now has the fix ($st)"; fixed "PHP runtime $bin -> $v$pv"; RESTART_PHP=1
@@ -726,7 +1122,8 @@ check_php() {
         elif (( DRY_RUN )); then act runtime_patch planned "upgrade the packages of $bin"
         fi
         php_mitigate "$bin"
-        issue_c ERR-PTCH-424-01 critical "$label: still unpatched, interim mitigation applied. Move to a supported branch (>= ${PHP_FIXED[0]%.*}) or a vendor backport."
+        supported_branches php; local oldest=${REPLY%% *}
+        issue_c ERR-PTCH-424-01 "$sev" "$label: still unpatched, interim mitigation applied. Move to a supported branch (>= ${oldest:-a supported one}) or a vendor backport."
         ;;
     esac
     CUR_REF=""
@@ -749,12 +1146,10 @@ discover_node_bins() {
   } | while read -r c; do readlink -f "$c"; done | sort -u
 }
 
-node_state() { # node_state VERSION -> ok | vulnerable | eol | unknown
-  local v=$1 major=${1%%.*} fix
-  if fix=$(fixed_for "$major" "${NODE_FIXED[@]}"); then
-    ver_lt "$v" "$fix" && echo vulnerable || echo ok
-  elif (( major < ${NODE_FIXED[-1]%%.*} )); then echo eol
-  else echo unknown; fi
+node_assess() { # node_assess BIN VERSION: A_* for one Node.js binary
+  local mgr="" pkg=""
+  read -r mgr pkg <<<"$(pkg_owner "$1")"
+  assess node "$2" "$mgr" "$pkg"
 }
 
 node_latest() { # node_latest MAJOR: newest release of that line, online
@@ -765,7 +1160,10 @@ node_latest() { # node_latest MAJOR: newest release of that line, online
 # release of the same major, verified against SHASUMS256.txt.
 node_upgrade_prefix() {
   local prefix=$1 major=$2 ver arch tarball sums
-  ver=$(node_latest "$major") || ver=$(fixed_for "$major" "${NODE_FIXED[@]}") || return 1
+  if ! ver=$(node_latest "$major"); then
+    tsv_row min_patched.tsv node "$major" && ver=$(cut -f5 <<<"$REPLY")
+    [ -n "$ver" ] || return 1
+  fi
   case $(uname -m) in x86_64) arch=x64 ;; aarch64) arch=arm64 ;; armv7l) arch=armv7l ;; ppc64le) arch=ppc64le ;; s390x) arch=s390x ;; *) return 1 ;; esac
   tarball="node-v$ver-linux-$arch.tar.xz"
   change file modify "$prefix" "" "$ver" "install $tarball (SHASUMS256.txt checked)"
@@ -831,7 +1229,8 @@ node_runtime_json() {
      sapis=j:"[]" ini_scan_dirs=j:"[]" extensions=j:"[]" owner_pkg=j:"$jpkg" install_source=s:"$src" \
      scenario_ids=j:"[]" state=s:"$st" locked=b:0 lock_reason=j:null abi=S:"$abi" npm_version=S:"$npmv" \
      apps=j:"[]" site_ids=j:"[]"
-  J_RUNTIMES+=("$REPLY")
+  local rt=$REPLY; assess_json; json_merge "$rt" "$REPLY"
+  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"
   count_state "$st"
 }
 
@@ -844,24 +1243,26 @@ check_node() {
     runtime_id node "$bin"; rid=$REPLY; CUR_REF="runtime:$rid"
     if ! v=$(probe 10 "$bin" -v 2>/dev/null) || [ -z "$v" ]; then
       msg ERR-SCN-422-01 "Unrecognized {runtime} version '{raw}'. Automation for this runtime is locked." runtime="Node.js ($bin)" raw=""
-      warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"; node_runtime_json "$bin" "" unknown; CUR_REF=""; continue
+      warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"; assess node ""; node_runtime_json "$bin" "" unknown; CUR_REF=""; continue
     fi
-    v=${v#v}; major=${v%%.*}; st=$(node_state "$v"); label="Node.js $v ($bin)"; before=$v
+    v=${v#v}; major=${v%%.*}; node_assess "$bin" "$v"; st=$A_STATE; label="Node.js $v ($bin)"; before=$v
     node_runtime_json "$bin" "$v" "$st"; affected runtime "$rid" "Node.js $v $bin"
     case $st in
       ok) ok "$label is patched." ;;
       unknown) warn "$label: newer than the advisory data, not checked." ;;
+      ok-backport) cve_list; ok "$label has the vendor backport for $REPLY." ;;
       eol) bad "$label is end-of-life and gets no security fixes."
-           issue high "$label: end-of-life, move to Node ${NODE_FIXED[-2]%%.*} or ${NODE_FIXED[-1]%%.*} LTS" ;;
+           lts_branches; local l2=${REPLY% *} l1=${REPLY##* }; l2=${l2##* }; [ "$l2" = "$l1" ] && l2=""
+           risk_sev high; issue "$REPLY" "$label: end-of-life, move to Node ${l2:+$l2 or }$l1 LTS" ;;
       vulnerable)
-        bad "$label is below the October 2026 security release ($(fixed_for "$major" "${NODE_FIXED[@]}"))."
-        if [ "$MODE" != fix ]; then issue high "$label: unpatched"; CUR_REF=""; continue; fi
+        bad "$label is below the latest security release ($A_MIN)."
+        if [ "$MODE" != fix ]; then risk_sev high; issue "$REPLY" "$label: unpatched"; CUR_REF=""; continue; fi
         if (( ! IS_ROOT )) && [[ $bin != "$HOME"/* ]]; then issue_c ERR-PTCH-403-01 high "$label: needs root to upgrade"; act runtime_patch skipped "needs root" ERR-PTCH-403-01; CUR_REF=""; continue; fi
         NODE_ERR=""
         if node_upgrade "$bin" "$major" && (( ! DRY_RUN )); then
-          v=$("$bin" -v); v=${v#v}
-          jo runtime_id=s:"$rid" version_before=s:"$before" version_after=s:"$v" state_after=s:"$(node_state "$v")"; J_RT_AFTER+=("$REPLY")
-          if [ "$(node_state "$v")" = ok ]; then ok "upgraded to Node.js $v"; fixed "Node.js $bin -> $v"; act runtime_patch "done" "Node.js $before -> $v"; CUR_REF=""; continue; fi
+          v=$("$bin" -v); v=${v#v}; node_assess "$bin" "$v"
+          jo runtime_id=s:"$rid" version_before=s:"$before" version_after=s:"$v" state_after=s:"$A_STATE"; J_RT_AFTER+=("$REPLY")
+          if [ "$A_STATE" = ok ]; then ok "upgraded to Node.js $v"; fixed "Node.js $bin -> $v"; act runtime_patch "done" "Node.js $before -> $v"; CUR_REF=""; continue; fi
         fi
         if (( DRY_RUN )); then act runtime_patch planned "upgrade Node.js $bin"
         else act runtime_patch failed "upgrade failed" "${NODE_ERR:-ERR-PTCH-424-01}"; issue_c "${NODE_ERR:-ERR-PTCH-424-01}" high "$label: upgrade failed, see $LOG"; fi ;;
@@ -940,17 +1341,43 @@ composer_cmd() {
 
 # dep_findings_json ECOSYSTEM HITS: one dependency_findings[] entry per hit
 dep_findings_json() {
-  local eco=$1 hits=$2 name ver ids sev mal advs
+  local eco=$1 hits=$2 name ver ids sev mal advs kev fixed info fx=()
   [ -n "$hits" ] || return 0
   while read -r name ver ids; do
     [ -n "$name" ] || continue
     IFS=, read -r -a advs <<<"$ids"
     if [[ ",$ids" == *,MAL-* ]]; then mal=1; sev=critical; else mal=0; sev=high; fi
+    kev=0; fx=()
+    info=${OSV_INFO["$name@$ver"]:-}
+    if [ -n "$info" ]; then
+      read -r sev kev mal fixed <<<"$info"; [ "$fixed" = - ] || IFS=, read -r -a fx <<<"$fixed"
+    fi
+    jas ${fx[@]+"${fx[@]}"}; local jfx=$REPLY
     jas "${advs[@]}"
     jo project_id=s:"${CUR_REF#project:}" ecosystem=s:"$eco" package=s:"$name" version=s:"$ver" advisories=j:"$REPLY" \
-       severity=s:"$sev" in_kev=b:0 is_malware=b:$mal fixed_versions=j:"[]"
+       severity=s:"$sev" in_kev=b:$kev is_malware=b:$mal fixed_versions=j:"$jfx"
     J_DEPS+=("$REPLY"); VULN_PACKAGES=$((VULN_PACKAGES + 1))
   done <<<"$hits"
+}
+
+# osv_lookup ECOSYSTEM LOCKFILE < "name version": like osv_check, through
+# qp-feeds.py when Python is available (cache per lockfile SHA-256, severity,
+# KEV, fixed versions; FR-FEED-OSV-001). Exit 3 = no result (ERR-FEED-503-02).
+declare -A OSV_INFO=()
+osv_lookup() {
+  local eco=$1 lock=$2 out rc name ver ids sev kev mal fixed offline=()
+  (( OFFLINE )) && offline=(--offline)
+  if ! python_ok; then
+    (( OFFLINE )) && return 3
+    osv_check "$eco"; return
+  fi
+  out=$(qp_py osv-check --ecosystem "$eco" --lockfile "$lock" ${offline[@]+"${offline[@]}"} 2>>"$LOG"); rc=$?
+  (( rc == 0 )) || return 3
+  while IFS=$'\t' read -r name ver ids sev kev mal fixed; do
+    [ -n "$name" ] || continue
+    OSV_INFO["$name@$ver"]="$sev $kev $mal ${fixed:--}"
+    printf '%s %s %s\n' "$name" "$ver" "$ids"
+  done <<<"$out"
 }
 
 # Report and optionally fix vulnerable/malicious packages of one lockfile.
@@ -958,10 +1385,13 @@ dep_findings_json() {
 audit_lockfile() {
   local eco=$1 lock=$2 fixfn=$3 dir=${2%/*} hits names mal
   project_ref "$lock"; CUR_REF=$REPLY
-  if (( OFFLINE )); then warn "$lock: skipped (offline)"; return; fi
+  if (( OFFLINE )) && ! python_ok; then warn "$lock: skipped (offline)"; return; fi
   local deps; deps=$(deps_of "$lock")
   if [ -z "$deps" ]; then warn "$lock: could not read packages (needs php, node or jq)"; return; fi
-  if ! hits=$(osv_check "$eco" <<<"$deps"); then
+  osv_lookup "$eco" "$lock" <<<"$deps" >"$WORK_DIR/osv.hits"; local orc=$?
+  hits=$(cat "$WORK_DIR/osv.hits")
+  if (( orc != 0 )); then
+    if (( OFFLINE )); then warn "$lock: skipped (offline)"; return; fi
     warn "$lock: OSV lookup failed (network or no php/node/jq)"; add_warning ERR-FEED-503-02 "$lock: OSV lookup failed"; return
   fi
   if [ -z "$hits" ]; then ok "$lock: no known vulnerable packages."; return; fi
@@ -973,7 +1403,7 @@ audit_lockfile() {
     # shellcheck disable=SC2086
     $fixfn "$dir" $names
     if (( ! DRY_RUN )); then
-      local after; after=$(deps_of "$lock" | osv_check "$eco") || after="$hits"
+      local after; deps_of "$lock" | osv_lookup "$eco" "$lock" >"$WORK_DIR/osv.hits" && after=$(cat "$WORK_DIR/osv.hits") || after="$hits"
       local n_before n_after
       n_before=$(grep -c . <<<"$hits"); n_after=$(grep -c . <<<"$after")
       (( n_after < n_before )) && fixed "$dir: $((n_before - n_after)) vulnerable $eco package(s) updated"
@@ -1100,9 +1530,11 @@ run_capture_as_owner() {
   fi
 }
 
-wp_status_json() { # wp_status_json SITE VERSION FIX STATUS
-  project_ref "$1"
-  jo site_dir=s:"$1" project_id=S:"${REPLY#project:}" version=s:"$2" min_patched=S:"$3" status=s:"$4" advisories=j:"[]" in_kev=b:0 risk=j:null
+wp_status_json() { # wp_status_json SITE VERSION FIX STATUS (A_* of the version)
+  project_ref "$1"; local pid=${REPLY#project:} ids=() i
+  for i in ${A_IDS//,/ }; do ids+=("$i"); done
+  jas ${ids[@]+"${ids[@]}"}; local adv=$REPLY kev=0; (( A_NKEV > 0 )) && kev=1
+  jo site_dir=s:"$1" project_id=S:"$pid" version=s:"$2" min_patched=S:"$3" status=s:"$4" advisories=j:"$adv" in_kev=b:$kev risk=j:"$A_RISK"
   J_WP+=("$REPLY")
 }
 
@@ -1115,15 +1547,23 @@ check_wordpress() {
     site=${f%/wp-includes/version.php}
     project_ref "$site"; CUR_REF=$REPLY
     v=$(sed -n "s/^\$wp_version *= *'\([^']*\)'.*/\1/p" "$f"); [ -n "$v" ] || continue
-    if fix=$(fixed_for "${v%.*}" "${WP_FIXED[@]}") && ver_lt "$v" "$fix"; then
-      bad "$site: WordPress $v is vulnerable to wp2shell RCE (fixed in $fix)."
-      [ "$MODE" = fix ] || wp_status_json "$site" "$v" "$fix" vulnerable
+    assess wordpress "$v"; fix=$A_MIN
+    if [ "$A_STATE" = unknown ]; then
+      warn "$site: WordPress $v is not in the advisory data, not checked."
+      [ "$MODE" = fix ] || wp_status_json "$site" "$v" "" unknown
+      CUR_REF=""; continue
+    elif [[ $A_STATE == vulnerable || $A_STATE == eol ]]; then
+      cve_list
+      if [[ $fix == NONE || $fix == PENDING_RELEASE || -z $fix ]]; then
+        bad "$site: WordPress $v is vulnerable ($REPLY); no patched release in its branch, upgrade to a supported branch."; fix=""
+      else bad "$site: WordPress $v is vulnerable to $REPLY (fixed in $fix)."; fi
+      [ "$MODE" = fix ] || wp_status_json "$site" "$v" "$A_MIN" vulnerable
     else
-      ok "$site: WordPress $v is not in the wp2shell range."
-      [ "$MODE" = fix ] || { wp_status_json "$site" "$v" "${fix:-}" ok; CUR_REF=""; continue; }
+      ok "$site: WordPress $v is patched."
+      [ "$MODE" = fix ] || { wp_status_json "$site" "$v" "$A_MIN" ok; CUR_REF=""; continue; }
       fix=""
     fi
-    if [ "$MODE" != fix ]; then [ -n "$fix" ] && issue critical "$site: WordPress $v wp2shell"; CUR_REF=""; continue; fi
+    if [ "$MODE" != fix ]; then cve_list; risk_sev critical; issue "$REPLY" "$site: WordPress $v unpatched (risk $RISK_R $RISK_LEVEL)"; CUR_REF=""; continue; fi
     if ! wp=$(wp_cmd); then
       if [ -n "$fix" ]; then
         msg ERR-PTCH-424-03 "{site}: wp-cli unavailable, update WordPress core to {fix} by hand" site="$site" fix="$fix"
@@ -1140,10 +1580,11 @@ check_wordpress() {
     run_in_dir_as_owner "$site" $wp plugin update --all --patch --path="$site" --skip-themes --allow-root
     if (( DRY_RUN )); then act wp_update planned "$site"; CUR_REF=""; continue; fi
     v=$(sed -n "s/^\$wp_version *= *'\([^']*\)'.*/\1/p" "$f")
+    assess wordpress "$v"
     if [ -n "$fix" ]; then
-      if ver_lt "$v" "$fix"; then issue critical "$site: WordPress still $v after update attempt (see $LOG)"; act wp_update failed "$site still $v"; wp_status_json "$site" "$v" "$fix" vulnerable
+      if ver_lt "$v" "$fix"; then risk_sev critical; issue "$REPLY" "$site: WordPress still $v after update attempt (see $LOG)"; act wp_update failed "$site still $v"; wp_status_json "$site" "$v" "$fix" vulnerable
       else ok "$site: WordPress updated to $v"; fixed "$site: WordPress -> $v"; act wp_update "done" "$site -> $v"; wp_status_json "$site" "$v" "$fix" ok; fi
-    else wp_status_json "$site" "$v" "" ok
+    else wp_status_json "$site" "$v" "$A_MIN" "$( [[ $A_STATE == ok* ]] && echo ok || echo vulnerable)"
     fi
     # shellcheck disable=SC2086
     if ! (cd "$site" && $wp core verify-checksums --path="$site" --skip-plugins --skip-themes --allow-root >>"$LOG" 2>&1 9>&- 3>&-); then
@@ -1172,26 +1613,20 @@ check_dockerfiles() {
       if [[ $line =~ $re ]]; then
         pre=${BASH_REMATCH[1]}; img=${BASH_REMATCH[4]}; ver=${BASH_REMATCH[8]}; suffix=${BASH_REMATCH[10]}${BASH_REMATCH[11]}
         target=""
-        if [[ $img == *php ]]; then
-          fix=$(fixed_for "$(cut -d. -f1-2 <<<"$ver")" "${PHP_FIXED[@]}") || fix=""
-          if [ -z "$fix" ]; then
-            [[ $ver == *.*.* || $ver == *.* ]] && ver_lt "$ver" "${PHP_FIXED[0]}" && { bad "$f: $img:$ver is an end-of-life PHP image"; issue high "$f: PHP image $ver is EOL"; }
-          elif [[ $ver == *.*.* ]] && ver_lt "$ver" "$fix"; then
-            target=$fix
-            local latest; latest=$(fetch "${PHP_RELEASES_URL}${ver%.*}" | grep -o "\"version\":\"${ver%.*}\.[0-9]*\"" | grep -o '[0-9][0-9.]*' | head -n1) && ver_lt "$target" "$latest" && target=$latest
-          else
-            note "$f: $img:$ver$suffix floats on the branch; rebuild with 'docker build --pull' / 'docker compose build --pull'."
-          fi
-        else
-          local major=${ver%%.*}
-          fix=$(fixed_for "$major" "${NODE_FIXED[@]}") || fix=""
-          if [ -z "$fix" ]; then
-            (( major < ${NODE_FIXED[-1]%%.*} )) && { bad "$f: $img:$ver is an end-of-life Node.js image"; issue high "$f: Node image $ver is EOL"; }
-          elif [[ $ver == *.*.* ]] && ver_lt "$ver" "$fix"; then
-            target=$(node_latest "$major") || target=$fix
-          else
-            note "$f: $img:$ver$suffix floats on the line; rebuild with --pull."
-          fi
+        local prod=node kind="Node.js" full=$ver
+        [[ $img == *php ]] && { prod=php; kind=PHP; }
+        [[ $prod == php && $ver != *.*.* ]] && full="$ver.0"
+        [[ $prod == node && $ver != *.*.* ]] && full="${ver%%.*}.0.0"
+        assess "$prod" "$full"; fix=$A_MIN
+        if [ "$A_LC" = EOL ]; then
+          bad "$f: $img:$ver is an end-of-life $kind image"; issue high "$f: $kind image $ver is EOL"
+        elif [ "$A_LC" = UNKNOWN ] || [[ -z $fix || $fix == NONE || $fix == PENDING_RELEASE ]]; then
+          :
+        elif [[ $ver == *.*.* ]] && ver_lt "$ver" "$fix"; then
+          target=${A_LATEST:-$fix}
+        elif [[ $ver != *.*.* ]]; then
+          if [ "$prod" = php ]; then note "$f: $img:$ver$suffix floats on the branch; rebuild with 'docker build --pull' / 'docker compose build --pull'."
+          else note "$f: $img:$ver$suffix floats on the line; rebuild with --pull."; fi
         fi
         if [ -n "$target" ]; then
           bad "$f: $img:$ver is unpatched (use $target)"
@@ -1230,16 +1665,17 @@ check_containers() {
     jo id=s:"$id" name=s:"$name" image=s:"$image" php_version=S:"$v" node_version=S:"$nv" compose_project=S:"$proj" compose_service=S:"$svc"
     J_CONTAINERS+=("$REPLY")
     if [ -n "$v" ]; then
-      local fix; fix=$(fixed_for "${v%.*}" "${PHP_FIXED[@]}") || fix=""
-      if [ -n "$fix" ] && ! ver_lt "$v" "$fix"; then ok "$name ($image): PHP $v patched"
+      assess php "$v"
+      if [ "$A_STATE" = ok ]; then ok "$name ($image): PHP $v patched"
+      elif [ "$A_STATE" = unknown ]; then note "$name: PHP $v not in advisory data"
       else
         bad "$name ($image): PHP $v unpatched; rebuild the image on a fixed base."
-        issue critical "container $name: PHP $v (image $image) needs a rebuild"
+        risk_sev critical; issue "$REPLY" "container $name: PHP $v (image $image) needs a rebuild"
         [ "$MODE" = fix ] && container_mitigate "$id" "$name" "$v"
       fi
     fi
     if [ -n "$nv" ]; then
-      st=$(node_state "$nv")
+      assess node "$nv"; st=$A_STATE
       case $st in
         ok) ok "$name ($image): Node.js $nv patched" ;;
         unknown) note "$name: Node.js $nv not in advisory data" ;;
@@ -1634,14 +2070,16 @@ scan_result_json() {
   jarr J_RUNTIMES; rt=$REPLY; jarr J_PROJECTS; pr=$REPLY; jarr J_CONTAINERS; ct=$REPLY
   jarr J_DEPS; dp=$REPLY; jarr J_WP; wp=$REPLY; jarr J_WSH; ws=$REPLY
   local kev=0
+  kev=$KEV_FINDINGS
   jo runtimes=n:${#J_RUNTIMES[@]} by_state=j:"{\"ok\":$BY_STATE_OK,\"ok_backport\":$BY_STATE_BACKPORT,\"vulnerable\":$BY_STATE_VULN,\"eol\":$BY_STATE_EOL,\"unknown\":$BY_STATE_UNKNOWN}" \
-     eol_within_90d=n:0 kev_findings=n:$kev critical_issues=n:$CRITICAL vulnerable_packages=n:$VULN_PACKAGES
+     eol_within_90d=n:$EOL_90 kev_findings=n:$kev critical_issues=n:$CRITICAL vulnerable_packages=n:$VULN_PACKAGES
   local summary=$REPLY
   fp=$(printf '%s\n' ${J_RUNTIMES[@]+"${J_RUNTIMES[@]}"} | grep -o '"bin":"[^"]*"\|"version":"[^"]*"' | sha256sum | cut -c1-64)
-  env_json; local envj=$REPLY
+  env_json; local envj=$REPLY rk="" line
+  while IFS=$'\t' read -r _ _ line; do [ -n "$line" ] && rk+="${rk:+,}$line"; done < <(printf '%s\n' ${RANKING[@]+"${RANKING[@]}"} | sort -t$'\t' -k1,1n -k2,2n)
   jo scan_fingerprint=s:"$fp" environment=j:"$envj" runtimes=j:"$rt" sites=j:"[]" projects=j:"$pr" containers=j:"$ct" \
      dependency_findings=j:"$dp" wordpress_findings=j:"$wp" webshell_findings=j:"$ws" drift_warnings=j:"[]" \
-     ranking=j:"[]" plan_deadlines=j:"[]" summary=j:"$summary"
+     ranking=j:"[$rk]" plan_deadlines=j:"[]" summary=j:"$summary"
   SCAN_FP=$fp
 }
 SCAN_FP=""
@@ -1803,11 +2241,14 @@ main() {
   [ "$MODE" != scan ] && check_switch_locks
 
   say "${C_B}php-quickpatch $QP_VERSION${C_0} mode=$MODE$( ((DRY_RUN)) && echo ' (dry-run)') log=$LOG"
-  if (( JSON )); then add_warning ERR-FEED-503-01 "No feeds bundle yet: advisory data built into this version is used."; fi
   if [ "$MODE" = rollback ]; then detect_env; do_rollback; fi
 
   [ "$MODE" = fix ] && (( ! DRY_RUN )) && audit_intent fix
   detect_env
+  # Runtime, WordPress and image checks need the bundle; Composer/npm use its KEV list.
+  local need_data=0
+  if want php || want node || want wp || want docker; then need_data=1; fi
+  if (( need_data )) || want composer || want npm; then bundle_open; (( need_data )) && bundle_report; fi
   discover_projects
   want php && check_php
   want node && check_node
@@ -1826,6 +2267,7 @@ main() {
   local code=0
   (( ISSUES > 0 )) && code=1
   (( RESTART_FAILED )) && code=2
+  (( need_data )) && [ -z "$QP_FEEDS_BUNDLE" ] && code=2   # no data at all (DOC-SRS-QP-FEED-003 §4.5 step 3)
   if [ "$MODE" = fix ]; then
     (( DRY_RUN )) || audit_result fix "$code"
     scan_result_json >/dev/null; fix_result_json; finish "$code" "$REPLY"

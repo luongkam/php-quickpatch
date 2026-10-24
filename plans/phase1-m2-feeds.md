@@ -21,7 +21,7 @@ Mục tiêu: thay `PHP_FIXED`, `PHP_CVES`, `NODE_FIXED`, `WP_FIXED` bằng bundl
 6. Bash: tra bundle thay mảng ghi cứng (`FR-CLI-COMP-002`), dòng tuổi dữ liệu, `data` trong envelope; `dependency_findings[]`, `wordpress_findings[]` theo bundle.
 
 ## 4. Tiêu chí nghiệm thu
-- Test hồi quy dữ liệu v0.1 (merge-risk §6.5): bundle dựng từ fixture cho `min_patched` = 8.2.35/8.3.36/8.4.27/8.5.12, Node 22.23.4/24.22.1/26.12.1, WP 6.9.5/7.0.2.
+- Test hồi quy dữ liệu v0.1 (merge-risk §6.5): bundle dựng từ fixture cho `min_patched` = 8.2.35/8.3.36/8.4.27/8.5.12, Node 22.23.4/24.22.1/26.12.1; WordPress theo `BR-FEED-025` là 6.9.10/7.0.7/7.1.3 (§6.5 ghi rõ khác v0.1 6.9.5/7.0.2 vì CVE-2026-87902).
 - Điểm rủi ro khớp mọi ví dụ §8.5 và ca làm tròn §8.2.1; `qp.assess/1` ví dụ §6 (R 60/40/20/0).
 - `feeds status --json` hợp lệ schema; mã thoát 0/1/2 theo độ tươi.
 - Snapshot: sai SHA-256 / `SHA256SUMS` / schema → giữ bundle cũ, đúng mã ERR.
@@ -75,5 +75,45 @@ Timer systemd/cron thật; nguồn cần key (SRC-013); tracker distro (SRC-015)
 | `FR-ASMT-DEP-001` | Đánh giá dependency Composer/npm | P0 | `US-ASMT-05` | `AC-ASMT-14`, `AC-ASMT-15`, `AC-ASMT-16` | TC-ASMT-014, TC-ASMT-015, TC-ASMT-016 |
 | `FR-ASMT-DEP-002` | Đánh giá WordPress core | P0 | `US-ASMT-06` | `AC-ASMT-17`, `AC-ASMT-18`, `AC-ASMT-19` | TC-ASMT-017, TC-ASMT-018, TC-ASMT-019 |
 
-## Trạng thái FR
-Cập nhật khi kết thúc mốc (Xong / Một phần / Chưa thử trên máy thật).
+## Trạng thái FR (kết thúc M2, 2026-10-24)
+
+| FR | Trạng thái | Test tự động | Ghi chú / chưa thử trên máy thật |
+| :--- | :--- | :--- | :--- |
+| `FR-FEED-EOL-001` | Xong | `test_feeds_sync.py` (Regression, Sync) | Bản sao GitHub của endoflife.date chỉ chạy khi nguồn chính lỗi, chưa có test riêng |
+| `FR-FEED-EOL-002` | Xong | Cổng phát hành (`gate`) trên snapshot thật | PHP 4.4 `STATIC` |
+| `FR-FEED-EOL-003` | Xong | Bundle fixture (`framework_php.tsv`) | Dạng `"8.3, 8.4"`, `"5.2.4+"` của API cũ đã xử lý |
+| `FR-FEED-REL-001` | Xong | Regression, `test_m2_feeds.sh` | Dự phòng `git ls-remote` chưa có test |
+| `FR-FEED-REL-002` | Xong | `test_cross_source` | |
+| `FR-FEED-REL-003` | Xong | Regression (WordPress) | |
+| `FR-FEED-PCVE-001` | Xong | `test_nvd_paging_and_incremental` | Chạy thật 2026-10-24: 1.533 bản ghi, ~50 s |
+| `FR-FEED-PCVE-002` | Một phần | ChangeLog/NEWS → alias, `fix_evidence` | `SRC-008` (GitHub API) trả 403 không token ở môi trường này: chưa thử với token |
+| `FR-FEED-PCVE-003` | Xong | Bundle fixture (CVE.org 404 → `RESERVED`) | |
+| `FR-FEED-NCVE-001` | Xong | `test_feeds_core.py` (semver), Regression | |
+| `FR-FEED-WCVE-001` | Xong | Regression, `test_risk_examples_on_bundle` | |
+| `FR-FEED-WCVE-002` | Một phần | — | Wordfence v3 đọc theo mô tả, chưa có key để thử; WPScan/Patchstack chưa làm |
+| `FR-FEED-KEV-001` | Xong | `test_mirror`, `test_shrink_needs_accept`, `test_kev_via_alias` | |
+| `FR-FEED-OSV-001` | Xong | `test_library_check_cache_and_paging`, `test_m1_fix.sh` (Composer/npm) | |
+| `FR-FEED-DIST-001` | Xong | `test_backport_chain` | Chưa thử trên Ubuntu/Debian/RHEL thật với gói PHP distro |
+| `FR-FEED-DIST-002` | Một phần | Bước changelog (`SRC-016`) | Tracker Ubuntu/Red Hat viết theo đặc tả, chưa thử với API thật |
+| `FR-FEED-SYNC-001` | Xong | `Sync.*` (TTL, 304, retry, `Retry-After`, budget, khoá, HTTPS) | |
+| `FR-FEED-AGE-001` | Xong | TC-FEED-029..031 (Bash), `feeds status` | |
+| `FR-FEED-NORM-001` | Xong | `Merge.*` | |
+| `FR-FEED-NORM-002` | Xong | TC-FEED-026, `Merge.*` | |
+| `FR-FEED-NORM-003` | Xong | `test_backport_chain`, `test_m1_*` (changelog) | |
+| `FR-FEED-CACH-001` | Xong | `test_ttl_and_conditional_get`, `feeds verify` | |
+| `FR-FEED-CACH-002` | Xong | `test_atomic_swap_and_reader_lock`, `test_bundle_layout` | |
+| `FR-FEED-CACH-003` | Một phần | — | Dọn bundle, rejected (3), snapshot đã nhập (3), cache > 7 ngày, log xoay vòng; chưa ép tổng ≤ 60 MB |
+| `FR-FEED-SNAP-001` | Xong | TC-FEED-035..037 (Bash, không Python), `test_packaged_snapshot` | Gói snapshot kèm bản phát hành ở M7 |
+| `FR-FEED-SNAP-002` | Xong | TC-FEED-038 | |
+| `FR-FEED-SNAP-003` | Xong | TC-FEED-039..041, `Snapshots.*` | |
+| `FR-FEED-SNAP-004` | Một phần | `build-snapshot` chạy thật (1,28 MB, cổng `gate` đạt) | Pipeline phát hành + `QP_SNAPSHOT_SHA256` ở M7 |
+| `FR-FEED-SCHD-001` | Xong | `Schedule.*` (stub systemctl/crontab), TC-FEED-045..047 | Chưa thử systemd timer / cron thật |
+| `FR-FEED-CMD-001..006` | Xong | `test_m2_feeds.sh`, schema `qp.feeds.<lệnh con>/1` | |
+| `FR-CLI-COMP-002` | Xong | TC-CLI-010..012, `test_m1_*` với bundle fixture | |
+| `FR-ASMT-RISK-001` | Xong (scan) | §8.5 + RT-1/RT-2 ở Bash và Python, Bash = Python trên bundle | Lệnh `assess` ở M3 |
+| `FR-ASMT-RISK-002` | Một phần | `Bundle.assess` tính R cho phiên bản bất kỳ | Bảng ứng viên/ΔR ở M3 |
+| `FR-ASMT-DEP-001` | Một phần | `dependency_findings` có mức, KEV, bản sửa | Đầu ra `assess` ở M3 |
+| `FR-ASMT-DEP-002` | Một phần | `wordpress_findings` có advisory, KEV, R | Đầu ra `assess` ở M3 |
+
+Mâu thuẫn và giả định: `C-14..C-17`, `A-M2-01..12` trong [phase1-conflicts.md](phase1-conflicts.md).
+Kết quả chạy: `tests/run.sh` — 581 kiểm tra Bash + 66 test Python, 0 lỗi; `shellcheck -S warning` sạch.

@@ -10,7 +10,8 @@
 need_root
 reexec_in_mount_ns "$@"
 
-T=$(new_tmp); trap 'rm -rf "$T"' EXIT
+T=$(new_tmp); trap 'feeds_cleanup; rm -rf "$T"' EXIT
+feeds_fixture
 SD=/var/lib/php-quickpatch
 STUB=$T/stub CALLS=$T/calls FX=$T/fx
 J=$T/out.json
@@ -19,8 +20,9 @@ qp() { PATH="$STUB:$PATH" bash "$QP" "$@"; }
 
 # reset: fresh state dir, stubs and fixtures for one scenario
 reset() {
-  rm -rf "$SD" "$STUB" "$FX" "$T/w"; mkdir -p "$T/w"
+  rm -rf "$SD" "$STUB" "$FX" "$T/w"; mkdir -p "$T/w"; feeds_restore
   stubs_init; chmod 666 "$CALLS"; chmod 777 "$FX/state"; dpkg_stubs; apt_stub; curl_stub; touch "$FX/state/osv.vulns"
+  chmod 644 "$FX/state/osv.vulns"; ln -sf "$FX/state/osv.vulns" "$FEEDS_SRV/osv.vulns"   # OSV answers of the fake server
 }
 calls() { grep -E "^$1 " "$CALLS"; }
 manifest() { cat "$SD"/backups/*/manifest 2>/dev/null; }
@@ -58,7 +60,8 @@ assert_eq "TC-PTCH-002 groups (ea-php on dpkg = CR-SRS-07)" "$grp" "ea-php82 alt
 reset; php82
 qp fix --only php --json >"$J" 2>"$T/err.txt"; rc=$?
 assert_eq "TC-PTCH-003 ERR-PTCH-424-01 recorded" "$(json_get "$J" '[a["error_code"] for a in d["result"]["actions"] if a["kind"]=="runtime_patch"]')" "['ERR-PTCH-424-01']"
-assert_eq "TC-PTCH-003 critical issue with code" "$(json_get "$J" '[(i["severity"], i["code"]) for i in d["issues"]]')" "[('critical', 'ERR-PTCH-424-01')]"
+# Severity follows the risk level (FR-CLI-COMP-002): 8.2.34 -> R 60 HIGH (plans/phase1-conflicts.md C-14).
+assert_eq "TC-PTCH-003 issue with code, severity from R" "$(json_get "$J" '[(i["severity"], i["code"]) for i in d["issues"]]')" "[('high', 'ERR-PTCH-424-01')]"
 check "TC-PTCH-003 mitigation written" test -f "$T/w/etc/php/8.2/fpm/conf.d/zz-php-quickpatch-mitigation.ini"
 assert_eq "TC-PTCH-003 exit 1" "$rc" 1
 
@@ -201,10 +204,10 @@ qp fix --only wp --path "$T/w" --json >"$J" 2>"$T/err.txt"
 assert_eq "TC-PTCH-016 ERR-PTCH-424-04 high issue" "$(json_get "$J" '[(i["severity"], i["code"]) for i in d["issues"] if i["code"]]')" "[('high', 'ERR-PTCH-424-04')]"
 
 # --- TC-PTCH-015: no wp-cli available -------------------------------------------------
-reset; wp_site 7.0.1; rm -f "$STUB/wp"   # 7.0.1: below the v0.1 data (7.0.2) until the M2 bundle
+reset; wp_site 7.0.1; rm -f "$STUB/wp"   # 7.0.1: below min_patched 7.0.7 of the bundle
 before=$(find "$W" -type f -exec sha256sum {} + | sort)
 qp fix --only wp --path "$T/w" --json >"$J" 2>"$T/err.txt"
-check "TC-PTCH-015 wording + ERR-PTCH-424-03" grep -q "$W: wp-cli unavailable, update WordPress core to 7.0.2 by hand\",\"object_ref\".*ERR-PTCH-424-03\|ERR-PTCH-424-03.*$W: wp-cli unavailable, update WordPress core to 7.0.2 by hand" "$J"
+check "TC-PTCH-015 wording + ERR-PTCH-424-03" grep -q "$W: wp-cli unavailable, update WordPress core to 7.0.7 by hand\",\"object_ref\".*ERR-PTCH-424-03\|ERR-PTCH-424-03.*$W: wp-cli unavailable, update WordPress core to 7.0.7 by hand" "$J"
 assert_eq "TC-PTCH-015 site files untouched" "$(find "$W" -type f -exec sha256sum {} + | sort)" "$before"
 
 # --- TC-PTCH-017: image tags ------------------------------------------------------------
@@ -243,7 +246,7 @@ qp fix --only docker --path "$T/w" --json >"$J" 2>"$T/err.txt"
 check "TC-PTCH-018 ERR-PTCH-412-01 for the container without conf.d" grep -q 'ERR-PTCH-412-01' "$J"
 check "TC-PTCH-018 web-test mitigation written" test -s "$FX/state/c1.ini"
 check "TC-PTCH-018 web-test restarted" grep -qx 'docker restart c1' "$CALLS"
-assert_eq "TC-PTCH-018 critical rebuild issue per container" "$(json_get "$J" 'sum(1 for i in d["issues"] if i["severity"]=="critical" and "needs a rebuild" in i["message"])')" 2
+assert_eq "TC-PTCH-018 rebuild issue per container (severity from R: HIGH)" "$(json_get "$J" 'sum(1 for i in d["issues"] if i["severity"]=="high" and "needs a rebuild" in i["message"])')" 2
 check "TC-PTCH-106 docker-created line before writing" bash -c "grep -qP '^docker-created\tc1\t/usr/local/etc/php/conf.d/zz-php-quickpatch-mitigation.ini\$' $SD/backups/*/manifest"
 : >"$CALLS"; qp fix --only docker --path "$T/w" >/dev/null 2>&1
 check "TC-PTCH-106 existing file in container is not rewritten" bash -c "! grep -q 'sh -c cat' $CALLS"
@@ -300,7 +303,7 @@ check "TC-PTCH-023 every manifest line is ACTION<TAB>ARG1[<TAB>ARG2]" bash -c "!
 check "TC-PTCH-023 summary rollback hint" grep -q "rollback: .*php-quickpatch.sh rollback $run_id" "$T/o.txt"
 
 # --- TC-PTCH-024: not enough space for backups ---------------------------------------------
-reset; php82; mount -t tmpfs -o size=40m tmpfs /var/lib
+reset; php82; mount -t tmpfs -o size=40m tmpfs /var/lib; feeds_restore
 qp fix --only php --json >"$J" 2>"$T/err.txt"; rc=$?
 assert_eq "TC-PTCH-024 exit 2" "$rc" 2
 assert_eq "TC-PTCH-024 ERR-ENV-507-01" "$(json_get "$J" 'd["errors"][0]["code"]')" ERR-ENV-507-01

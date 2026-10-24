@@ -9,8 +9,9 @@
 need_root
 reexec_in_mount_ns "$@"
 
-T=$(new_tmp); trap 'rm -rf "$T"' EXIT
+T=$(new_tmp); trap 'feeds_cleanup; rm -rf "$T"' EXIT
 STUB=$T/stub CALLS=$T/calls FX=$T/fx; stubs_init; curl_stub
+feeds_fixture
 SD=/var/lib/php-quickpatch
 P=$T/proj; mkdir -p "$P/site"
 echo '{}' >"$P/site/composer.json"
@@ -78,10 +79,14 @@ check "TC-CLI-007 STATE_DIR /var/lib/php-quickpatch" grep -q "log=$SD/php-quickp
 check "TC-CLI-007 manifest keeps the v0.1 TAB format" bash -c "grep -qP '^created\t/' $SD/backups/*/manifest"
 # Same fixture, scan mode: every v0.1.1 output line is still printed by v2 (BR-CLI-002: only new lines may be added).
 git -C "$QP_ROOT" show 5919d7e:php-quickpatch.sh >"$T/qp-011.sh"
-rm -f "$T/php82/conf.d/"*; norm() { sed -E "s/[0-9]{8}-[0-9]{6}/RUN/g; s/^php-quickpatch [^ ]+/php-quickpatch X/; s#rollback: [^ ]+ #rollback: SCRIPT #; s#run '[^']+ fix'#run 'SCRIPT fix'#"; }
+rm -f "$T/php82/conf.d/"*; norm() { sed -E "s/[0-9]{8}-[0-9]{6}/RUN/g; s/^php-quickpatch [^ ]+/php-quickpatch X/; s#rollback: [^ ]+ #rollback: SCRIPT #; s#run '[^']+ fix'#run 'SCRIPT fix'#; s/ \(critical: [0-9]+\)$//"; }
 PATH="$STUB:$PATH" bash "$T/qp-011.sh" scan --offline --path "$P" 2>&1 | norm >"$T/a.txt"
 PATH="$STUB:$PATH" bash "$QP" scan --offline --path "$P" 2>&1 | norm >"$T/b.txt"
-missing=$(grep -vxF -f "$T/b.txt" "$T/a.txt" | grep -v '^php-quickpatch X')
+# Lines FR-CLI-COMP-002 changes on purpose: names of the v0.1 hard-coded data
+# (PHP2Shell, wp2shell, "October 2026") and severities now taken from the risk
+# score R (DOC-SRS-QP-FEED-003 §3.4), so "(critical: N)" may differ.
+changed='October 2026 security release|: PHP2Shell RCE$|wp2shell'
+missing=$(grep -vxF -f "$T/b.txt" "$T/a.txt" | grep -v '^php-quickpatch X' | grep -vE "$changed")
 assert_eq "NFR-CMP-001 scan: no v0.1.1 line missing or changed" "$missing" ""
 a_rc=$(PATH="$STUB:$PATH" bash "$T/qp-011.sh" scan --offline --path "$P" >/dev/null 2>&1; echo $?)
 b_rc=$(PATH="$STUB:$PATH" bash "$QP" scan --offline --path "$P" >/dev/null 2>&1; echo $?)
@@ -92,17 +97,17 @@ qp scan --foo >"$T/o.txt" 2>&1; rc=$?
 assert_eq "TC-CLI-008 unknown argument exit 2" "$rc" 2
 check "TC-CLI-008 v0.1 wording + usage" grep -q '^Unknown argument: --foo' "$T/o.txt"
 check "TC-CLI-008 usage printed" grep -q '^Usage:' "$T/o.txt"
-hold() { flock "$1" "$SD/.lock" sleep 5 & sleep 0.5; }   # hold the state lock 5 s
-hold -x; qp fix --path "$P" --only webshell >"$T/o.txt" 2>&1; rc=$?; wait
+hold() { flock "$1" "$SD/.lock" sleep 5 & HP=$!; sleep 0.5; }   # hold the state lock 5 s
+hold -x; qp fix --path "$P" --only webshell >"$T/o.txt" 2>&1; rc=$?; wait "$HP"
 assert_eq "TC-CLI-008 fix while fix runs: exit 2" "$rc" 2
 check "TC-CLI-008 v0.1 lock message" grep -q 'Another php-quickpatch run is in progress.' "$T/o.txt"
-hold -s; qp scan --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait
+hold -s; qp scan --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait "$HP"
 assert_eq "TC-CLI-009 scan while scan runs: allowed (shared lock)" "$rc" 0
-hold -x; qp scan --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait
+hold -x; qp scan --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait "$HP"
 assert_eq "TC-CLI-009 scan while fix runs: exit 2" "$rc" 2
-hold -s; qp fix --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait
+hold -s; qp fix --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait "$HP"
 assert_eq "TC-CLI-009 fix while scan runs: exit 2" "$rc" 2
-hold -s; qp fix --dry-run --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait
+hold -s; qp fix --dry-run --path "$P" --only webshell >/dev/null 2>&1; rc=$?; wait "$HP"
 assert_eq "TC-CLI-009 fix --dry-run while scan runs: allowed (read)" "$rc" 0
 
 # --- TC-CLI-014: commands that need Python ----------------------------------

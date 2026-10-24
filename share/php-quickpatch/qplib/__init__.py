@@ -3,4 +3,4 @@
 Standard library only (C-SRS-01): Python 3.6+.
 """
 
-VERSION = '2.0.0-alpha.1'
+VERSION = '2.0.0-alpha.2'

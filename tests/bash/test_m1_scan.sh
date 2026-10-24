@@ -9,8 +9,9 @@
 need_root
 reexec_in_mount_ns "$@"
 
-T=$(new_tmp); trap 'rm -rf "$T"' EXIT
+T=$(new_tmp); trap 'feeds_cleanup; rm -rf "$T"' EXIT
 STUB=$T/stub CALLS=$T/calls FX=$T/fx; stubs_init; dpkg_stubs; curl_stub
+feeds_fixture
 qp() { PATH="$STUB:$PATH" bash "$QP" "$@"; }
 J=$T/out.json
 

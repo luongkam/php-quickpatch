@@ -230,6 +230,30 @@ FEEDS_STATUS_RESULT = obj({
     'snapshot': obj({'packaged_generated_at': SN, 'sha256_ok': BN}),
 }, required=['bundle_id', 'freshness', 'sources'], nullable=True)
 
+SHA = {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}
+BUNDLE_ID = {'type': 'string', 'pattern': '^b-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$'}
+FEEDS_UPDATE_RESULT = obj({
+    'bundle_id': BUNDLE_ID, 'generated_at': S,
+    'sources': arr(obj({'src_id': {'type': 'string', 'pattern': '^SRC-[0-9]{3}$'},
+                        'outcome': enum('fetched', 'not_modified', 'not_due', 'failed', 'disabled'),
+                        'status': enum('OK', 'DEGRADED', 'FAILED', 'DISABLED', nullable=True), 'last_error': SN,
+                        'records': IN, 'data_origin': SN}, required=['src_id', 'outcome'])),
+    'requests': I, 'budget_s': I, 'pending': arr(S), 'coverage': {'type': 'object'},
+}, required=['bundle_id', 'sources'], nullable=True)
+FEEDS_VERIFY_RESULT = obj({'bundle_id': SN, 'ok': B, 'problems': arr(S), 'raw_problems': arr(S),
+                           'rebuilt_bundle_id': SN, 'snapshot': S, 'sha256': SHA, 'generated_at': S},
+                          required=['ok'], nullable=True)
+FEEDS_EXPORT_RESULT = obj({'file': S, 'sha256': SHA, 'bytes': I, 'bundle_id': BUNDLE_ID, 'generated_at': S,
+                           'variant': enum('standard', 'full')}, required=['file', 'sha256', 'bundle_id'], nullable=True)
+FEEDS_IMPORT_RESULT = obj({'file': S, 'sha256': SHA, 'bundle_id': BUNDLE_ID, 'generated_at': S,
+                           'previous_bundle_id': SN, 'imported': B, 'checks': arr(S)},
+                          required=['file', 'sha256', 'bundle_id', 'imported'], nullable=True)
+FEEDS_SCHEDULE_RESULT = obj({'action': enum('install', 'remove', 'show'),
+                             'type': enum('systemd', 'cron', 'crontab_user'), 'interval_h': I, 'minute': I,
+                             'files': arr(S), 'commands': arr(S), 'schedule': {'type': ['object', 'null']},
+                             'replaces': {'type': ['object', 'null']}, 'removed': {'type': ['object', 'null']},
+                             'content': {'type': 'object'}}, required=['action'], nullable=True)
+
 AUDIT_RECORD = obj({'seq': I, 'ts': S, 'record_type': enum('INTENT', 'RESULT', 'EVENT'), 'actor': S, 'sys_user': SN,
                     'source': enum('cli', 'console', 'central'), 'action': S, 'args': arr(S), 'job_id': SN,
                     'run_id': SN, 'plan_id': SN, 'result': SN, 'exit_code': IN,
@@ -255,7 +279,12 @@ COMMANDS = {
     'plan': ('qp.plan/1', PLAN_RESULT, 'Output of `plan <subcommand> --json` (DOC-API-QP-005 §7)'),
     'migrate': ('qp.migrate/1', MIGRATE_RESULT, 'Output of `migrate <subcommand> --json` (DOC-API-QP-005 §9)'),
     'feeds.status': ('qp.feeds.status/1', FEEDS_STATUS_RESULT, 'Output of `feeds status --json` (DOC-API-QP-005 §10)'),
-    'feeds': ('qp.feeds/1', {'type': ['object', 'null']}, 'Output of other `feeds` subcommands (update, verify, export, import, schedule)'),
+    'feeds.update': ('qp.feeds.update/1', FEEDS_UPDATE_RESULT, 'Output of `feeds update --json` (FR-FEED-CMD-001)'),
+    'feeds.verify': ('qp.feeds.verify/1', FEEDS_VERIFY_RESULT, 'Output of `feeds verify --json` (FR-FEED-CMD-003)'),
+    'feeds.export': ('qp.feeds.export/1', FEEDS_EXPORT_RESULT, 'Output of `feeds export --json` (FR-FEED-CMD-004)'),
+    'feeds.import': ('qp.feeds.import/1', FEEDS_IMPORT_RESULT, 'Output of `feeds import --json` (FR-FEED-CMD-005)'),
+    'feeds.schedule': ('qp.feeds.schedule/1', FEEDS_SCHEDULE_RESULT, 'Output of `feeds schedule --json` (FR-FEED-CMD-006)'),
+    'feeds': ('qp.feeds/1', {'type': ['object', 'null']}, 'Error envelope of `feeds` with an unknown subcommand'),
     'audit': ('qp.audit/1', AUDIT_RESULT, 'Output of `audit list|verify --json` (FR-JOB-AUD-002, FR-JOB-AUD-003)'),
     'report': ('qp.report/1', REPORT_RESULT, 'Output of `report assess|evidence --json` (FR-RPT-ASMT-001, FR-RPT-AUD-001)'),
     'schema': ('qp.schema/1', SCHEMA_RESULT, 'Output of `schema <command> --json`'),
