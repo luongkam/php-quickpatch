@@ -69,7 +69,7 @@ Phân bổ FR → mốc do script sinh từ `srs/functional-requirements.md` và
 | Mốc | Trạng thái | Commit | Ghi chú |
 | :--- | :--- | :--- | :--- |
 | Việc 1 (v0.1.1) | Xong | `5919d7e` | 254 kiểm tra hồi quy, shellcheck sạch |
-| M1 | Xong | (commit M1) | 26 FR: 21 xong, 5 một phần (phần còn lại thuộc M2/M3/M5) |
+| M1 | Xong | `5b0a0ed` | 26 FR: 21 xong, 5 một phần (phần còn lại thuộc M2/M3/M5) |
 | M2 | Chưa bắt đầu | | |
 | M3 | Chưa bắt đầu | | |
 | M4 | Chưa bắt đầu | | |
