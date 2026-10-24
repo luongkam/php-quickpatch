@@ -6,7 +6,7 @@
 # Usage: php-quickpatch.sh [scan|fix|rollback [ID]] [options]   (see --help)
 set -uo pipefail
 
-QP_VERSION="0.1.0"
+QP_VERSION="0.1.1"
 
 # --- Advisory data: bump these when a new security release ships ----------
 # Lowest patched release per PHP branch (PHP2Shell, 2026-10-21).
@@ -73,7 +73,7 @@ Options:
   --path DIR        project/web root to scan (repeatable). Default: common
                     web roots (/var/www, /home, /srv, /www/wwwroot, ...)
   --only LIST       comma list of: php,node,composer,npm,wp,docker,webshell
-  --dry-run         with fix: print what would change, change nothing
+  --dry-run         with fix or rollback: print what would change, change nothing
   --no-restart      do not restart PHP-FPM/web server/Node services/containers
   --no-memlimit     skip the memory_limit=-1 interim mitigation
   --offline         no network lookups (no OSV, no release feeds, no downloads)
@@ -320,7 +320,8 @@ php_upgrade() {
     apk)
       [[ $pkg =~ ^(php[0-9]*) ]] && glob=${BASH_REMATCH[1]} || glob=php
       record note "apk upgraded: ${glob}* (packages are not downgraded by rollback)"
-      run apk upgrade --no-cache $(apk info 2>/dev/null | grep "^${glob}") ;;
+      mapfile -t pkgs < <(apk info 2>/dev/null | grep "^${glob}")
+      run apk upgrade --no-cache "${pkgs[@]}" ;;
   esac
 }
 
@@ -443,7 +444,8 @@ node_upgrade_prefix() {
   sums=$(fetch "$NODE_BASE_URL/v$ver/SHASUMS256.txt") || return 1
   (cd "$WORK_DIR" && grep " $tarball\$" <<<"$sums" | sha256sum -c --status) || { warn "checksum mismatch for $tarball"; return 1; }
   ensure_backup_dir
-  local saved="$BACKUP_DIR/node-$(echo "$prefix" | tr / _).tar.gz" parts=()
+  local saved parts=()
+  saved="$BACKUP_DIR/node-$(echo "$prefix" | tr / _).tar.gz"
   local p; for p in bin include lib/node_modules/npm lib/node_modules/corepack share/doc/node; do [ -e "$prefix/$p" ] && parts+=("$p"); done
   tar -czf "$saved" -C "$prefix" "${parts[@]}" && record untar "$saved" "$prefix"
   run tar -xJf "$WORK_DIR/$tarball" -C "$prefix" --strip-components=1 --no-same-owner
@@ -514,6 +516,7 @@ discover_projects() {
          -o -name 'docker-compose.y*ml' -o -name 'compose.y*ml' \) -type f -print 2>/dev/null | sort)
 }
 
+# shellcheck disable=SC2053  # $pat is a glob on purpose
 project_files() { local pat=$1 f; for f in "${PROJECT_FILES[@]}"; do [[ ${f##*/} == $pat ]] && echo "$f"; done; return 0; }
 
 composer_cmd() {
@@ -804,13 +807,33 @@ rollback_files_for() { # restore specific files from the current run's backups
   done
 }
 
+# Replay a run's manifest in reverse. The run directory and its manifest are
+# checked like STATE_DIR before a single line is read (FR-PTCH-RBK-002);
+# with --dry-run every step is only printed (changed in 0.1.1).
 do_rollback() {
-  local base="$STATE_DIR/backups" dir
-  if [ -n "$ROLLBACK_ID" ]; then dir="$base/$ROLLBACK_ID"; else dir=$(ls -d "$base"/*/ 2>/dev/null | sort | tail -n1); dir=${dir%/}; fi
-  [ -n "$dir" ] && [ -f "$dir/manifest" ] || { say "No backup run found in $base"; exit 2; }
-  head_ "Rolling back $(basename "$dir")"
+  local base="$STATE_DIR/backups" dir r
+  if [ -n "$ROLLBACK_ID" ]; then
+    [[ $ROLLBACK_ID =~ ^[0-9]{8}-[0-9]{6}$ ]] || { echo "Invalid rollback ID: $ROLLBACK_ID (expected YYYYmmdd-HHMMSS)" >&2; exit 2; }
+    dir="$base/$ROLLBACK_ID"
+  else
+    local c; dir=""
+    for c in "$base"/[0-9]*-[0-9]*; do [[ ${c##*/} =~ ^[0-9]{8}-[0-9]{6}$ ]] && dir=$c; done   # glob order = oldest first
+  fi
+  if [ -z "$dir" ] || { [ ! -e "$dir/manifest" ] && [ ! -L "$dir/manifest" ]; }; then say "No backup run found in $base"; exit 2; fi
+  r=$(unsafe_reason "$dir" dir) && state_dir_fail "$dir" "$r"
+  r=$(unsafe_reason "$dir/manifest" file) && state_dir_fail "$dir/manifest" "$r"
+  head_ "Rolling back $(basename "$dir")$( ((DRY_RUN)) && echo ' (dry-run)')"
   local action a b
   while IFS=$'\t' read -r action a b; do
+    if (( DRY_RUN )); then
+      case $action in
+        "") ;;
+        note) warn "$a" ;;
+        *) say "    [dry-run] $action $a${b:+ $b}" ;;
+      esac
+      case $action in created) RESTART_PHP=1 ;; untar) RESTART_NODE_PREFIXES+=("$b") ;; esac
+      continue
+    fi
     case $action in
       copy)    cp -a "$b" "$a" && note "restored $a" ;;
       created) rm -f "$a" && note "removed $a"; RESTART_PHP=1 ;;
@@ -821,7 +844,75 @@ do_rollback() {
     esac
   done < <(tac "$dir/manifest")
   restart_php_services; restart_node_services
-  say "Rollback done. Package upgrades (apt/dnf/yum) are kept."
+  if (( DRY_RUN )); then say "Dry-run: nothing was changed."
+  else say "Rollback done. Package upgrades (apt/dnf/yum) are kept."; fi
+}
+
+# --- State directory (spec §2.1, CR-SRS-13, NFR-SEC-010) ------------------
+STATE_WARN=()
+
+# unsafe_reason PATH dir|file: print why PATH must not be trusted (symlink,
+# not_dir, owner, mode) and succeed; fail when PATH is safe. Never follows
+# symlinks, so a path planted by another local user is rejected.
+unsafe_reason() {
+  local p=$1 kind=$2 uid mode
+  if [ -L "$p" ]; then echo symlink; return 0; fi
+  if [ "$kind" = dir ]; then [ -d "$p" ] || { echo not_dir; return 0; }
+  else [ -f "$p" ] || { echo not_dir; return 0; }; fi
+  read -r uid mode <<<"$(stat -c '%u %a' -- "$p" 2>/dev/null)"
+  [ "${uid:-}" = "$EUID" ] || { echo owner; return 0; }
+  (( (8#${mode:-777} & 8#022) == 0 )) || { echo mode; return 0; }
+  return 1
+}
+
+state_dir_fail() { # state_dir_fail PATH REASON: ERR-CLI-412-01, exit 2
+  local uid; uid=$(stat -c %u -- "$1" 2>/dev/null) || uid=-
+  echo "State directory $1 is unsafe ($2); aborting. [ERR-CLI-412-01] path=$1 reason=$2 uid=$uid euid=$EUID" >&2
+  exit 2
+}
+
+# Drop permission bits beyond WANT (e.g. 0755 left by v0.1 under umask 022).
+tighten_state_dir() { # tighten_state_dir DIR WANT
+  local mode; mode=$(stat -c %a -- "$1") || return 0
+  if (( 8#$mode & ~8#$2 & 8#777 )); then
+    chmod "$2" -- "$1" && STATE_WARN+=("state dir $1: mode $mode tightened to $2")
+  fi
+}
+
+# Pick STATE_DIR: root uses /var/lib/php-quickpatch with no fallback; other
+# users use ~/.php-quickpatch, else the newest safe php-quickpatch-$EUID[.*]
+# in TMPDIR, else a fresh mktemp -d. Unsafe primary path -> exit 2.
+select_state_dir() {
+  local p r
+  if (( IS_ROOT )); then
+    p=/var/lib/php-quickpatch
+    if [ ! -e "$p" ] && [ ! -L "$p" ]; then mkdir -m 0750 -- "$p" 2>/dev/null || state_dir_fail "$p" create_failed; fi
+    r=$(unsafe_reason "$p" dir) && state_dir_fail "$p" "$r"
+    tighten_state_dir "$p" 0750; STATE_DIR=$p; return
+  fi
+  if [ -n "${HOME:-}" ]; then
+    p="$HOME/.php-quickpatch"
+    if [ -e "$p" ] || [ -L "$p" ] || mkdir -m 0700 -- "$p" 2>/dev/null; then
+      r=$(unsafe_reason "$p" dir) && state_dir_fail "$p" "$r"
+      if [ -w "$p" ] && [ -x "$p" ]; then tighten_state_dir "$p" 0700; STATE_DIR=$p; return; fi
+    fi
+  fi
+  local tmp=${TMPDIR:-/tmp} c best="" best_m=-1 m
+  for c in "$tmp/php-quickpatch-$EUID" "$tmp/php-quickpatch-$EUID".*; do
+    [ -e "$c" ] || [ -L "$c" ] || continue
+    if r=$(unsafe_reason "$c" dir); then
+      STATE_WARN+=("skipped state dir candidate $c ($r)"); echo "[WARN] skipped unsafe state dir candidate $c ($r)" >&2; continue
+    fi
+    [ -w "$c" ] && [ -x "$c" ] || continue
+    m=$(stat -c %Y -- "$c") && (( m > best_m )) && { best=$c; best_m=$m; }
+  done
+  if [ -n "$best" ]; then
+    tighten_state_dir "$best" 0700
+  else
+    best=$(mktemp -d "$tmp/php-quickpatch-$EUID.XXXXXX" 2>/dev/null) || state_dir_fail "$tmp/php-quickpatch-$EUID.XXXXXX" create_failed
+    r=$(unsafe_reason "$best" dir) && state_dir_fail "$best" "$r"
+  fi
+  STATE_DIR=$best
 }
 
 # --- Main -----------------------------------------------------------------
@@ -848,9 +939,10 @@ want() { [[ ",$ONLY," == *",$1,"* ]]; }
 
 main() {
   parse_args "$@"
-  if (( IS_ROOT )); then STATE_DIR=/var/lib/php-quickpatch; else STATE_DIR="${HOME:-/tmp}/.php-quickpatch"; fi
-  mkdir -p "$STATE_DIR" 2>/dev/null || { STATE_DIR="${TMPDIR:-/tmp}/php-quickpatch-$EUID"; mkdir -p "$STATE_DIR" || exit 2; }
+  select_state_dir
   LOG="$STATE_DIR/php-quickpatch.log"
+  (umask 077; : >>"$LOG") 2>/dev/null
+  local w; for w in ${STATE_WARN[@]+"${STATE_WARN[@]}"}; do log "WARN: $w"; done
   WORK_DIR=$(mktemp -d) || exit 2
   trap 'rm -rf "$WORK_DIR"' EXIT
   exec 9>"$STATE_DIR/.lock"
