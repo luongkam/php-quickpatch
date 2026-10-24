@@ -69,5 +69,35 @@ Restart PHP-FPM/Apache bằng systemd, `restartsrv_*` của cPanel, pm2, `docker
 | `FR-PTCH-RBK-001` | Ghi backup manifest theo lượt | P0 | `US-PTCH-08` | `AC-PTCH-23`, `AC-PTCH-24`, `AC-PTCH-25` | TC-PTCH-023, TC-PTCH-024, TC-PTCH-025 |
 | `FR-PTCH-RBK-002` | Rollback lượt chạy | P0 | `US-PTCH-09` | `AC-PTCH-26`, `AC-PTCH-27`, `AC-PTCH-28` | TC-PTCH-026, TC-PTCH-027, TC-PTCH-028 |
 
-## Trạng thái FR
-Cập nhật khi kết thúc mốc (Xong / Một phần / Chưa thử trên máy thật).
+## Trạng thái FR (kết thúc M1, 2026-10-24)
+
+| FR | Trạng thái | Test tự động | Ghi chú / chưa thử trên máy thật |
+| :--- | :--- | :--- | :--- |
+| `FR-CLI-JSON-001` | Xong | `test_m1_cli.sh` (TC-CLI-001..003), mọi test `--json` | `data`, `catalog_version` = `null` + cảnh báo `ERR-FEED-503-01` tới M2/M3 |
+| `FR-CLI-JSON-002` | Xong | TC-CLI-004..006, `test_qplib.py` | 10 schema; schema `assess`/`plan`/`migrate`/`feeds`/`report` soạn theo DOC-API-QP-005, kiểm bằng đầu ra thật khi lệnh có ở M2–M7 |
+| `FR-CLI-COMP-001` | Xong | TC-CLI-007, so từng dòng văn bản + mã thoát với v0.1.1 | |
+| `FR-CLI-ENV-001` | Xong | TC-CLI-014, 028, 029, 102; `test_v011_state_dir.sh` | Bash < 4.3 chưa thử (container có Bash 5.2) |
+| `FR-CLI-SAFE-001` | Xong (khung) | TC-CLI-025..027 qua `confirm` | Chưa có lệnh ghi mới dùng tới (từ M2) |
+| `FR-SCAN-RT-001` | Một phần | TC-SCAN-004..006 | `scenario_ids`, `lifecycle_status` ở M2/M3 |
+| `FR-SCAN-RT-002` | Một phần | TC-SCAN-004 | `apps[]` (systemd/pm2) ở M5 |
+| `FR-SCAN-PRJ-001` | Một phần | TC-SCAN-007, 009 | `site_id` ở M3 |
+| `FR-SCAN-PRJ-002` | Xong | TC-SCAN-007, 009 (stub `docker`) | Chưa thử Docker daemon thật |
+| `FR-SCAN-WSH-001` | Xong | TC-SCAN-010, 012 | |
+| `FR-JOB-AUD-001` | Xong phía CLI | TC-JOB-019..021, `test_audit.py` (Bash + Python cùng chuỗi) | Bản ghi của console ở M6 |
+| `FR-JOB-AUD-002` | Xong | TC-JOB-022..024 (1.000 lần sửa 1 byte), neo job/`--anchor` | |
+| `FR-JOB-AUD-003` | Xong phía CLI | TC-JOB-022 | API ở M6 |
+| `FR-PTCH-PHP-001` | Xong | TC-PTCH-001, 003, 004 (stub dpkg/apt) | dnf/yum/apk chưa thử máy thật |
+| `FR-PTCH-PHP-002` | Xong | TC-PTCH-002 (gồm `ea-php` trên dpkg, `CR-SRS-07`) | |
+| `FR-PTCH-MIT-002` | Xong | TC-PTCH-005 | |
+| `FR-PTCH-NODE-001` | Xong | TC-PTCH-008, 009 (tarball, stub tải) | Gói distro/NodeSource chưa thử máy thật; nvm vẫn là hướng dẫn (mục `SEMI` ở M3) |
+| `FR-PTCH-DEP-001` | Xong | TC-PTCH-011, 012 (stub composer, OSV) | |
+| `FR-PTCH-DEP-002` | Xong | TC-PTCH-013 | |
+| `FR-PTCH-WP-001` | Xong | TC-PTCH-014, 015, 105 (stub wp-cli) | Mốc vá 7.0.7 lấy từ bundle ở M2 (M1 dùng dữ liệu v0.1) |
+| `FR-PTCH-WP-002` | Xong | TC-PTCH-016 | |
+| `FR-PTCH-DKR-001` | Xong | TC-PTCH-017 | |
+| `FR-PTCH-DKR-002` | Xong | TC-PTCH-018, 106 | Chưa thử Docker thật |
+| `FR-PTCH-RST-001` | Xong (systemd) | TC-PTCH-020, 022, 104 | Nhánh cPanel `restartsrv --check`, pm2, không systemd đã viết nhưng chưa thử trên máy thật |
+| `FR-PTCH-RBK-001` | Xong | TC-PTCH-023, 024, 025, 102, 103 | |
+| `FR-PTCH-RBK-002` | Một phần | TC-PTCH-026, 027, 101, 105, 106; `test_v011_*` | Dòng `switch` (R1–R7) ở M5 |
+
+Kết quả chạy: `tests/run.sh` — 497 kiểm tra Bash + 17 test Python, 0 lỗi; `shellcheck -S warning` sạch.

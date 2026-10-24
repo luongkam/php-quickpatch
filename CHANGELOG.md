@@ -1,5 +1,54 @@
 # Changelog
 
+## 2.0.0-alpha.1 — 2026-10-24 (Phase 1, milestone M1)
+
+Development build of v2 (not a release). Base: 0.1.1.
+
+### Added
+- `--json` on `scan`, `fix`, `rollback`: one JSON document on stdout
+  (envelope `qp.<command>/1` with `schema_version`), human text on stderr
+  and in the log (FR-CLI-JSON-001). JSON is built in pure Bash: no `jq`,
+  no Python needed for `scan`/`fix`/`rollback`.
+- `schema <command>` and JSON Schema 2020-12 files in
+  `share/php-quickpatch/schemas/` (FR-CLI-JSON-002).
+- Inventory in `scan --json`: runtimes (`runtime_id`, SAPIs, extensions,
+  owning package, install source, ABI, npm version), projects, running
+  containers (with compose labels), dependency, WordPress and webshell
+  findings (SHA-256, mtime, size) (FR-SCAN-RT/PRJ/WSH).
+- Append-only audit log `STATE_DIR/audit/audit-YYYYMM.jsonl` with a SHA-256
+  hash chain shared by Bash and Python; `audit list|verify` (Python 3.6+),
+  anchors in `--json` of write commands (FR-JOB-AUD-001..003).
+- Error codes `ERR-*` with English and Vietnamese messages
+  (`QP_LANG=vi`), catalog generated from the SRS error matrix.
+- `feeds`, `assess`, `plan`, `report`, `audit`, `serve` are dispatched to
+  Python; without Python 3.6+ they stop with `ERR-CLI-424-01`.
+
+### Changed (compared with 0.1.1)
+- `scan` and every `--dry-run` take a shared lock: two scans can run at the
+  same time; a `fix` still excludes them (BR-JOB-002, CR-SRS-06).
+- Each fix run gets its own `backups/<run_id>/` created atomically; a
+  second run in the same second waits for the next second, at most 10 tries
+  (`ERR-PTCH-409-01`). A run needs 50 MiB free in `STATE_DIR`
+  (`ERR-ENV-507-01`); `backups/` over 1 GiB prints a warning.
+- After a restart, each service is checked for up to 15 s; a service that
+  is not active makes `fix` exit 2 with `ERR-PTCH-500-01` (no automatic
+  rollback). Remi `phpNN-php-fpm` units are now restarted; `ea-php`
+  packages on dpkg (cPanel on Ubuntu) are now upgraded (CR-SRS-07).
+- WordPress: core and the plugins about to be updated are backed up as
+  tarballs (`untar` lines); rollback restores them. The `copy` of
+  `version.php` alone is gone (it used to leave a mismatched core).
+- Container mitigation: an existing file is never overwritten, and a
+  `docker-created` manifest line lets rollback remove it.
+- Rollback restarts Node.js only for `untar` lines whose target has
+  `bin/node`; a failing manifest step is reported per line in `--json`.
+- Runtime probes stop after 10 s; a binary or container that does not
+  answer is reported (`ERR-SCN-422-01`) instead of hanging the scan.
+- `QP_PHP_BINS`/`QP_NODE_BINS` paths are resolved through symlinks and
+  `php-configX.Y` is ignored, so one runtime is listed once.
+- The webshell scan reads PHP files below 2 MiB (0.1.x effectively stopped
+  at 1 MiB because of `find -size` rounding).
+- Unreadable PHP/Node versions are now printed as a `[WARN]` line.
+
 ## 0.1.1 — 2026-10-24
 
 Security fix release for `php-quickpatch.sh` v0.1.0. Two bugs were fixed;

@@ -47,3 +47,38 @@ t_done() {
   printf '# %s: %d passed, %d failed\n' "$(basename "$0")" "$T_PASS" "$T_FAIL"
   [ "$T_FAIL" -eq 0 ]
 }
+
+# path_without DIR NAME...: fill DIR with symlinks to every command on the
+# current PATH except NAME... and print DIR (simulates a host without them).
+path_without() {
+  local dir=$1 d f n skip; shift
+  mkdir -p "$dir"
+  local IFS=:
+  for d in $PATH; do
+    [ -d "$d" ] || continue
+    for f in "$d"/*; do
+      n=${f##*/}; skip=0
+      for s in "$@"; do [ "$n" = "$s" ] && skip=1; done
+      (( skip )) || [ -e "$dir/$n" ] || ln -s "$f" "$dir/$n"
+    done
+  done
+  echo "$dir"
+}
+
+# json_get FILE EXPR: evaluate a Python expression on the parsed document d.
+json_get() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(eval(sys.argv[2]))' "$1" "$2"; }
+
+# schema_ok FILE: validate a --json document against its published schema.
+schema_ok() {
+  python3 - "$1" "$QP_ROOT/share/php-quickpatch" <<'PY'
+import json, sys
+sys.path.insert(0, sys.argv[2])
+from qplib import jsonschema_lite
+doc = json.load(open(sys.argv[1]))
+name = doc["schema"].split("/")[0][3:]
+schema = json.load(open("%s/schemas/qp.%s.v1.schema.json" % (sys.argv[2], name)))
+errs = jsonschema_lite.validate(doc, schema)
+for e in errs[:10]: print(e)
+sys.exit(1 if errs else 0)
+PY
+}
