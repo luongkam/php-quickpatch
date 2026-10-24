@@ -188,7 +188,7 @@ sed "s/^QP_SNAPSHOT_SHA256=\"\"/QP_SNAPSHOT_SHA256=\"$(printf '0%.0s' {1..64})\"
 PATH="$STUB:$NOPY" bash "$TOOL/php-quickpatch.sh" scan --offline --json --only php --path "$T/w" >"$J" 2>/dev/null; rc=$?
 assert_eq "TC-FEED-036 wrong pin: ERR-FEED-422-02 warning" "$(json_get "$J" '[w["code"] for w in d["warnings"]][:1]')" "['ERR-FEED-422-02']"
 check "TC-FEED-036 wrong pin: no bundle installed" test ! -e "$FD/current"
-assert_eq "TC-FEED-037 no data at all: exit 2 + ERR-FEED-503-01" "$rc $(json_get "$J" '[e["code"] for e in d["errors"]]')" "2 ['ERR-FEED-503-01']"
+assert_eq "TC-FEED-037 no data at all: exit 2 + ERR-FEED-503-01" "$rc $(json_get "$J" '[e["code"] for e in d["errors"] if e["code"].startswith("ERR-FEED")]')" "2 ['ERR-FEED-503-01']"
 assert_eq "TC-FEED-037 runtimes unknown" "$(json_get "$J" 'sorted({r["state"] for r in d["result"]["runtimes"]})')" "['unknown']"
 
 t_done

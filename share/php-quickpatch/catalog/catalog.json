@@ -1,0 +1,108 @@
+{
+ "schema": "qp.catalog/1",
+ "catalog_version": "2026.10.24-1",
+ "data_as_of": "2026-10-22",
+ "built_from": [
+  "environment-playbooks.md",
+  "version-scenarios-node.md",
+  "version-scenarios-php-8x.md",
+  "version-scenarios-php.md"
+ ],
+ "counts": {
+  "scenarios": 28,
+  "checklist_items": 623,
+  "php_items": 399,
+  "node_items": 224
+ },
+ "loaders": {
+  "ioncube": {
+   "detect": [
+    "ionCube PHP Loader",
+    "ionCube Loader",
+    "<?php //0"
+   ],
+   "min_loader_by_branch": {
+    "8.1": "12.0.1",
+    "8.2": "13.0.0",
+    "8.3": "13.3.0",
+    "8.4": "14.4.0",
+    "8.5": "15.5.0"
+   },
+   "no_loader_branches": [
+    "8.0"
+   ]
+  },
+  "sourceguardian": {
+   "detect": [
+    "SourceGuardian",
+    "sg_load("
+   ],
+   "php_min": "5.3",
+   "php_max": "8.5"
+  },
+  "zend_guard": {
+   "detect": [
+    "Zend Guard Loader",
+    "Zend Optimizer"
+   ],
+   "php_min": null,
+   "php_max": null
+  }
+ },
+ "node": {
+  "node_module_version": {
+   "14": "83",
+   "16": "93",
+   "17": "102",
+   "18": "108",
+   "19": "111",
+   "20": "115",
+   "21": "120",
+   "22": "127",
+   "23": "131",
+   "24": "137",
+   "25": "141",
+   "26": "147"
+  },
+  "npm_latest": {
+   "14": "6.14.18",
+   "16": "8.19.4",
+   "17": "8.11.0",
+   "18": "10.8.2",
+   "19": "9.6.3",
+   "20": "10.8.2",
+   "21": "10.5.0",
+   "22": "10.9.9",
+   "23": "10.9.2",
+   "24": "11.19.1",
+   "25": "11.12.1",
+   "26": "11.20.0"
+  }
+ },
+ "composer": {
+  "lts": {
+   "version": "2.2.30",
+   "php_min": "5.3.2",
+   "support_until": "2026-12-31"
+  },
+  "stable": {
+   "version": "2.10.3",
+   "php_min": "7.2.5"
+  }
+ },
+ "thresholds": {
+  "php_target_ga_age_days": 90,
+  "target_eol_min_days": 365,
+  "node_lts_within_days": 14,
+  "deadline_before_eol_days": 30,
+  "deadline_warn_days": 90
+ },
+ "files": [
+  "scenarios.json",
+  "checklists.json",
+  "playbooks.json",
+  "bc_rules.json",
+  "mitigations.json",
+  "framework_php.tsv"
+ ]
+}

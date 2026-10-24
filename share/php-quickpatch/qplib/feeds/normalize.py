@@ -225,6 +225,18 @@ def _lifecycle(facts, conflicts):
         if p == 'php':
             row['php_net_supported'] = 1 if b in supported else (0 if V.vkey(b) >= (5, 0) else None)
         out[(p, b)] = row
+    for f in facts.get('SRC-002', []):
+        if f.get('type') != 'prerelease':
+            continue
+        key = ('php', f['branch'])
+        row = out.get(key)
+        if row is None:
+            out[key] = dict(product='php', branch=f['branch'], ga_date=None, lts_start=None, active_support_end=None,
+                            eol_date=None, prerelease_date=f.get('date'), php_net_supported=0,
+                            latest_hint=f['version'], origin='SRC-002', codename=None)
+        elif not row.get('ga_date'):
+            row['prerelease_date'] = row.get('prerelease_date') or f.get('date')
+            row['latest_hint'] = row.get('latest_hint') or f['version']
     return out
 
 

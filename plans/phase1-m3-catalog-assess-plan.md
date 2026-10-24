@@ -51,5 +51,34 @@ Nhận diện panel thật (lệnh `whmapi1`, `plesk bin`, `selectorctl`…), `a
 | `FR-SCAN-MAP-001` | Kiểm kê site → runtime | P0 | `US-SCAN-01` | `AC-SCAN-01`, `AC-SCAN-03` | TC-SCAN-001, TC-SCAN-003 |
 | `FR-PTCH-MIT-001` | Ghi mitigation ini tạm thời | P0 | `US-PTCH-02`, `US-PTCH-02` (FR) / `US-SCN-01` (TC) | `AC-PTCH-05`, `AC-PTCH-06`, `AC-PTCH-07`, bổ sung | TC-PTCH-005, TC-PTCH-006, TC-PTCH-007, TC-SCN-106 |
 
-## Trạng thái FR
-Cập nhật khi kết thúc mốc (Xong / Một phần / Chưa thử trên máy thật).
+## Trạng thái FR (kết thúc M3, 2026-10-24)
+
+| FR | Trạng thái | Test tự động | Ghi chú / chưa thử trên máy thật |
+| :--- | :--- | :--- | :--- |
+| `FR-SCN-CLS-001` | Xong | `test_m3_scan.sh` (bảng 4.1 của BR-SCN-040 + mọi dải 4.x–8.5, 10.0.0) | `8.1.2-1ubuntu2.24` thử bằng binary giả; chưa chạy trên Ubuntu thật |
+| `FR-SCN-CLS-002` | Xong | `test_m3_scan.sh` (≤ 16, 18, 20, lẻ, 22, 24, 26, nightly/rc, v99; nvm/tarball/NodeSource/distro) | Nguồn NodeSource nhận theo chuỗi phiên bản gói (`…nodesource…`), chưa đọc `apt-cache policy` |
+| `FR-SCN-LIFE-001` | Xong | `test_m3_scan.sh`, `test_m3_plan.sh` (TC-SCN-005, 101, 106, 107, 109, 110) | PRE_RELEASE chưa nâng lên Nghiêm trọng theo "site công khai" (chưa biết site nào công khai) |
+| `FR-SCN-CAT-001` | Xong | `test_m3_scan.sh` (TC-SCN-008/009/010, snapshot), `test_m3_catalog_plan.py` | Catalog sinh bằng `tools/build-catalog.py` từ tài liệu kịch bản; đi kèm snapshot (`catalog/`) |
+| `FR-SCN-CHK-001` | Xong | `test_m3_plan.sh` (TC-SCN-011, 013), `test_m3_catalog_plan.py` | Mở rộng "(khi nâng)" theo mục mẫu; mở rộng theo từng package (TC-SCN-013 KQ2 dạng package) chờ danh sách nâng cấp của M4 |
+| `FR-SCN-LOCK-001` | Một phần | `test_m3_scan.sh` (TC-SCN-003 KQ3) | Khoá `fix` và `plan run`; gỡ khoá bằng "gán lại phiên bản thật có duyệt" chưa có lệnh (CHK-PHP-005-10 làm thủ công) |
+| `FR-SCN-ENV-001` | Xong | `test_m3_scan.sh` (TC-SCN-014/016 qua hàm, PB-000), `test_m3_catalog_plan.py` | Container chỉ thử bằng biến `IN_CONTAINER` (không tạo `/.dockerenv` trên máy test) |
+| `FR-PLAN-TGT-001` | Xong | `test_m3_plan.sh` (TC-SCN-102 KQ1, TC-SCN-108 KQ1/2, PRE_RELEASE) | Ràng buộc framework chỉ có WordPress (M4 nhận diện framework khác) |
+| `FR-PLAN-GEN-001` | Một phần | `test_m3_plan.sh` | `upgrade_items[]` rỗng tới M4 (cần kết quả quét Composer/extension) |
+| `FR-PLAN-GEN-002` | Một phần | `test_m3_plan.sh` | Thứ tự site theo số file PHP; site `PASS`/`FAIL` chờ quét tương thích (M4): mọi site `PENDING` |
+| `FR-PLAN-DEP-001` | Chưa | — | Cần kết quả `FR-CMPT-*` (M4) |
+| `FR-PLAN-CHK-001` | Xong | `test_m3_plan.sh` (T-CHK-02/04/09/10/11/14/15/16) | |
+| `FR-PLAN-CHK-002` | Một phần | `test_m3_plan.sh` (scan/assess/fix, dry-run, `--yes`, ERR-SCN-424-01) | Chỉ `scan`, `assess`, `fix` có `cli_action`; job console ở M6; `fix --only php` vá mọi runtime PHP của máy |
+| `FR-PLAN-STS-001` | Một phần | `test_m3_plan.sh` (T-PLN-01..05, 07, 09, 12, 13) | `approve` kế hoạch khác nhánh có site cần quét tương thích (M4) và baseline health check (M5); `close` cần lượt chuyển `ROLLED_BACK` (M5) |
+| `FR-PLAN-DL-001` | Xong | `test_m3_scan.sh`, `test_m3_plan.sh`, `test_m3_catalog_plan.py` | |
+| `FR-ASMT-CUR-001` | Xong | `test_m3_plan.sh` (TC-ASMT-001/002/003) | Số đếm CVE theo NVD thật (C-15: R 58 thay vì 60) |
+| `FR-ASMT-CAND-001` | Xong | `test_m3_plan.sh` (TC-ASMT-005, TC-SCN-101/106/107/110, TC-ASMT-007) | |
+| `FR-ASMT-CAND-002` | Một phần | `test_m3_plan.sh` (PB-001 qua `apt-cache` giả) | PB-002..004, panel: `unknown` (lệnh chưa kiểm chứng, BR-ENV-010); chưa chạy `apt-cache policy` trên kho Surý thật |
+| `FR-ASMT-CMP-001` | Một phần | `test_m3_plan.sh` (TC-ASMT-008) | `compat_errors`/`compat_warnings` = `null` tới M4 |
+| `FR-ASMT-RANK-001` | Xong | `test_m3_scan.sh` (TC-ASMT-011, mã lý do) | |
+| `FR-CLI-CMD-001` | Xong | `test_m3_plan.sh` (TC-CLI-013..015) | |
+| `FR-CLI-CMD-002` | Xong | `test_m3_plan.sh` (TC-CLI-016..018) | `plan waive` kiểm `hit_id` nhưng chưa có hit (M4) |
+| `FR-SCAN-ENV-001` | Một phần | `test_m3_scan.sh` (bước 2–9 qua dấu hiệu, PB-000, PB-005, PB-006) | Panel chỉ nhận diện bằng file đánh dấu; chưa thử trên máy có cPanel/Plesk/aaPanel/CyberPanel/DirectAdmin, RHEL/Remi, Alpine |
+| `FR-SCAN-MAP-001` | Một phần | `test_m3_scan.sh` (Nginx: upstream, snippet, 80+443; Apache: SetHandler, conf toàn cục, mod_php; site không nạp → ERR-ENV-422-02) | Kiểm kê site của panel (whmapi1, plesk bin…) và pm2 chưa làm; chưa chạy `nginx -T`/`apachectl -S` thật |
+| `FR-PTCH-MIT-001` | Xong | `test_m3_scan.sh` (FR §15.3 ca 11, `--no-memlimit`, 8.5) | Theo `CR-FR-07` (C-03, chờ PO xác nhận) |
+
+Kết quả cuối M3 (2026-10-24): `tests/run.sh` — 774 kiểm tra Bash + 82 test Python, 0 lỗi; `shellcheck -S warning` sạch.

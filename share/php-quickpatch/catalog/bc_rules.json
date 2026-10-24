@@ -1,0 +1,1125 @@
+{
+ "schema": "qp.catalog/1",
+ "catalog_version": "2026.10.24-1",
+ "rules": [
+  {
+   "rule_id": "BC-PHP-50-01",
+   "runtime": "php",
+   "version": "5.0",
+   "prerelease": false,
+   "change": "Mô hình đối tượng mới: đối tượng được tham chiếu bằng handle, không còn sao chép theo giá trị khi gán/truyền; hàm trùng tên lớp chỉ là constructor khi khai báo trong chính lớp đó",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime; cảnh báo khi thấy `=& new` hoặc gán đối tượng rồi sửa bản sao",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "=& new",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`clone` khi cần bản sao"
+  },
+  {
+   "rule_id": "BC-PHP-50-02",
+   "runtime": "php",
+   "version": "5.0",
+   "prerelease": false,
+   "change": "`array_merge()` chỉ nhận mảng; `strrpos()` dùng toàn bộ needle; `ip2long()` trả `false` khi IP sai; khai báo hàm trong file bị include 2 lần gây Fatal",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "`array_merge\\(`, `ip2long\\(` so với `-1`; `(include|require)\\s*\\(` không có `_once`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "array_merge\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "ip2long\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "-1",
+     "level": "warning"
+    },
+    {
+     "pattern": "(include|require)\\s*\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "_once",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Ép `(array)`; so sánh `=== false`; `include_once`"
+  },
+  {
+   "rule_id": "BC-PHP-53-01",
+   "runtime": "php",
+   "version": "5.3",
+   "prerelease": false,
+   "change": "Deprecated: họ `ereg*`/`split()`/`spliti()`/`sql_regcase()`, `session_register()`, `call_user_method()`, `set_magic_quotes_runtime()`, `dl()`, gán `=& new`, truyền tham chiếu lúc gọi, directive `register_globals`/`magic_quotes_*`/`safe_mode`",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "Tên hàm; `=&\\s*new\\b`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "=&\\s*new\\b",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`preg_*`, `$_SESSION`, `call_user_func()`"
+  },
+  {
+   "rule_id": "BC-PHP-54-01",
+   "runtime": "php",
+   "version": "5.4",
+   "prerelease": false,
+   "change": "Xoá register globals, magic quotes, safe mode; các directive liên quan gây `E_CORE_ERROR` khi khởi động",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "ini: danh sách BR-SCN-046 (5.4); mã: biến request dùng trực tiếp không qua `$_GET`/`$_POST`/`$_REQUEST`/`$_COOKIE` (Runtime)",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": true,
+   "patterns": [
+    {
+     "pattern": "$_GET",
+     "level": "error"
+    },
+    {
+     "pattern": "$_POST",
+     "level": "error"
+    },
+    {
+     "pattern": "$_REQUEST",
+     "level": "error"
+    },
+    {
+     "pattern": "$_COOKIE",
+     "level": "error"
+    }
+   ],
+   "replacement": "Đọc superglobal; tự escape bằng prepared statement"
+  },
+  {
+   "rule_id": "BC-PHP-54-02",
+   "runtime": "php",
+   "version": "5.4",
+   "prerelease": false,
+   "change": "Xoá truyền tham chiếu lúc gọi (`f(&$x)`)",
+   "kind": "Xoá (Fatal)",
+   "level": "error",
+   "detect": "PHPC; lời gọi có `&\\$` trong danh sách đối số (loại trừ dòng `function`)",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "&\\$",
+     "level": "error"
+    },
+    {
+     "pattern": "function",
+     "level": "error"
+    }
+   ],
+   "replacement": "Khai báo `&` ở chữ ký hàm"
+  },
+  {
+   "rule_id": "BC-PHP-54-03",
+   "runtime": "php",
+   "version": "5.4",
+   "prerelease": false,
+   "change": "Xoá `session_register()`, `session_unregister()`, `session_is_registered()`, `import_request_variables()`, `define_syslog_variables()`; xoá cú pháp `break $var`/`continue $var`; `trait`, `callable`, `insteadof` thành từ khoá",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "Tên hàm; `\\b(break|continue)\\s+\\$`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "\\b(break|continue)\\s+\\$",
+     "level": "error"
+    }
+   ],
+   "replacement": "`$_SESSION`; hằng số nguyên"
+  },
+  {
+   "rule_id": "BC-PHP-54-04",
+   "runtime": "php",
+   "version": "5.4",
+   "prerelease": false,
+   "change": "`htmlspecialchars()`/`htmlentities()`/`html_entity_decode()` mặc định UTF-8 (trước ISO-8859-1); `TZ` không còn đặt múi giờ",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Lời gọi không truyền tham số encoding",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Truyền encoding; đặt `date.timezone`"
+  },
+  {
+   "rule_id": "BC-PHP-55-01",
+   "runtime": "php",
+   "version": "5.5",
+   "prerelease": false,
+   "change": "Deprecated `ext/mysql`, modifier `/e` của `preg_replace()`, `mcrypt_ecb/cbc/cfb/ofb()`",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "`mysql_\\w+\\(`; `preg_replace` với pattern có `e` trong modifier",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "mysql_\\w+\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "preg_replace",
+     "level": "warning"
+    },
+    {
+     "pattern": "e",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`mysqli`/`PDO`; `preg_replace_callback()`"
+  },
+  {
+   "rule_id": "BC-PHP-56-01",
+   "runtime": "php",
+   "version": "5.6",
+   "prerelease": false,
+   "change": "`json_decode()` từ chối `true`/`false`/`null` không viết thường; stream SSL/TLS kiểm tra chứng chỉ peer và tên máy mặc định; GMP thành object; mcrypt yêu cầu key/IV hợp lệ",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "`file_get_contents\\(\\s*['\"]https`, `stream_context_create` (Runtime)",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "file_get_contents\\(\\s*['\"]https",
+     "level": "warning"
+    },
+    {
+     "pattern": "stream_context_create",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Cấu hình CA bundle, `openssl.cafile`"
+  },
+  {
+   "rule_id": "BC-PHP-56-02",
+   "runtime": "php",
+   "version": "5.6",
+   "prerelease": false,
+   "change": "Deprecated `$HTTP_RAW_POST_DATA`/`always_populate_raw_post_data`; gọi phương thức non-static từ ngữ cảnh không tương thích",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "`\\$HTTP_RAW_POST_DATA`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "\\$HTTP_RAW_POST_DATA",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`file_get_contents('php://input')`"
+  },
+  {
+   "rule_id": "BC-PHP-70-01",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Xoá extension `ereg`, `mssql`, `mysql`, `sybase_ct` và nhiều SAPI (vd `apache`, `apache2filter`, `isapi`, `nsapi`)",
+   "kind": "Xoá ext",
+   "level": "error",
+   "detect": "`\\b(mysql_\\w+|ereg\\w*|eregi\\w*|split|spliti|sql_regcase|mssql_\\w+|sybase_\\w+)\\s*\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "\\b(mysql_\\w+|ereg\\w*|eregi\\w*|split|spliti|sql_regcase|mssql_\\w+|sybase_\\w+)\\s*\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "`mysqli`/`PDO_MySQL`, `preg_*`, `PDO_DBLIB`/`sqlsrv`"
+  },
+  {
+   "rule_id": "BC-PHP-70-02",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Xoá thẻ ASP `<% %>`, `<%=` và `<script language=\"php\">`; xoá ini `asp_tags`",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "`<%`, `<script\\s+language\\s*=\\s*[\"']?php`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "<%",
+     "level": "error"
+    },
+    {
+     "pattern": "<script\\s+language\\s*=\\s*[\"']?php",
+     "level": "error"
+    }
+   ],
+   "replacement": "`<?php`"
+  },
+  {
+   "rule_id": "BC-PHP-70-03",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Xoá modifier `/e` (`PREG_REPLACE_EVAL`)",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "`preg_replace\\s*\\(` với pattern kết thúc bằng modifier chứa `e`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "preg_replace\\s*\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "e",
+     "level": "error"
+    }
+   ],
+   "replacement": "`preg_replace_callback()`"
+  },
+  {
+   "rule_id": "BC-PHP-70-04",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Xoá `call_user_method()`, `call_user_method_array()`, `set_magic_quotes_runtime()`, `mcrypt_generic_end()`, `mcrypt_ecb/cbc/cfb/ofb()`, `$HTTP_RAW_POST_DATA`; `dl()` không dùng được trong PHP-FPM",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "Tên hàm/biến",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [],
+   "replacement": "`call_user_func()`, `mcrypt_generic_deinit()`, `php://input`"
+  },
+  {
+   "rule_id": "BC-PHP-70-05",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Deprecated constructor kiểu PHP 4 (phương thức trùng tên lớp) và gọi tĩnh phương thức non-static",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "PHPC; `class\\s+(\\w+)` + `function\\s+\\1\\s*\\(`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "class\\s+(\\w+)",
+     "level": "warning"
+    },
+    {
+     "pattern": "function\\s+\\1\\s*\\(",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`__construct()`"
+  },
+  {
+   "rule_id": "BC-PHP-70-06",
+   "runtime": "php",
+   "version": "7.0",
+   "prerelease": false,
+   "change": "Biến gián tiếp đánh giá trái → phải; `list()` gán trái → phải, không rỗng, không unpack chuỗi; `foreach` không đổi con trỏ mảng; literal bát phân sai là Parse error; thay đổi xử lý chia cho 0; `E_STRICT` được phân loại lại; constructor lớp nội tại ném exception khi lỗi",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "PHPC + `php -l` bằng `$NEW_BIN`; còn lại Runtime",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "php -l",
+     "level": "warning"
+    },
+    {
+     "pattern": "$NEW_BIN",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Sửa mã"
+  },
+  {
+   "rule_id": "BC-PHP-71-01",
+   "runtime": "php",
+   "version": "7.1",
+   "prerelease": false,
+   "change": "Gọi hàm thiếu tham số ném `ArgumentCountError` (trước là Warning); `void`, `iterable` không dùng làm tên lớp; deprecated `ext/mcrypt`",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "PHPC; `mcrypt_\\w+\\(`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "mcrypt_\\w+\\(",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Truyền đủ tham số; `openssl_*`/`sodium_*`"
+  },
+  {
+   "rule_id": "BC-PHP-72-01",
+   "runtime": "php",
+   "version": "7.2",
+   "prerelease": false,
+   "change": "`mcrypt` chuyển khỏi lõi sang PECL",
+   "kind": "Xoá ext",
+   "level": "error",
+   "detect": "`mcrypt_\\w+\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "mcrypt_\\w+\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "`openssl_*`, `sodium_*`"
+  },
+  {
+   "rule_id": "BC-PHP-72-02",
+   "runtime": "php",
+   "version": "7.2",
+   "prerelease": false,
+   "change": "Deprecated `each()`, `create_function()`, `__autoload()`, `track_errors`/`$php_errormsg`, `(unset)` cast, `parse_str()` 1 tham số, `assert()` với chuỗi, `mbstring.func_overload`, hằng chưa định nghĩa được coi là chuỗi; `count()` trên giá trị không Countable phát Warning; xoá ini `sql.safe_mode`",
+   "kind": "Deprecated / Đổi hành vi",
+   "level": "warning",
+   "detect": "PHPC; `\\beach\\s*\\(`, `create_function\\s*\\(`, `function\\s+__autoload\\b`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "\\beach\\s*\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "create_function\\s*\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "function\\s+__autoload\\b",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`foreach`, closure, `spl_autoload_register()`"
+  },
+  {
+   "rule_id": "BC-PHP-73-01",
+   "runtime": "php",
+   "version": "7.3",
+   "prerelease": false,
+   "change": "Nhãn kết thúc heredoc/nowdoc được nhận khi xuất hiện đầu dòng có thụt lề; `continue` nhắm `switch` phát Warning; deprecated hằng không phân biệt hoa thường (`define(..., true)`), needle không phải chuỗi trong `strpos()` và họ hàm, alias `mbereg*`",
+   "kind": "Đổi hành vi / Deprecated",
+   "level": "warning",
+   "detect": "PHPC; `define\\s*\\([^)]*,\\s*true\\s*\\)`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "define\\s*\\([^)]*,\\s*true\\s*\\)",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`continue 2`; needle kiểu chuỗi"
+  },
+  {
+   "rule_id": "BC-PHP-74-01",
+   "runtime": "php",
+   "version": "7.4",
+   "prerelease": false,
+   "change": "Deprecated ternary lồng không ngoặc, offset bằng `{}`, `(real)`/`is_real()`, `array_key_exists()` trên object, `get_magic_quotes_gpc/runtime()`, `money_format()`, `hebrevc()`, `convert_cyr_string()`, `ezmlm_hash()`, `restore_include_path()`, `allow_url_include`, `implode()` đảo tham số; truy cập mảng trên giá trị không phải mảng phát Notice; `fn` thành từ khoá",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "PHPC; `\\$\\w+\\{`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "\\$\\w+\\{",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Ngoặc rõ ràng, `[]`, `(float)`, `NumberFormatter`"
+  },
+  {
+   "rule_id": "BC-PHP-74-02",
+   "runtime": "php",
+   "version": "7.4",
+   "prerelease": false,
+   "change": "`interbase` (Firebird còn PDO_Firebird), `recode`, `wddx` chuyển sang PECL",
+   "kind": "Xoá ext",
+   "level": "error",
+   "detect": "`ibase_\\w+\\(`, `recode\\w*\\(`, `wddx_\\w+\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "ibase_\\w+\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "recode\\w*\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "wddx_\\w+\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "`PDO_Firebird`, `iconv`/`mbstring`, JSON"
+  },
+  {
+   "rule_id": "BC-PHP-80-01",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "So sánh chuỗi không phải số với số: so sánh như chuỗi (vd `0 == \"foo\"` thành `false`)",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime (PHPC không phát hiện đầy đủ)",
+   "phpc": true,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "`===`, ép kiểu tường minh"
+  },
+  {
+   "rule_id": "BC-PHP-80-02",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "Xoá `each()`, `create_function()`, `__autoload()`, `array_key_exists()` trên object, cast `(real)`/`(unset)`, `track_errors`/`$php_errormsg`, `money_format()`, `hebrevc()`, `convert_cyr_string()`, `ezmlm_hash()`, `restore_include_path()`, `get_magic_quotes_gpc/runtime()`, `read_exif_data()`, `gmp_random()`, `imap_header()`",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "PHPC + tên hàm",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Như BC-PHP-72-02, BC-PHP-74-01"
+  },
+  {
+   "rule_id": "BC-PHP-80-03",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "Phương thức trùng tên lớp không còn là constructor",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "PHPC; mẫu của BC-PHP-70-05",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [],
+   "replacement": "`__construct()`"
+  },
+  {
+   "rule_id": "BC-PHP-80-04",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "`match` là từ khoá; ternary lồng không ngoặc và offset `{}` thành lỗi biên dịch; `@` không chặn lỗi Fatal; `error_reporting` mặc định `E_ALL`, `display_startup_errors` bật; nhiều Notice/Warning nâng mức (đọc biến/khoá không định nghĩa thành Warning)",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "PHPC; `php -l`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "php -l",
+     "level": "error"
+    }
+   ],
+   "replacement": "Sửa mã; xem log P6"
+  },
+  {
+   "rule_id": "BC-PHP-80-05",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "Xoá directive `mbstring.func_overload`; nhiều hàm trả object thay resource (vd `curl_init()` → `CurlHandle`, `xml_parser_create()` → `XMLParser`) nên kiểm tra `is_resource()` sai",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "ini; `is_resource\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": true,
+   "patterns": [
+    {
+     "pattern": "is_resource\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "`=== false`, `instanceof`"
+  },
+  {
+   "rule_id": "BC-PHP-80-06",
+   "runtime": "php",
+   "version": "8.0",
+   "prerelease": false,
+   "change": "`xmlrpc` chuyển sang PECL; `call_user_func_array()` hiểu khoá chuỗi là named argument; tham số tuỳ chọn đứng trước tham số bắt buộc bị deprecated",
+   "kind": "Xoá ext / Đổi hành vi",
+   "level": "error",
+   "detect": "`xmlrpc_\\w+\\(`; PHPC",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "xmlrpc_\\w+\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "Thư viện userland; mảng đối số có chỉ số số"
+  },
+  {
+   "rule_id": "BC-PHP-81-01",
+   "runtime": "php",
+   "version": "8.1",
+   "prerelease": false,
+   "change": "Deprecated truyền `null` cho tham số non-nullable của hàm built-in (vd `strlen(null)`); chuyển float không nguyên sang int ngầm định; autovivification từ `false`",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "Runtime (log `Deprecated`)",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "Deprecated",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Kiểm tra `null`, ép kiểu"
+  },
+  {
+   "rule_id": "BC-PHP-81-02",
+   "runtime": "php",
+   "version": "8.1",
+   "prerelease": false,
+   "change": "Lớp con override phương thức lớp nội tại không khai báo kiểu trả về tương thích phát Deprecated; `Serializable` không có `__serialize()`/`__unserialize()` deprecated; hạn chế ghi toàn bộ `$GLOBALS`; `readonly`, `never` thành từ khoá",
+   "kind": "Deprecated / Xoá",
+   "level": "error",
+   "detect": "PHPC; `array_\\w+\\(\\s*\\$GLOBALS`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "array_\\w+\\(\\s*\\$GLOBALS",
+     "level": "error"
+    }
+   ],
+   "replacement": "`#[\\ReturnTypeWillChange]`, `__serialize()`"
+  },
+  {
+   "rule_id": "BC-PHP-81-03",
+   "runtime": "php",
+   "version": "8.1",
+   "prerelease": false,
+   "change": "Deprecated `strftime()`/`gmstrftime()`, `strptime()`, `date_sunrise()`/`date_sunset()`, `FILTER_SANITIZE_STRING`, `mhash*()`, `odbc_result_all()`, `auto_detect_line_endings`, `key()`/`current()`... trên object",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "Tên hàm/hằng",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [],
+   "replacement": "`IntlDateFormatter`/`date()`, `htmlspecialchars()`, `hash()`"
+  },
+  {
+   "rule_id": "BC-PHP-82-01",
+   "runtime": "php",
+   "version": "8.2",
+   "prerelease": false,
+   "change": "Deprecated tạo dynamic property (trừ lớp có `#[\\AllowDynamicProperties]` và `stdClass`)",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "Runtime + phân tích tĩnh (PHPStan/Rector nếu có)",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Khai báo thuộc tính"
+  },
+  {
+   "rule_id": "BC-PHP-82-02",
+   "runtime": "php",
+   "version": "8.2",
+   "prerelease": false,
+   "change": "Deprecated `utf8_encode()`/`utf8_decode()`, nội suy `\"${var}\"`/`\"${expr}\"`, callable tương đối (`\"self::m\"`, `[\"parent\",\"m\"]`, `\"static::m\"`...), mbstring encoding `QPrint`/`Base64`/`Uuencode`/`HTML-ENTITIES`",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "`utf8_(en|de)code\\(`; `\"\\$\\{`; PHPC",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "utf8_(en|de)code\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "\"\\$\\{",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`mb_convert_encoding()`, `\"{$var}\"`, `self::m(...)`"
+  },
+  {
+   "rule_id": "BC-PHP-82-03",
+   "runtime": "php",
+   "version": "8.2",
+   "prerelease": false,
+   "change": "`strtolower()`, `strtoupper()`, `stristr()`, `stripos()`, `strripos()`, `lcfirst()`, `ucfirst()`, `ucwords()`, `str_ireplace()` không còn phụ thuộc locale; `str_split('')` trả `[]`; `ksort()` với khoá chuỗi số đổi thứ tự",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "`mb_*` khi cần theo locale"
+  },
+  {
+   "rule_id": "BC-PHP-83-01",
+   "runtime": "php",
+   "version": "8.3",
+   "prerelease": false,
+   "change": "Deprecated `get_class()`/`get_parent_class()` không tham số và tăng/giảm trên giá trị không phải số; `range()` đổi kết quả với chuỗi và ném `ValueError`/`TypeError`; kiểm tra visibility hằng lớp khi kế thừa",
+   "kind": "Deprecated / Đổi hành vi",
+   "level": "warning",
+   "detect": "PHPC; `get_(parent_)?class\\(\\s*\\)`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "get_(parent_)?class\\(\\s*\\)",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`static::class`, `$this::class`"
+  },
+  {
+   "rule_id": "BC-PHP-84-01",
+   "runtime": "php",
+   "version": "8.4",
+   "prerelease": false,
+   "change": "Deprecated tham số nullable ngầm định (`function f(Foo $x = null)`)",
+   "kind": "Deprecated",
+   "level": "warning",
+   "detect": "PHPC; khai báo có kiểu không bắt đầu bằng `?` và mặc định `= null`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "?",
+     "level": "warning"
+    },
+    {
+     "pattern": "= null",
+     "level": "warning"
+    }
+   ],
+   "replacement": "`?Foo $x = null`"
+  },
+  {
+   "rule_id": "BC-PHP-84-02",
+   "runtime": "php",
+   "version": "8.4",
+   "prerelease": false,
+   "change": "Xoá mức lỗi `E_STRICT` (hằng `E_STRICT` deprecated); `exit()` đổi hành vi; hằng của lớp extension có kiểu; deprecated `_` làm tên lớp, `0 ** -n`",
+   "kind": "Xoá / Deprecated",
+   "level": "error",
+   "detect": "`E_STRICT`; PHPC",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "E_STRICT",
+     "level": "error"
+    }
+   ],
+   "replacement": "Bỏ `E_STRICT` khỏi `error_reporting`"
+  },
+  {
+   "rule_id": "BC-PHP-84-03",
+   "runtime": "php",
+   "version": "8.4",
+   "prerelease": false,
+   "change": "`imap`, `oci8`, `pdo_oci`, `pspell` chuyển sang PECL",
+   "kind": "Xoá ext",
+   "level": "error",
+   "detect": "`imap_\\w+\\(`, `oci_\\w+\\(`, `pspell_\\w+\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "imap_\\w+\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "oci_\\w+\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "pspell_\\w+\\(",
+     "level": "error"
+    }
+   ],
+   "replacement": "PECL hoặc thư viện userland đã duyệt"
+  },
+  {
+   "rule_id": "BC-PHP-85-01",
+   "runtime": "php",
+   "version": "8.5",
+   "prerelease": false,
+   "change": "Deprecated toán tử backtick (alias `shell_exec()`), ép kiểu `(boolean)`/`(integer)`/`(double)`/`(binary)`, kết thúc `case` bằng `;`, `null` làm offset mảng hoặc đối số của `array_key_exists()`, tăng chuỗi không phải số, khai báo lại hằng, ini `report_memleaks`, suy `$_SERVER['argc']`/`$_SERVER['argv']` từ query string ở SAPI khác CLI (`register_argc_argv`), `__wakeup()` của `DateTimeInterface`/`DateTime`/`DateTimeImmutable`/`DateTimeZone`/`DateInterval`/`DatePeriod`. Soft-deprecated (chỉ ở tài liệu, không phát `E_DEPRECATED` — RFC `soft-deprecate-sleep-wakeup` thay cho bản deprecation cứng đã bỏ phiếu): `__sleep()`/`__wakeup()` do mã người dùng khai báo",
+   "kind": "Deprecated; riêng `__sleep()`/`__wakeup()`: Soft-deprecated (mức `info`, BR-SCN-041)",
+   "level": "warning",
+   "detect": "`` ` `` ngoài chuỗi; `\\((boolean|integer|double|binary)\\)`; `case\\s+[^:]+;`; PHPC; mức info: `function\\s+__(sleep|wakeup)\\s*\\(`",
+   "phpc": true,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": " ngoài chuỗi; ",
+     "level": "warning"
+    },
+    {
+     "pattern": "; ",
+     "level": "warning"
+    },
+    {
+     "pattern": "function\\s+__(sleep|wakeup)\\s*\\(",
+     "level": "info"
+    }
+   ],
+   "replacement": "`shell_exec()`, `(bool)`/`(int)`/`(float)`/`(string)`, `register_argc_argv=0` + `$_GET`; `__serialize()`/`__unserialize()`"
+  },
+  {
+   "rule_id": "BC-PHP-85-02",
+   "runtime": "php",
+   "version": "8.5",
+   "prerelease": false,
+   "change": "Xoá ini `disable_classes`; OPcache luôn được biên dịch vào binary và luôn nạp, build không còn sinh `opcache.so`, cờ configure `--enable-opcache`/`--disable-opcache` bị xoá, dòng `zend_extension=opcache.so` phát Warning (`opcache.enable`, `opcache.enable_cli` vẫn có hiệu lực); huỷ cấu trúc giá trị không phải mảng (khác `null`) phát Warning; so sánh lỏng object không so sánh được đổi hành vi; cấm alias tên `array`/`callable`",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "ini: `disable_classes`, dòng `zend_extension` nạp opcache (mẫu ở BR-SCN-046); Runtime",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": true,
+   "patterns": [
+    {
+     "pattern": "disable_classes",
+     "level": "error"
+    },
+    {
+     "pattern": "zend_extension",
+     "level": "error"
+    }
+   ],
+   "replacement": "`disable_functions`; bỏ dòng `zend_extension` của opcache, giữ `opcache.*`; kiểm tra kiểu trước khi huỷ cấu trúc"
+  },
+  {
+   "rule_id": "BC-PHP-86-01",
+   "runtime": "php",
+   "version": "8.6",
+   "prerelease": true,
+   "change": "`foreach` theo tham chiếu có thể duyệt phần tử bị bỏ qua sau khi nén mảng; `??`/`empty()` trên magic property không gọi `__get()` khi `__isset()` đã ghi thuộc tính; DOM: thuộc tính `@readonly` thành `public private(set)`",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Theo `UPGRADING` nhánh PHP-8.6 (có thể thay đổi trước GA)"
+  },
+  {
+   "rule_id": "BC-NODE-17-01",
+   "runtime": "node",
+   "version": "17",
+   "prerelease": false,
+   "change": "OpenSSL 3.0 (quictls); siết thuật toán và kích thước khoá → lỗi `ERR_OSSL_EVP_UNSUPPORTED`; thêm cờ tạm `--openssl-legacy-provider`",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime: grep `ERR_OSSL_EVP_UNSUPPORTED`",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Nâng thư viện dùng thuật toán cũ (BR-SCN-023)"
+  },
+  {
+   "rule_id": "BC-NODE-18-01",
+   "runtime": "node",
+   "version": "18",
+   "prerelease": false,
+   "change": "`fetch` toàn cục (thử nghiệm, từ undici) bật mặc định; binary Linux chính thức cần glibc ≥ 2.28; ABI 108",
+   "kind": "Đổi hành vi / Nền tảng",
+   "level": "warning",
+   "detect": "Tĩnh: `global\\.fetch\\s*=`, `globalThis\\.fetch\\s*=`; `ldd --version`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "global\\.fetch\\s*=",
+     "level": "warning"
+    },
+    {
+     "pattern": "globalThis\\.fetch\\s*=",
+     "level": "warning"
+    }
+   ],
+   "replacement": "Bỏ polyfill ghi đè hoặc giữ có kiểm thử; BR-SCN-028"
+  },
+  {
+   "rule_id": "BC-NODE-19-01",
+   "runtime": "node",
+   "version": "19",
+   "prerelease": false,
+   "change": "ABI 111; npm 9 (cuối dòng)",
+   "kind": "ABI",
+   "level": "warning",
+   "detect": "Danh sách addon",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Build lại addon"
+  },
+  {
+   "rule_id": "BC-NODE-20-01",
+   "runtime": "node",
+   "version": "20",
+   "prerelease": false,
+   "change": "`url.parse()` phát cảnh báo với cổng không phải số; `new WASI()` bắt buộc `version`; Permission Model thử nghiệm (`--experimental-permission`); test runner ổn định; ABI 115",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Tĩnh: `url\\.parse\\(`, `new WASI\\(`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "url\\.parse\\(",
+     "level": "warning"
+    },
+    {
+     "pattern": "new WASI\\(",
+     "level": "warning"
+    }
+   ],
+   "replacement": "WHATWG `URL`; truyền `version`"
+  },
+  {
+   "rule_id": "BC-NODE-21-01",
+   "runtime": "node",
+   "version": "21",
+   "prerelease": false,
+   "change": "`fetch`, WebStreams, `FormData`, `Headers`, `Request`, `Response` ổn định; WebSocket thử nghiệm sau cờ; ABI 120",
+   "kind": "Đổi hành vi",
+   "level": "warning",
+   "detect": "Runtime",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Kiểm thử gọi HTTP ra ngoài"
+  },
+  {
+   "rule_id": "BC-NODE-22-01",
+   "runtime": "node",
+   "version": "22",
+   "prerelease": false,
+   "change": "WebSocket bật mặc định; bỏ import assertions; `crypto.createCipher`/`createDecipher` EOL; runtime-deprecated `util.is*`, constructor `fs.Stats`; tăng `highWaterMark` mặc định của stream; `require(esm)` (sau cờ ở 22.0, bỏ cờ từ 22.12.0); ABI 127",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "Tĩnh: `assert\\s*\\{\\s*type`, `createCipher\\(`, `createDecipher\\(`, `util\\.is[A-Z]`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "assert\\s*\\{\\s*type",
+     "level": "error"
+    },
+    {
+     "pattern": "createCipher\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "createDecipher\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "util\\.is[A-Z]",
+     "level": "error"
+    }
+   ],
+   "replacement": "Cú pháp `with { type: 'json' }`; `createCipheriv()`"
+  },
+  {
+   "rule_id": "BC-NODE-23-01",
+   "runtime": "node",
+   "version": "23",
+   "prerelease": false,
+   "change": "`require(esm)` bật mặc định: không còn `ERR_REQUIRE_ESM`, có thể ném `ERR_REQUIRE_ASYNC_MODULE` khi ESM dùng top-level `await`; xoá `process.assert`, `zlib.bytesRead`, cờ `--no-experimental-fetch`, `--no-experimental-global-webcrypto`, `--no-experimental-global-customevent`; `util.isBoolean`/`isBuffer`/`isDate`/`isError`… EOL; build yêu cầu C++20, cảnh báo GCC < 12.2; ABI 131",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "Tĩnh: `process\\.assert\\(`, `bytesRead`; cờ trong `NODE_OPTIONS`, unit, ecosystem",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "process\\.assert\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "bytesRead",
+     "level": "error"
+    },
+    {
+     "pattern": "NODE_OPTIONS",
+     "level": "error"
+    }
+   ],
+   "replacement": "Thay API; bỏ cờ đã xoá; `--no-experimental-require-module` để tắt tạm"
+  },
+  {
+   "rule_id": "BC-NODE-24-01",
+   "runtime": "node",
+   "version": "24",
+   "prerelease": false,
+   "change": "npm 11; Undici 7; `AsyncLocalStorage` dùng `AsyncContextFrame`; `URLPattern` toàn cục; `--experimental-permission` đổi thành `--permission`; `url.parse()` runtime-deprecated; xoá `tls.createSecurePair`, `dirent.path`, `truncate` với fd; runtime-deprecated `SlowBuffer`, `fs.F_OK`/`R_OK`/`W_OK`/`X_OK`; macOS tối thiểu 13.5; ABI 137",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "Tĩnh: `createSecurePair`, `\\.path\\b` trên `Dirent`, `SlowBuffer`, `fs\\.[FRWX]_OK`; cờ `--experimental-permission`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "createSecurePair",
+     "level": "error"
+    },
+    {
+     "pattern": "\\.path\\b",
+     "level": "error"
+    },
+    {
+     "pattern": "Dirent",
+     "level": "error"
+    },
+    {
+     "pattern": "SlowBuffer",
+     "level": "error"
+    },
+    {
+     "pattern": "fs\\.[FRWX]_OK",
+     "level": "error"
+    },
+    {
+     "pattern": "--experimental-permission",
+     "level": "error"
+    }
+   ],
+   "replacement": "`fs.constants.*`, `Buffer.allocUnsafeSlow()`, `dirent.parentPath`"
+  },
+  {
+   "rule_id": "BC-NODE-25-01",
+   "runtime": "node",
+   "version": "25",
+   "prerelease": false,
+   "change": "`SlowBuffer` EOL; xoá `fs.F_OK`, `fs.R_OK`, `fs.W_OK`, `fs.X_OK`; Web Storage bật mặc định; ngừng phân phối Corepack; permission model thêm `--allow-net`; build cần Clang ≥ 19; ABI 141",
+   "kind": "Xoá",
+   "level": "error",
+   "detect": "Như BC-NODE-24-01; trường `packageManager` trong `package.json`",
+   "phpc": false,
+   "runtime_only": true,
+   "ini": false,
+   "patterns": [],
+   "replacement": "Cài Corepack riêng (`npm install -g corepack`, bản 0.36.0 yêu cầu `^22.22.2 || ^24.15.0 || >=26.0.0`)"
+  },
+  {
+   "rule_id": "BC-NODE-26-01",
+   "runtime": "node",
+   "version": "26",
+   "prerelease": false,
+   "change": "Temporal bật mặc định; V8 14.6; Undici 8.0.2; xoá `http.Server.prototype.writeHeader()`, module `_stream_wrap`/`_stream_readable`/`_stream_writable`/`_stream_duplex`/`_stream_transform`/`_stream_passthrough`, cờ `--experimental-transform-types`; `module.register()` runtime-deprecated; DEP0182 EOL; `localStorage` trả `undefined` khi không có file; build cần GCC ≥ 13.2, bỏ Python 3.9; ABI 147",
+   "kind": "Xoá / Đổi hành vi",
+   "level": "error",
+   "detect": "Tĩnh: `writeHeader\\(`, `require\\(['\"]_stream_`, `module\\.register\\(`; cờ `--experimental-transform-types`",
+   "phpc": false,
+   "runtime_only": false,
+   "ini": false,
+   "patterns": [
+    {
+     "pattern": "writeHeader\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "require\\(['\"]_stream_",
+     "level": "error"
+    },
+    {
+     "pattern": "module\\.register\\(",
+     "level": "error"
+    },
+    {
+     "pattern": "--experimental-transform-types",
+     "level": "error"
+    }
+   ],
+   "replacement": "`writeHead()`; `require('stream')`; thay `module.register()` theo hướng dẫn deprecation của Node.js 26 (API thay thế chưa kiểm chứng trong phiên này)"
+  }
+ ]
+}

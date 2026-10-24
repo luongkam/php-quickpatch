@@ -72,6 +72,8 @@ def sources_conf(feeds_dir, extra=''):
             mirror = BASE + '/SRC-006-mirror/kev.json'
         out.append('[%s]\nurl = %s\nmirror_url = %s\nretry_delays = 0,0,0\nmin_interval_s = 0\ntimeout_s = 10\n'
                    % (s, url, mirror))
+        if s == 'SRC-002':
+            out.append('prerelease_url = %s/SRC-002/pre-release-builds.php?format=json\n' % BASE)
     with open(os.path.join(feeds_dir, 'sources.conf'), 'w') as f:
         f.write(''.join(out) + extra)
 

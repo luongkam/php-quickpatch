@@ -19,7 +19,8 @@ SOURCES = {
     'SRC-001': dict(name='endoflife.date', role='primary', ttl_hours=24, timeout_s=30, min_interval_s=1,
                     url='https://endoflife.date/api', mirror_url='https://raw.githubusercontent.com/endoflife-date/endoflife.date/master/products'),
     'SRC-002': dict(name='php.net releases', role='primary', ttl_hours=6, timeout_s=30, min_interval_s=1,
-                    url='https://www.php.net/releases'),
+                    url='https://www.php.net/releases',
+                    prerelease_url='https://www.php.net/pre-release-builds.php?format=json'),
     'SRC-003': dict(name='php.net ChangeLog/NEWS', role='secondary', ttl_hours=24, timeout_s=60, min_interval_s=1,
                     url='https://www.php.net', mirror_url='https://raw.githubusercontent.com/php/php-src'),
     'SRC-004': dict(name='NVD CVE API 2.0', role='primary', ttl_hours=6, timeout_s=180, min_interval_s=6,
@@ -104,10 +105,10 @@ def load(feeds_dir):
                     conf[sid][k] = int(v)
                 elif k in ('timeout_s', 'min_interval_s'):
                     conf[sid][k] = float(v)
-                elif k in ('url', 'mirror_url', 'retry_delays'):
+                elif k in ('url', 'mirror_url', 'retry_delays', 'prerelease_url'):
                     conf[sid][k] = v
     for sid, c in conf.items():
-        for k in ('url', 'mirror_url'):
+        for k in ('url', 'mirror_url', 'prerelease_url'):
             if c.get(k) and not c[k].startswith('https://'):
                 c['config_error'] = 'non-https %s %s' % (k, c[k])
         c['retry'] = [float(x) for x in str(c['retry_delays']).split(',') if x.strip() != '']

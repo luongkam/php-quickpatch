@@ -13,7 +13,7 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH
   exit 2
 fi
 
-QP_VERSION="2.0.0-alpha.2"
+QP_VERSION="2.0.0-alpha.3"
 
 # --- Advisory data ----------------------------------------------------------
 # Patched versions, CVEs and lifecycle come from the normalized feeds bundle
@@ -36,7 +36,7 @@ OFFLINE=0
 NO_MEMLIMIT=0
 ASSUME_YES=0
 JSON=0
-ONLY="php,node,composer,npm,wp,docker,webshell"
+ONLY="php,node,composer,npm,wp,docker,webshell,sites"
 SCAN_PATHS=()
 SCHEMA_ARG=""
 PASS_ARGS=()
@@ -237,7 +237,7 @@ emit_envelope() {
   local now; now=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
   jo schema=s:"$schema" schema_version=s:"1.0.0" tool=j:'{"name":"php-quickpatch","version":"'"$QP_VERSION"'"}' \
      generated_at=s:"$now" host=j:"$host" command=j:"$cmd" dry_run=b:$DRY_RUN exit_code=n:"$code" \
-     data=j:"$data" catalog_version=j:null result=j:"$result" issues=j:"$issues" errors=j:"$errors" \
+     data=j:"$data" catalog_version=S:"$CATALOG_VERSION" result=j:"$result" issues=j:"$issues" errors=j:"$errors" \
      warnings=j:"$warnings" audit_anchor=j:"$J_AUDIT_ANCHOR"
   local doc=$REPLY
   # Paths may hold bytes that are not UTF-8: drop them so the document stays valid.
@@ -245,12 +245,18 @@ emit_envelope() {
     doc=$(printf '%s' "$doc" | iconv -f UTF-8 -t UTF-8 -c)
   fi
   printf '%s\n' "$doc" >&3
+  # The newest scan result for assess/plan and the console (DOC-API-QP-005 §5).
+  if [ "$MODE" = scan ] && [ "$result" != null ] && [ -n "$STATE_DIR" ] && [ -d "$STATE_DIR" ]; then
+    (umask 077; mkdir -p "$STATE_DIR/state" && printf '%s\n' "$doc" >"$STATE_DIR/state/.last-scan.$$" \
+      && mv -f "$STATE_DIR/state/.last-scan.$$" "$STATE_DIR/state/last-scan.json") 2>/dev/null
+  fi
+  return 0
 }
 
 # finish CODE [RESULT_JSON]: emit the envelope when --json, then exit.
 finish() {
   local code=$1
-  (( JSON )) && emit_envelope "$code" "${2:-null}"
+  if (( JSON )) || [ "$MODE" = scan ]; then emit_envelope "$code" "${2:-null}"; fi
   exit "$code"
 }
 
@@ -699,7 +705,7 @@ risk_score() {
   elif (( RISK_R >= 20 )); then RISK_LEVEL=MEDIUM; else RISK_LEVEL=LOW; fi
   local c k l e f; t10 $s_cvss; c=$REPLY; t10 $s_cnt; k=$REPLY; t10 $s_kev; l=$REPLY; t10 $s_life; e=$REPLY; t10 $s_eol; f=$REPLY
   t10 $r10
-  RISK_JSON="{\"R\":$RISK_R,\"level\":\"$RISK_LEVEL\",\"components\":{\"cvss\":\"$c\",\"count\":\"$k\",\"kev\":\"$l\",\"life\":\"$e\",\"eol\":\"$f\",\"floor\":$floor,\"R_raw\":\"$REPLY\"}}"
+  RISK_JSON="{\"R\":$RISK_R,\"score\":$RISK_R,\"level\":\"$RISK_LEVEL\",\"components\":{\"S_cvss\":$c,\"S_cnt\":$k,\"S_kev\":$l,\"S_life\":$e,\"S_eol\":$f,\"floor\":$floor,\"R_raw\":$REPLY}}"
 }
 
 # assess PRODUCT VERSION [MANAGER PACKAGE]: lookups of one runtime version.
@@ -713,6 +719,7 @@ assess() {
   [ -n "$QP_FEEDS_BUNDLE" ] && [ -n "$v" ] || return 0
   branch_of "$p" "$v"; b=$REPLY
   lifecycle_status "$p" "$v"; A_LC=$REPLY
+  [ -n "$ASSESS_LC" ] && A_LC=$ASSESS_LC   # raw version is pre-release/abnormal (BR-SCN-040, BR-SCN-020)
   if tsv_row lifecycle.tsv "$p" "$b"; then
     A_EOL=$(cut -f6 <<<"$REPLY"); A_LTS=$(cut -f4 <<<"$REPLY"); A_CODENAME=$(cut -f11 <<<"$REPLY")
     if [ -n "$A_EOL" ] && iso_epoch "$A_EOL"; then A_DAYS=$(( REPLY / 86400 - TODAY_DAY )); fi
@@ -720,7 +727,7 @@ assess() {
   if tsv_row min_patched.tsv "$p" "$b"; then
     A_MIN=$(cut -f3 <<<"$REPLY"); A_LATEST=$(cut -f5 <<<"$REPLY"); A_DRIVERS=$(cut -f6 <<<"$REPLY"); A_DRIVERS=${A_DRIVERS//,/ }
   fi
-  [ "$A_LC" = UNKNOWN ] && return 0
+  [ "$A_LC" = UNKNOWN ] && { A_PRIO=CRITICAL; return 0; }   # DOC-SRS-QP-SCN-000 §2.2
   bundle_exposure "$p" "$v"; read -r nc nh nm nl c10 nk ids sec _ <<<"$REPLY"
   A_IDS=${ids#-}; A_SEC=${sec#-}
   if [ "$A_LC" = EOL ]; then A_STATE=eol
@@ -757,17 +764,20 @@ assess() {
   A_RISK=$RISK_JSON; A_PRIO=$RISK_PRIO; A_NKEV=$nk; A_C10=$c10
 }
 
+ASSESS_LC=""
+
 # rank_add OBJECT_REF: one ranking[] entry from the last assess (FEAT-033 order).
 RANKING=(); EOL_90=0; KEV_FINDINGS=0
 rank_add() {
   [ "$A_RISK" != null ] || return 0
   local reasons=() k=5
   (( A_NKEV > 0 )) && { reasons+=(KEV); KEV_FINDINGS=$((KEV_FINDINGS + 1)); }
-  (( A_C10 >= 90 )) && reasons+=(CVSS_CRITICAL)
+  (( A_C10 >= 90 )) && reasons+=(CVSS_GE_9)
   [ "$A_LC" = EOL ] && reasons+=(EOL)
-  (( A_C10 >= 70 && A_C10 < 90 )) && reasons+=(CVSS_HIGH)
-  if [ -n "$A_DAYS" ] && (( A_DAYS >= 0 && A_DAYS <= 90 )); then reasons+=(EOL_SOON); EOL_90=$((EOL_90 + 1)); fi
-  case ${reasons[0]:-} in KEV) k=0 ;; CVSS_CRITICAL) k=1 ;; EOL) k=2 ;; CVSS_HIGH) k=3 ;; EOL_SOON) k=4 ;; esac
+  (( A_C10 >= 70 && A_C10 < 90 )) && reasons+=(CVSS_7_TO_8_9)
+  if [ -n "$A_DAYS" ] && (( A_DAYS >= 0 && A_DAYS <= 90 )); then reasons+=(EOL_LE_90D); EOL_90=$((EOL_90 + 1)); fi
+  (( ${#reasons[@]} )) || reasons=(OTHER)
+  case ${reasons[0]} in KEV) k=0 ;; CVSS_GE_9) k=1 ;; EOL) k=2 ;; CVSS_7_TO_8_9) k=3 ;; EOL_LE_90D) k=4 ;; esac
   jas ${reasons[@]+"${reasons[@]}"}
   jo object_ref=s:"$1" R=n:"$RISK_R" level=s:"$RISK_LEVEL" reason_codes=j:"$REPLY"
   RANKING+=("$(printf '%03d\t%d\t%s' "$((100 - RISK_R))" "$k" "$REPLY")")
@@ -783,6 +793,30 @@ assess_json() {
   jo lifecycle_status=j:"$lc" priority=j:"$prio" eol_date=S:"$A_EOL" days_to_eol=n:"$A_DAYS" is_lts=b:"$lts" \
      lts_codename=S:"$A_CODENAME" latest_patch=S:"$A_LATEST" min_patched=S:"$A_MIN" driver_ids=j:"$jd" \
      backport=j:"$A_BACKPORT" risk=j:"$A_RISK"
+}
+
+# deadline_add RUNTIME_ID: plan approval deadline from the last assess (FR-PLAN-DL-001,
+# BR-SCN-049, BR-SCN-029): EOL - 30 days for SECURITY_ONLY/MAINTENANCE_LTS or <= 90 days to EOL.
+J_DEADLINES=()
+deadline_add() {
+  local rid=$1 dl days f pid="" pst="" sev=info
+  [ -n "$A_EOL" ] && [ -n "$A_DAYS" ] && (( A_DAYS >= 0 )) || return 0
+  [[ $A_LC == SECURITY_ONLY || $A_LC == MAINTENANCE_LTS ]] || (( A_DAYS <= 90 )) || return 0
+  dl=$(date -u -d "$A_EOL -30 days" +%F 2>/dev/null) || return 0
+  days=$(( A_DAYS - 30 ))
+  for f in "$STATE_DIR"/plans/PLN-*/plan.json; do
+    [ -f "$f" ] && grep -q "\"runtime_id\": \"$rid\"" "$f" || continue
+    local st; st=$(sed -n 's/^ "status": "\([a-z_]*\)".*/\1/p' "$f" | head -n1)
+    [[ $st == cancelled ]] && continue
+    pid=$(basename "${f%/plan.json}"); pst=$st
+  done
+  (( A_DAYS <= 90 )) && sev=warning
+  if (( days < 0 )) && [[ $pst != approved && $pst != in_progress && $pst != completed ]]; then
+    sev=high; add_warning "" "plan for $rid is overdue: approve it before $dl (BR-SCN-049)" "runtime:$rid"
+  fi
+  jo runtime_id=s:"$rid" deadline=s:"$dl" days_left=n:"$days" overdue=b:$(( days < 0 )) severity=s:"$sev" \
+     plan_id=S:"$pid" plan_status=S:"$pst"
+  J_DEADLINES+=("$REPLY")
 }
 
 # supported_branches PRODUCT: branches not EOL today, oldest first (REPLY, space list).
@@ -856,6 +890,157 @@ osv_check() {
   done
 }
 
+# --- Scenario catalog (FR-SCN-CAT-001) -------------------------------------
+# The packaged catalog (share/php-quickpatch/catalog) or one imported with a
+# snapshot (STATE_DIR/feeds/catalog), whichever is valid and newer. Invalid:
+# SHA256SUMS mismatch -> ERR-FEED-422-02, missing keys -> ERR-FEED-502-02;
+# the other catalog stays in use.
+CATALOG_FILES="scenarios.json checklists.json playbooks.json bc_rules.json mitigations.json framework_php.tsv catalog.json"
+CATALOG_DIR=""; CATALOG_VERSION=""
+
+# catalog_check DIR: REPLY = catalog_version, or the error code on failure.
+catalog_check() {
+  local d=$1 f n_pb n_act
+  REPLY=ERR-FEED-422-02
+  [ -f "$d/SHA256SUMS" ] || return 1
+  for f in $CATALOG_FILES; do grep -q "  $f\$" "$d/SHA256SUMS" && [ -f "$d/$f" ] || return 1; done
+  (cd "$d" && sha256sum -c --status --strict SHA256SUMS) 2>/dev/null || return 1
+  REPLY=ERR-FEED-502-02
+  grep -q '"scenarios": \[' "$d/scenarios.json" && grep -q '"rules": \[' "$d/mitigations.json" \
+    && grep -q '"items": \[' "$d/checklists.json" || return 1
+  n_pb=$(grep -c '"pb_id":' "$d/playbooks.json"); n_act=$(grep -c '"actions":' "$d/playbooks.json")
+  [ "$n_pb" -gt 0 ] && [ "$n_pb" = "$n_act" ] || return 1
+  REPLY=$(sed -n 's/.*"catalog_version": *"\([0-9]\{4\}\.[0-9]\{2\}\.[0-9]\{2\}-[0-9]*\)".*/\1/p' "$d/catalog.json" | head -n1)
+  [ -n "$REPLY" ] || { REPLY=ERR-FEED-502-02; return 1; }
+}
+
+catalog_open() {
+  local d v
+  CATALOG_DIR=""; CATALOG_VERSION=""
+  for d in "$SHARE_DIR/catalog" "${STATE_DIR:+$STATE_DIR/feeds/catalog}"; do
+    [ -n "$d" ] && [ -f "$d/catalog.json" ] || continue
+    if catalog_check "$d"; then
+      v=$REPLY
+      if [ -z "$CATALOG_VERSION" ] || ver_lt "$CATALOG_VERSION" "$v"; then CATALOG_DIR=$d; CATALOG_VERSION=$v; fi
+    elif [ "$REPLY" = ERR-FEED-422-02 ]; then
+      msg ERR-FEED-422-02 "The data snapshot does not match its SHA256 hash; rejected."
+      warn "catalog $d: $REPLY"; add_error ERR-FEED-422-02 "catalog $d: $REPLY" host
+    else
+      msg ERR-FEED-502-02 "Data from {source} is abnormal ({detail}); keeping old data." source="catalog $d" detail="schema"
+      warn "$REPLY"; add_error ERR-FEED-502-02 "$REPLY" host
+    fi
+  done
+  [ -n "$CATALOG_DIR" ] || warn "No valid scenario catalog: runtimes get no scenario_ids."
+  return 0
+}
+
+# cat_field LINE KEY: string or number value of KEY in one catalog record line.
+cat_field() {
+  local re='"'"$2"'": ("(([^"\\]|\\.)*)"|(-?[0-9]+)|null)'
+  if [[ $1 =~ $re ]]; then REPLY=${BASH_REMATCH[2]}${BASH_REMATCH[4]}; REPLY=${REPLY//\\\\/\\}; else REPLY=""; fi
+}
+
+# scn_version_rules RUNTIME: "order<TAB>scenario_id<TAB>ERE" of the VERSION
+# scenarios with a regex version_match, lowest match_order first.
+scn_version_rules() {
+  local line sid order vm
+  [ -n "$CATALOG_DIR" ] || return 0
+  while IFS= read -r line; do
+    cat_field "$line" kind; [ "$REPLY" = VERSION ] || continue
+    cat_field "$line" runtime; [ "$REPLY" = "$1" ] || continue
+    cat_field "$line" scenario_id; sid=$REPLY; cat_field "$line" match_order; order=$REPLY
+    cat_field "$line" version_match; vm=$REPLY
+    [[ $vm == ^* ]] || continue
+    vm=${vm//\\d/[0-9]}
+    printf '%05d\t%s\t%s\n' "$order" "$sid" "$vm"
+  done < <(grep '"scenario_id":' "$CATALOG_DIR/scenarios.json") | sort -n
+}
+
+# php_ga_max / php_prerelease_branches: from lifecycle.tsv of the bundle.
+php_ga_max() {
+  REPLY=$(awk -F'\t' '$1 == "php" && $3 != "" { print $2 }' "$QP_FEEDS_BUNDLE/lifecycle.tsv" 2>/dev/null | sort -V | tail -n1)
+}
+php_prerelease_branch() { # BRANCH: an official pre-release build exists (BR-SCN-040 step 1)
+  awk -F'\t' -v b="$1" '$1 == "php" && $2 == b && $3 == "" && ($7 != "" || $10 != "") { f = 1 } END { exit !f }' \
+    "$QP_FEEDS_BUNDLE/lifecycle.tsv" 2>/dev/null
+}
+
+php_panel_path() {
+  case $1 in
+    /opt/cpanel/*|/opt/alt/*|/opt/plesk/*|/www/server/*|/usr/local/lsws/*) return 0 ;;
+    /usr/local/php[0-9]*) [ "$PANEL" = directadmin ] ;;
+    *) return 1 ;;
+  esac
+}
+
+# classify RUNTIME RAW BIN MGR PKG_VERSION: BR-SCN-040 (PHP), BR-SCN-020 (Node.js).
+# Sets SCN_IDS (1 VERSION + 0..n OVERLAY), SCN_LC (""|PRE_RELEASE|UNKNOWN)
+# and SCN_LOCK (BR-SCN-013, FR-SCN-LOCK-001).
+classify() {
+  local rt=$1 raw=$2 bin=$3 mgr=$4 pver=$5 vsid="" sid re
+  SCN_IDS=(); SCN_LC=""; SCN_LOCK=0
+  [ -n "$CATALOG_DIR" ] || return 0
+  if [ "$rt" = php ]; then
+    local M N P suf stype="ga" gamax="" mm overlay16=0
+    if [[ $raw =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(.*)$ ]]; then
+      M=${BASH_REMATCH[1]}; N=${BASH_REMATCH[2]}; P=${BASH_REMATCH[3]}; suf=${BASH_REMATCH[4]}; mm="$M.$N"
+      case $suf in
+        "") stype=ga ;; alpha*|beta*|RC*) stype=pre ;; -dev) stype=dev ;; -*) stype=extra ;; *) stype=abnormal ;;
+      esac
+      [ -n "$QP_FEEDS_BUNDLE" ] && { php_ga_max; gamax=$REPLY; }
+      if [ -n "$gamax" ] && ver_lt "$gamax" "$mm" && php_prerelease_branch "$mm"; then vsid=SCN-PHP-014; SCN_LC=PRE_RELEASE
+      elif [ "$stype" = abnormal ] || (( M == 6 || M >= 10 )) || { [ -n "$gamax" ] && ver_lt "$gamax" "$mm"; }; then
+        vsid=SCN-PHP-005; SCN_LC=UNKNOWN
+      else
+        while IFS=$'\t' read -r _ sid re; do
+          [[ "$M.$N.$P" =~ $re ]] && { vsid=$sid; break; }
+        done < <(scn_version_rules php)
+        if [ -z "$vsid" ]; then vsid=SCN-PHP-005; SCN_LC=UNKNOWN
+        elif [[ $stype == pre || $stype == dev ]]; then SCN_LC=PRE_RELEASE; overlay16=1; fi
+      fi
+    else
+      vsid=SCN-PHP-005; SCN_LC=UNKNOWN
+    fi
+    SCN_IDS=("$vsid")
+    if [ -n "$mgr" ]; then SCN_IDS+=(SCN-PHP-015)
+    elif ! php_panel_path "$bin"; then overlay16=1; fi
+    (( overlay16 )) && SCN_IDS+=(SCN-PHP-016)
+  else
+    local maj suf newest row ga alpha prefix=${bin%/bin/node}
+    if [[ $raw =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(.*)$ ]]; then
+      maj=${BASH_REMATCH[1]}; suf=${BASH_REMATCH[4]}
+      [ -n "$QP_FEEDS_BUNDLE" ] && newest=$(awk -F'\t' '$1 == "node" { print $2 }' "$QP_FEEDS_BUNDLE/lifecycle.tsv" | sort -n | tail -n1)
+      row=""; [ -n "$QP_FEEDS_BUNDLE" ] && tsv_row lifecycle.tsv node "$maj" && row=$REPLY
+      ga=$(cut -f3 <<<"$row"); alpha=$(cut -f7 <<<"$row")
+      if [[ $suf =~ ^-(nightly|rc\.|pre|alpha) ]] || { [ -n "$ga" ] && [[ $ga > $TODAY ]]; } \
+         || { [ -z "$ga" ] && [ -n "$alpha" ]; }; then vsid=SCN-NODE-008; SCN_LC=PRE_RELEASE
+      elif [ -n "$suf" ] || { [ -n "${newest:-}" ] && (( maj > newest )); }; then vsid=SCN-NODE-008; SCN_LC=UNKNOWN
+      else
+        while IFS=$'\t' read -r _ sid re; do
+          [[ $raw =~ $re ]] && { vsid=$sid; break; }
+        done < <(scn_version_rules node)
+        [ -n "$vsid" ] || { vsid=SCN-NODE-008; SCN_LC=UNKNOWN; }
+      fi
+    else
+      vsid=SCN-NODE-008; SCN_LC=UNKNOWN
+    fi
+    SCN_IDS=("$vsid")
+    if [[ $bin == */.nvm/versions/node/* ]]; then SCN_IDS+=(SCN-NODE-009)
+    elif [ -n "$mgr" ]; then
+      if [[ $pver == *nodesource* ]]; then SCN_IDS+=(SCN-NODE-011); else SCN_IDS+=(SCN-NODE-012); fi
+    elif [ -d "$prefix/lib/node_modules/npm" ] && [[ $bin != /www/server/* ]]; then SCN_IDS+=(SCN-NODE-010)
+    fi
+  fi
+  [ -n "$SCN_LC" ] && SCN_LOCK=1
+  return 0
+}
+
+# scn_lock_error RUNTIME_LABEL RAW: ERR-SCN-422-01 for a locked runtime.
+scn_lock_error() {
+  msg ERR-SCN-422-01 "Unrecognized {runtime} version '{raw}'. Automation for this runtime is locked." runtime="$1" raw="$2"
+  warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"
+}
+
 # --- Environment detection ------------------------------------------------
 detect_env() {
   head_ "Environment"
@@ -879,7 +1064,374 @@ detect_env() {
   note "inside container: $([ $IN_CONTAINER = 1 ] && echo yes || echo no) | docker daemon: $([ $HAS_DOCKER = 1 ] && echo yes || echo no) | systemd: $([ $HAS_SYSTEMD = 1 ] && echo yes || echo no) | root: $([ $IS_ROOT = 1 ] && echo yes || echo no)"
   (( IS_ROOT )) || warn "Not root: PHP/Node runtime upgrades and server config are skipped (shared hosting mode)."
   (( IN_CONTAINER )) && warn "Running inside a container: runtime fixes are lost when it is recreated; rebuild the image too."
+  [ -n "$TODAY" ] || { TODAY=$(date -u +%F); iso_epoch "$TODAY"; TODAY_DAY=$((REPLY / 86400)); }
+  detect_playbooks
   return 0
+}
+
+# --- Environment and playbooks (FR-SCAN-ENV-001, FR-SCN-ENV-001) ---------------
+# environment-playbooks.md §2.3: every step that matches adds evidence[];
+# restrictions[] carry the limits of FR-SCN-ENV-001.
+OS_ID=""; OS_LIKE=""; OS_VER=""; PB_PANEL=""; PB_OS=""; PB_PHP=""
+WEB_SERVERS=(); PB_BINDINGS=(); PB_NODE=(); J_EVIDENCE=(); J_RESTRICTIONS=()
+NGINX_UP=0; APACHE_UP=0; APACHE_CTL=""; APACHE_MODPHP=0; APACHE_FCGI=0
+
+evidence() { jo step=n:"$1" pb_id=S:"$2" signal=s:"$3"; J_EVIDENCE+=("$REPLY"); }
+restrict() { # restrict CODE EN VI
+  local m=$2; [ "${QP_LANG:-}" = vi ] && m=$3
+  jo code=s:"$1" message=s:"$m"; J_RESTRICTIONS+=("$REPLY")
+}
+add_unique() { local -n _u=$1; local x; for x in "${_u[@]}"; do [ "$x" = "$2" ] && return 0; done; _u+=("$2"); }
+
+detect_playbooks() {
+  [ -r /etc/os-release ] && { OS_ID=$(. /etc/os-release && echo "${ID:-}"); OS_LIKE=$(. /etc/os-release && echo "${ID_LIKE:-}"); OS_VER=$(. /etc/os-release && echo "${VERSION_ID:-}"); }
+  (( IN_CONTAINER )) && evidence 1 PB-013 "$( [ -f /.dockerenv ] && echo /.dockerenv || echo /proc/1/cgroup)"
+  case $PANEL in
+    cpanel) PB_PANEL=PB-007; evidence 2 PB-007 /usr/local/cpanel/cpanel ;;
+    plesk) PB_PANEL=PB-009; evidence 2 PB-009 /usr/local/psa ;;
+    aapanel) PB_PANEL=PB-010; evidence 2 PB-010 /www/server/panel ;;
+    cyberpanel) PB_PANEL=PB-011; evidence 2 PB-011 /usr/local/CyberCP ;;
+    directadmin) PB_PANEL=PB-012; evidence 2 PB-012 /usr/local/directadmin ;;
+  esac
+  if has selectorctl && [ -f /etc/cl.selector/selector.conf ]; then add_unique PB_BINDINGS PB-008; evidence 3 PB-008 /etc/cl.selector/selector.conf; fi
+  if [ -z "$PB_PANEL" ] && [ -x /usr/local/lsws/bin/lswsctrl ]; then PB_PANEL=PB-011; evidence 4 PB-011 /usr/local/lsws/bin/lswsctrl; fi
+  local like=" $OS_ID $OS_LIKE "
+  if [[ $like == *" debian "* || $like == *" ubuntu "* ]] && [ "$PKG_MGR" = apt ]; then PB_OS=PB-001; evidence 5 PB-001 "ID=$OS_ID apt"
+  elif [[ $like =~ \ (rhel|almalinux|rocky|centos|fedora)\  ]] && [[ $PKG_MGR == dnf || $PKG_MGR == yum ]]; then
+    if { has rpm && rpm -q remi-release >/dev/null 2>&1; } || compgen -G '/etc/yum.repos.d/remi*.repo' >/dev/null; then
+      PB_OS=PB-003; evidence 5 PB-003 "remi-release"
+    else PB_OS=PB-002; evidence 5 PB-002 "ID=$OS_ID $PKG_MGR"; fi
+  elif [ "$OS_ID" = alpine ] && [ "$PKG_MGR" = apk ]; then PB_OS=PB-004; evidence 5 PB-004 "ID=alpine apk"
+  fi
+  if has pgrep && pgrep -f 'nginx: master' >/dev/null 2>&1; then NGINX_UP=1; WEB_SERVERS+=(nginx); fi
+  if has pgrep && { pgrep -x apache2 >/dev/null 2>&1 || pgrep -x httpd >/dev/null 2>&1; }; then
+    APACHE_UP=1; WEB_SERVERS+=(apache)
+    local c; for c in apachectl apache2ctl httpd; do has "$c" && { APACHE_CTL=$c; break; }; done
+    if [ -n "$APACHE_CTL" ]; then
+      local mods; mods=$(probe 10 "$APACHE_CTL" -M 2>/dev/null)
+      grep -qE '(^| )php[0-9]*_module' <<<"$mods" && APACHE_MODPHP=1
+      grep -q 'proxy_fcgi_module' <<<"$mods" && APACHE_FCGI=1
+    fi
+    compgen -G '/etc/apache2/mods-enabled/php*.load' >/dev/null && APACHE_MODPHP=1
+  fi
+  if [ -z "$PB_PANEL" ]; then
+    (( NGINX_UP )) && { add_unique PB_BINDINGS PB-005; evidence 6 PB-005 "nginx: master"; }
+    (( APACHE_UP && APACHE_FCGI )) && { add_unique PB_BINDINGS PB-005; evidence 6 PB-005 "apache proxy_fcgi_module"; }
+    (( APACHE_UP && APACHE_MODPHP )) && { add_unique PB_BINDINGS PB-006; evidence 6 PB-006 "apache php_module"; }
+  fi
+  (( HAS_DOCKER )) && { add_unique PB_BINDINGS PB-013; evidence 7 PB-013 "docker info"; }
+  (( IS_ROOT )) || restrict SCN-ENV-NOROOT "not root: project level only" "không root: chỉ cấp dự án"
+  (( IN_CONTAINER )) && restrict SCN-ENV-DOCKER "inside a container: mitigation only (run PB-013 on the host)" "trong container: chỉ mitigation (chạy PB-013 ở host)"
+  [ -n "$PB_PANEL" ] && restrict SCN-ENV-PANEL "panel $PANEL: sites change only through the panel ($PB_PANEL)" "panel $PANEL: chỉ đổi site qua panel ($PB_PANEL)"
+  return 0
+}
+
+# php_provider BIN MGR: playbook that provides one PHP binary (§2.3 steps 2-5; PB-000 otherwise).
+php_provider() {
+  local bin=$1 mgr=$2
+  if php_panel_path "$bin" && [ -n "$PB_PANEL" ]; then REPLY=$PB_PANEL
+  elif [[ $bin == /opt/alt/* ]]; then REPLY=PB-008
+  elif [[ $bin == /opt/remi/* ]]; then REPLY=PB-003
+  elif (( IN_CONTAINER )); then REPLY=PB-013
+  elif [ -n "$mgr" ] && [ -n "$PB_OS" ]; then REPLY=$PB_OS
+  else REPLY=PB-000; fi
+}
+
+# env_after_runtimes: the server-level PHP provider, PB-000 handling, Node playbooks.
+env_after_runtimes() {
+  if (( ${#RT_PROVIDERS[@]} )); then
+    local p; PB_PHP=""
+    for p in "${RT_PROVIDERS[@]}"; do [ "$p" != PB-000 ] && { PB_PHP=$p; break; }; done
+    # A web server playbook (step 6) still identifies the server; PB-000 only when steps 2-7 all miss.
+    local b; for b in ${PB_BINDINGS[@]+"${PB_BINDINGS[@]}"}; do [ -z "$PB_PHP" ] && [ -n "$PB_OS" ] && PB_PHP=$PB_OS; done
+    if [ -z "$PB_PHP" ]; then
+      PB_PHP=PB-000; evidence 9 PB-000 "no playbook matched the PHP binaries"
+      msg ERR-ENV-422-01 "Cannot identify how PHP is installed and assigned to sites on this server."
+      warn "$REPLY"; add_error ERR-ENV-422-01 "$REPLY" host
+      restrict SCN-ENV-UNKNOWN "PB-000: interim mitigation and guidance only" "PB-000: chỉ mitigation và hướng dẫn"
+    fi
+  else
+    PB_PHP=${PB_PANEL:-$PB_OS}
+  fi
+  return 0
+}
+
+env_json() {
+  local pbs=() p
+  [ -n "$PB_PHP" ] && { jo pb_id=s:"$PB_PHP" layer=s:"$( [[ $PB_PHP == PB-00[7-9] || $PB_PHP == PB-01[0-2] ]] && echo panel || echo provider)"; pbs+=("$REPLY"); }
+  for p in ${PB_BINDINGS[@]+"${PB_BINDINGS[@]}"}; do
+    jo pb_id=s:"$p" layer=s:"$(case $p in PB-008) echo panel_overlay ;; PB-013) echo provider ;; *) echo binding ;; esac)"; pbs+=("$REPLY")
+  done
+  for p in ${PB_NODE[@]+"${PB_NODE[@]}"}; do jo pb_id=s:"$p" layer=s:"$(case $p in PB-017|PB-018) echo binding ;; *) echo provider ;; esac)"; pbs+=("$REPLY"); done
+  jarr pbs; local jp=$REPLY
+  jas ${WEB_SERVERS[@]+"${WEB_SERVERS[@]}"}; local ws=$REPLY
+  local bind=() ; for p in ${PB_BINDINGS[@]+"${PB_BINDINGS[@]}"}; do [ "$p" != PB-013 ] && bind+=("$p"); done
+  jas ${bind[@]+"${bind[@]}"}; local jb=$REPLY
+  jas ${PB_NODE[@]+"${PB_NODE[@]}"}; local jn=$REPLY
+  jarr J_EVIDENCE; local ev=$REPLY; jarr J_RESTRICTIONS; local rs=$REPLY
+  jo os_id=S:"$OS_ID" os_version=S:"$OS_VER" pkg_mgr=s:"$PKG_MGR" panel=s:"$PANEL" has_systemd=b:$HAS_SYSTEMD \
+     has_docker=b:$HAS_DOCKER in_container=b:$IN_CONTAINER is_root=b:$IS_ROOT web_servers=j:"$ws" playbooks=j:"$jp" \
+     restrictions=j:"$rs" pb_provider=S:"$PB_PHP" pb_bindings=j:"$jb" pb_node=j:"$jn" evidence=j:"$ev"
+}
+
+# --- Site inventory (FR-SCAN-MAP-001; PB-005 Nginx/Apache + FPM, PB-006 mod_php) ---
+J_SITES=(); declare -A SITE_RT=() SITE_SEEN=()
+
+# site_key SITE_ID [SOCKET_DIR]: §4.4 / DOC-SRS-QP-ENV-003 §6.3.1.
+site_key() {
+  local id=$1 dir=${2:-/run/php/}
+  if [[ $id =~ ^[a-z0-9.-]{1,48}$ ]] && (( ${#dir} + ${#id} + 12 <= 107 )); then REPLY=$id
+  else REPLY="h_$(sha1_12 "$id")"; fi
+}
+
+# fpm_pools: "listen<TAB>pool_file<TAB>branch<TAB>user<TAB>error_log" of every FPM pool.
+fpm_pools() {
+  local f b
+  for f in /etc/php/*/fpm/pool.d/*.conf /etc/opt/remi/php*/php-fpm.d/*.conf /etc/php[0-9]*/php-fpm.d/*.conf /etc/php-fpm.d/*.conf; do
+    [ -f "$f" ] || continue
+    b=""
+    if [[ $f =~ ^/etc/php/([0-9]+\.[0-9]+)/ ]]; then b=${BASH_REMATCH[1]}
+    elif [[ $f =~ ^/etc/opt/remi/php([0-9])([0-9]+)/ ]]; then b=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
+    elif [[ $f =~ ^/etc/php([0-9])([0-9]+)/ ]]; then b=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
+    elif [ -x /usr/bin/php ]; then b=$(php_version /usr/bin/php 2>/dev/null); b=${b%.*}; fi
+    awk -F'=' -v f="$f" -v b="$b" '
+      function emit() { if (l != "") print l "\t" f "\t" b "\t" u "\t" e }
+      /^[ \t]*\[/ { emit(); l = ""; u = ""; e = ""; next }
+      { k = $1; gsub(/[ \t]/, "", k); v = substr($0, index($0, "=") + 1); gsub(/^[ \t]+|[ \t;]+$/, "", v) }
+      k == "listen" { l = v } k == "user" { u = v } k == "php_admin_value[error_log]" { e = v }
+      END { emit() }' "$f"
+  done
+}
+
+# pool_of ENDPOINT: REPLY = pool line (fpm_pools) serving ENDPOINT.
+POOLS=""; POOLS_READ=0
+pool_of() {
+  local ep=$1 line l port
+  (( POOLS_READ )) || { POOLS=$(fpm_pools); POOLS_READ=1; }
+  port=""; [[ $ep =~ :([0-9]+)$ ]] && port=${BASH_REMATCH[1]}
+  while IFS= read -r line; do
+    l=${line%%$'\t'*}
+    if [ "$l" = "$ep" ] || { [ -n "$port" ] && [[ $l == "$port" || $l == "0.0.0.0:$port" || $l == "[::]:$port" ]]; }; then REPLY=$line; return 0; fi
+    if [[ $ep == /* && -e $ep && $l == /* && -e $l ]] && [ "$(readlink -f "$ep")" = "$(readlink -f "$l")" ]; then REPLY=$line; return 0; fi
+  done <<<"$POOLS"
+  REPLY=""; return 1
+}
+
+# php_bin_for BRANCH: the PHP binary of that branch among the discovered ones.
+declare -A RT_BRANCH=()
+php_bin_for() {
+  local b=$1 bin best=""
+  if (( ! ${#RT_BRANCH[@]} )); then
+    local v; for bin in $(discover_php_bins); do v=$(php_version "$bin" 2>/dev/null) && RT_BRANCH[$bin]=${v%.*}; done
+  fi
+  for bin in "${!RT_BRANCH[@]}"; do
+    [ "${RT_BRANCH[$bin]}" = "$b" ] || continue
+    if [ -z "$best" ] || [[ $bin == /usr/bin/php* && $best != /usr/bin/php* ]]; then best=$bin; fi
+  done
+  REPLY=$best
+}
+
+# add_site ID PB KIND REFS ROOT NAMES(space) ENDPOINT BRANCH LOGS(space) SCHEME POOL_USER
+add_site() {
+  local id=$1 pb=$2 kind=$3 refs=$4 root=$5 names=$6 ep=$7 b=$8 logs=$9 scheme=${10} puser=${11:-} bin="" rid="" owner key
+  [ -n "${SITE_SEEN[$id]:-}" ] && return 0
+  SITE_SEEN[$id]=1
+  if [ -n "$b" ]; then php_bin_for "$b"; bin=$REPLY; fi
+  [ -n "$bin" ] && { runtime_id php "$bin"; rid=$REPLY; SITE_RT[$rid]+="${SITE_RT[$rid]:+ }$id"; }
+  owner=""; [ -n "$root" ] && [ -d "$root" ] && owner=$(stat -c %U "$root" 2>/dev/null)
+  owner=${owner:-${puser:-unknown}}
+  site_key "$id"; key=$REPLY
+  local n urls=() lg=() jn ju jl
+  for n in $names; do urls+=("$scheme://$n/"); break; done
+  read -r -a lg <<<"$logs"
+  jas $names; jn=$REPLY; jas ${urls[@]+"${urls[@]}"}; ju=$REPLY; jas ${lg[@]+"${lg[@]}"}; jl=$REPLY
+  jo site_id=s:"$id" site_key=s:"$key" pb_id=s:"$pb" server_names=j:"$jn" docroot=S:"$root" owner_user=s:"$owner" \
+     binding_kind=s:"$kind" binding_ref=s:"$refs" current_branch=S:"$b" current_bin=S:"$bin" runtime_id=S:"$rid" \
+     runtime_endpoint=S:"$ep" log_sources=j:"$jl" hc_urls=j:"$ju" hc_mode=s:full
+  J_SITES+=("$REPLY")
+}
+
+# site_endpoint ID REFS ROOT NAMES EP LOGS SCHEME KIND PB: resolve EP to a pool and record the site.
+site_endpoint() {
+  local id=$1 refs=$2 root=$3 names=$4 ep=$5 logs=$6 scheme=$7 kind=$8 pb=$9 b="" f puser="" el=""
+  if [ -L "$ep" ]; then
+    warn "site $id uses the unversioned socket $ep -> $(readlink -f "$ep")"
+    add_warning "" "site $id points to a socket without a version number ($ep)" "site:$id"
+  fi
+  if pool_of "$ep"; then
+    IFS=$'\t' read -r _ f b puser el <<<"$REPLY"
+    [ -n "$el" ] && logs+=" $el"
+    [ -f "/var/log/php$b-fpm.log" ] && logs+=" /var/log/php$b-fpm.log"
+  fi
+  [[ $ep == /* ]] && ep="unix:$ep"
+  add_site "$id" "$pb" "$kind" "$refs" "$root" "$names" "$ep" "$b" "$logs" "$scheme" "$puser"
+}
+
+nginx_sites() {
+  local out
+  out=$(probe 10 nginx -T 2>/dev/null) || [ -n "$out" ] || { warn "nginx -T failed: Nginx sites are not inventoried."; return 0; }
+  local recs
+  recs=$(awk '
+    /^# configuration file .*:$/ { file = substr($0, 22); sub(/:$/, "", file); ln = 0; depth = 0; srv = ""; up = ""; next }
+    {
+      ln++; line = $0; sub(/(^|[ \t])#.*/, "", line)
+      gsub(/\{/, "{\n", line); gsub(/;/, ";\n", line); gsub(/\}/, "\n}\n", line)
+      np = split(line, parts, "\n")
+      for (pi = 1; pi <= np; pi++) stmt(parts[pi])
+    }
+    function stmt(line,   n, w, d, v) {
+      gsub(/^[ \t]+|[ \t]+$/, "", line)
+      if (line == "") return
+      n = split(line, w, /[ \t;]+/)
+      if (line ~ /\{$/) {
+        depth++; kind[depth] = w[1]
+        if (w[1] == "server" && srv == "") { srv = ++nsrv; sdepth = depth; print "S\t" srv "\t" file "\t" ln }
+        if (w[1] == "upstream") { up = w[2]; udepth = depth }
+        return
+      }
+      if (line ~ /^\}/) { if (srv != "" && depth == sdepth) srv = ""; if (up != "" && depth == udepth) up = ""; depth--; return }
+      d = w[1]; v = line; sub(/^[^ \t]+[ \t]+/, "", v); sub(/;$/, "", v)
+      if (up != "" && d == "server") { if (!(up in upseen)) { upseen[up] = 1; print "U\t" up "\t" w[2] }; return }
+      if (srv != "") {
+        if (d == "server_name") print "N\t" srv "\t" v
+        else if (d == "root") print "R\t" srv "\t" w[2]
+        else if (d == "listen") print "L\t" srv "\t" v
+        else if (d == "fastcgi_pass") print "F\t" srv "\t" w[2] "\t" file ":" ln
+        else if (d == "include") print "I\t" srv "\t" w[2] "\t" file ":" ln
+        else if (d == "error_log") print "E\t" srv "\t" w[2]
+      } else if (d == "fastcgi_pass") print "P\t" file "\t" w[2] "\t" file ":" ln
+    }' <<<"$out")
+  declare -A s_file=() s_names=() s_root=() s_ssl=() s_fcgi=() s_ref=() s_err=() ups=() snip=()
+  local t a b c d id
+  while IFS=$'\t' read -r t a b c d; do
+    case $t in
+      S) s_file[$a]="$b:$c" ;;
+      N) s_names[$a]=$b ;;
+      R) s_root[$a]=$b ;;
+      L) [[ $b == *443* || $b == *ssl* ]] && s_ssl[$a]=1 ;;
+      F) s_fcgi[$a]=$b; s_ref[$a]=$c ;;
+      I) [ -z "${s_fcgi[$a]:-}" ] && s_fcgi[$a]="include:$b" && s_ref[$a]="$c" ;;
+      E) s_err[$a]=$b ;;
+      U) ups[$a]=$b ;;
+      P) snip[$a]="$b"$'\t'"$c" ;;
+    esac
+  done <<<"$recs"
+  declare -A merged_ref=() merged_names=() first=()
+  local order=() k ep names main
+  for k in $(printf '%s\n' "${!s_file[@]}" | sort -n); do
+    ep=${s_fcgi[$k]:-}
+    if [[ $ep == include:* ]]; then
+      local inc=${ep#include:} f found=""
+      [[ $inc == /* ]] || inc="/etc/nginx/$inc"
+      # shellcheck disable=SC2053  # include paths are globs (sites-enabled/*)
+      for f in "${!snip[@]}"; do [[ $f == $inc ]] && { found=${snip[$f]}; break; }; done
+      [ -n "$found" ] || continue
+      ep=${found%%$'\t'*}; s_ref[$k]+=",${found#*$'\t'}"
+    fi
+    [ -n "$ep" ] || continue
+    [[ $ep == unix:* || $ep == *:* || $ep =~ ^[0-9]+$ ]] || ep=${ups[$ep]:-$ep}
+    names=${s_names[$k]:-_}; main=${names%% *}; main=${main,,}; [ "$main" = _ ] && main=default
+    if [ -z "${first[$main]:-}" ]; then first[$main]=$k; order+=("$main"); merged_ref[$main]=${s_file[$k]}; merged_names[$main]=${names,,}
+    else merged_ref[$main]+=",${s_file[$k]}"; fi
+    merged_ref[$main]+=",${s_ref[$k]}"
+    [ -n "${s_ssl[$k]:-}" ] && s_ssl[${first[$main]}]=1
+    s_fcgi[${first[$main]}]=$ep
+  done
+  for main in ${order[@]+"${order[@]}"}; do
+    k=${first[$main]}
+    local refs; refs=$(tr ',' '\n' <<<"${merged_ref[$main]}" | awk 'NF && !s[$0]++' | paste -sd,)
+    site_endpoint "$main" "$refs" "${s_root[$k]:-}" "${merged_names[$main]//_/}" "${s_fcgi[$k]#unix:}" "${s_err[$k]:-}" \
+      "$( [ -n "${s_ssl[$k]:-}" ] && echo https || echo http)" nginx_fastcgi PB-005
+    # §2.3 conflict rule: an Apache file for the same site that Apache does not load is only evidence.
+    local af; for af in /etc/apache2/sites-available/*.conf /etc/httpd/conf.d/*.conf; do
+      [ -f "$af" ] && grep -qiE "^\s*Server(Name|Alias)\s+.*\b${main//./\\.}\b" "$af" && evidence 6 PB-005 "site $main: $af (Apache, not loaded); Nginx binding used"
+    done
+  done
+}
+
+apache_sites() {
+  [ -n "$APACHE_CTL" ] || return 0
+  local out line name f l seen=" " glob_ep="" glob_ref="" modphp_b=""
+  out=$(probe 10 "$APACHE_CTL" -S 2>&1) || true
+  for f in /etc/apache2/conf-enabled/php*-fpm.conf /etc/httpd/conf.d/php*-fpm.conf; do
+    [ -f "$f" ] || continue
+    line=$(grep -m1 -nE 'SetHandler +"?proxy:unix:' "$f") || continue
+    glob_ep=$(sed -E 's/.*proxy:unix:([^|"]+).*/\1/' <<<"$line"); glob_ref="$f:${line%%:*}"
+  done
+  for f in /etc/apache2/mods-enabled/php*.load; do [ -f "$f" ] && { modphp_b=${f##*/php}; modphp_b=${modphp_b%.load}; }; done
+  while IFS= read -r line; do
+    [[ $line =~ (namevhost|default\ server|[0-9*]:[0-9]+)\ +([^ ]+)\ \((/[^:]+):([0-9]+)\) ]] || continue
+    name=${BASH_REMATCH[2],,}; f=${BASH_REMATCH[3]}; l=${BASH_REMATCH[4]}
+    [[ $seen == *" $f:$l "* ]] && continue
+    seen+="$f:$l "
+    local blk sn al root ep="" ref="" err="" ssl=http kind=apache_proxy_fcgi pb=PB-005 b=""
+    blk=$(awk -v s="$l" 'NR >= s { print NR "\t" $0; if (tolower($0) ~ /<\/virtualhost>/) exit }' "$f")
+    sn=$(awk -F'\t' 'tolower($2) ~ /^[ \t]*servername[ \t]/ { split($2, w, /[ \t]+/); for (i = 1; i <= length(w); i++) if (tolower(w[i]) == "servername") { print w[i+1]; exit } }' <<<"$blk")
+    al=$(awk -F'\t' 'tolower($2) ~ /^[ \t]*serveralias[ \t]/ { sub(/^[ \t]*[Ss]erver[Aa]lias[ \t]+/, "", $2); printf "%s ", $2 }' <<<"$blk")
+    root=$(awk -F'\t' 'tolower($2) ~ /^[ \t]*documentroot[ \t]/ { v = $2; sub(/^[ \t]*[^ \t]+[ \t]+/, "", v); gsub(/"/, "", v); print v; exit }' <<<"$blk")
+    err=$(awk -F'\t' 'tolower($2) ~ /^[ \t]*errorlog[ \t]/ { v = $2; sub(/^[ \t]*[^ \t]+[ \t]+/, "", v); gsub(/"/, "", v); print v; exit }' <<<"$blk")
+    line=$(grep -m1 -E 'SetHandler +"?proxy:unix:|ProxyPassMatch .*fcgi://' <<<"$blk") || line=""
+    if [[ $line == *proxy:unix:* ]]; then ep=$(sed -E 's/.*proxy:unix:([^|"]+).*/\1/' <<<"$line"); ref="$f:${line%%$'\t'*}"
+    elif [[ $line == *fcgi://* ]]; then ep=$(sed -E 's#.*fcgi://([^/"]+).*#\1#' <<<"$line"); ref="$f:${line%%$'\t'*}"
+    elif [ -n "$glob_ep" ]; then ep=$glob_ep; ref=$glob_ref
+    elif (( APACHE_MODPHP )); then kind=apache_mod_php; pb=PB-006; b=$modphp_b
+    else continue; fi
+    [[ $l == 443 || $line == *443* || $blk == *SSLEngine* ]] && ssl=https
+    sn=${sn,,}; [ -n "$sn" ] || sn=$name
+    if [ "$kind" = apache_mod_php ]; then
+      add_site "$sn" "$pb" "$kind" "$f:$l" "$root" "$sn ${al,,}" "" "$b" "$err" "$ssl"
+    else
+      site_endpoint "$sn" "$f:$l${ref:+,$ref}" "$root" "$sn ${al,,}" "$ep" "$err" "$ssl" "$kind" "$pb"
+    fi
+  done <<<"$out"
+}
+
+# unmapped_sites: sites in web server files that no running server loads (BR-ENV-001).
+unmapped_sites() {
+  local f n
+  for f in /etc/nginx/sites-available/* /etc/nginx/conf.d/*.conf /etc/apache2/sites-available/*.conf; do
+    [ -f "$f" ] || continue
+    for n in $(awk 'tolower($1) == "server_name" || tolower($1) == "servername" || tolower($1) == "serveralias" { for (i = 2; i <= NF; i++) { v = $i; sub(/;$/, "", v); if (v != "_" && v != "") print tolower(v) } }' "$f" | sort -u); do
+      [ -n "${SITE_SEEN[$n]:-}" ] && continue
+      local hit=0 s; for s in "${J_SITES[@]}"; do [[ $s == *"\"server_names\":["*"\"$n\""* ]] && { hit=1; break; }; done
+      (( hit )) && continue
+      SITE_SEEN[$n]=1
+      msg ERR-ENV-422-02 "Cannot determine which PHP site {site} uses." site="$n"
+      CUR_REF="site:$n"; issue_c ERR-ENV-422-02 high "$REPLY ($f is not loaded by a running web server)"; CUR_REF=""
+      site_key "$n"
+      jo site_id=s:"$n" site_key=s:"$REPLY" pb_id=s:PB-000 server_names=j:"[\"$n\"]" docroot=j:null owner_user=s:unknown \
+         binding_kind=s:unmapped binding_ref=s:"$f" current_branch=j:null current_bin=j:null runtime_id=j:null \
+         runtime_endpoint=j:null log_sources=j:"[]" hc_urls=j:"[]" hc_mode=s:full
+      J_SITES+=("$REPLY")
+    done
+  done
+}
+
+inventory_sites() {
+  head_ "Sites"
+  if [ -n "$PB_PANEL" ]; then
+    note "Sites are managed by $PANEL ($PB_PANEL): panel inventory is not available in this build."
+  fi
+  (( NGINX_UP )) && [ -z "$PB_PANEL" ] && has nginx && nginx_sites
+  (( APACHE_UP )) && [ -z "$PB_PANEL" ] && apache_sites
+  (( NGINX_UP || APACHE_UP )) && [ -z "$PB_PANEL" ] && unmapped_sites
+  local s n=0
+  for s in ${J_SITES[@]+"${J_SITES[@]}"}; do [[ $s == *'"binding_kind":"unmapped"'* ]] || n=$((n + 1)); done
+  note "$n site(s) mapped to a PHP runtime."
+  return 0
+}
+
+# node_apps BIN: systemd units whose ExecStart runs BIN (PB-017). REPLY = JSON array.
+node_apps() {
+  local bin=$1 u apps=() user
+  if (( HAS_SYSTEMD )); then
+    for u in $(grep -lsE "ExecStart=.*${bin//./\\.}" /etc/systemd/system/*.service /lib/systemd/system/*.service 2>/dev/null | xargs -r -n1 basename | sort -u); do
+      user=$(sed -n 's/^User=//p' "/etc/systemd/system/$u" 2>/dev/null | head -n1)
+      jo app_id=s:"app:systemd:${u%.service}" manager=s:systemd unit_or_name=s:"$u" user=s:"${user:-root}"; apps+=("$REPLY")
+    done
+    (( ${#apps[@]} )) && add_unique PB_NODE PB-017
+  fi
+  jarr apps
 }
 
 # --- PHP runtimes ---------------------------------------------------------
@@ -987,38 +1539,105 @@ php_scan_dirs() {
 
 PHP_MITIGATION_FILE=zz-php-quickpatch-mitigation.ini
 
-php_mitigation_ini() { # php_mitigation_ini VERSION
-  cve_list
-  echo "; Added by php-quickpatch $(date +%F): interim mitigation"
-  echo "; ($REPLY). It only reduces exposure. Upgrade PHP, then delete this file."
-  echo "session.upload_progress.enabled = 0"
-  (( NO_MEMLIMIT )) || echo "memory_limit = -1"
-  [[ $1 == 8.5.* ]] && echo "fatal_error_backtraces = 0"
-  return 0
+# mit_rules VERSION: "rule_id<TAB>directive" of the mitigations.json rules that
+# match the unpatched CVEs of the last assess and the branch of VERSION
+# (FR-PTCH-MIT-001). No catalog -> the v0.1 rules built in below.
+MIT_BUILTIN='{"rule_id": "MIT-PHP-001", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": [], "directive": "session.upload_progress.enabled = 0", "flag": null}
+{"rule_id": "MIT-PHP-002", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": [], "directive": "memory_limit = -1", "flag": "memlimit"}
+{"rule_id": "MIT-PHP-003", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": ["8.5"], "directive": "fatal_error_backtraces = 0", "flag": null}'
+mit_rules() {
+  local b=${1%.*} line ids=",${A_IDS},${A_SEC},${A_DRIVERS// /,}," cves br id dir flag c hit
+  {
+    if [ -n "$CATALOG_DIR" ]; then grep '"rule_id":' "$CATALOG_DIR/mitigations.json"; else printf '%s\n' "$MIT_BUILTIN"; fi
+  } | while IFS= read -r line; do
+    cat_field "$line" rule_id; id=$REPLY; cat_field "$line" directive; dir=$REPLY; cat_field "$line" flag; flag=$REPLY
+    [ "$flag" = memlimit ] && (( NO_MEMLIMIT )) && continue
+    br=$(sed -n 's/.*"branches": \[\([^]]*\)\].*/\1/p' <<<"$line" | tr -d '" ')
+    [ -z "$br" ] || [[ ",$br," == *",$b,"* ]] || continue
+    cves=$(sed -n 's/.*"cves": \[\([^]]*\)\].*/\1/p' <<<"$line" | tr -d '" ')
+    hit=0; for c in ${cves//,/ }; do [[ $ids == *",$c,"* ]] && { hit=1; break; }; done
+    (( hit )) && printf '%s\t%s\t%s\n' "$id" "$dir" "$cves"
+  done | sort
+}
+
+# php_mitigation_ini VERSION: the wanted file D (FR-PTCH-MIT-001): first line
+# "; qp-rules=<ids>; sha256=<SHA-256 of the body>", then the body. Empty when no rule matches.
+php_mitigation_ini() {
+  local rules ids body sha cves
+  rules=$(mit_rules "$1"); [ -n "$rules" ] || return 1
+  ids=$(cut -f1 <<<"$rules" | paste -sd,); cves=$(cut -f3 <<<"$rules" | tr ',' '\n' | sort -u | paste -sd' ')
+  body="; php-quickpatch interim mitigation ($cves). It only reduces exposure: upgrade PHP, then delete this file."$'\n'"$(cut -f2 <<<"$rules")"
+  sha=$(printf '%s\n' "$body" | sha256sum | cut -c1-64)
+  printf '; qp-rules=%s; sha256=%s\n%s\n' "$ids" "$sha" "$body"
+}
+
+# mit_by_tool FILE: written by the tool and not edited since: a qp-rules line whose
+# sha256 matches the body (a), or a v0.1 file with exactly one v0.1 pattern (b).
+mit_by_tool() {
+  local f=$1 first sha lines
+  first=$(head -n1 "$f")
+  if [[ $first =~ ^\;\ qp-rules=[^\;]*\;\ sha256=([0-9a-f]{64})$ ]]; then
+    sha=$(tail -n +2 "$f" | sha256sum | cut -c1-64); [ "$sha" = "${BASH_REMATCH[1]}" ]; return
+  fi
+  grep -q 'qp-rules=' "$f" && return 1
+  lines=$(grep -v '^[[:space:]]*;' "$f" | grep -v '^[[:space:]]*$' | sed -E 's/[[:space:]]+//g' | sort | paste -sd'|')
+  case $lines in
+    'session.upload_progress.enabled=0'|'memory_limit=-1|session.upload_progress.enabled=0'| \
+    'fatal_error_backtraces=0|session.upload_progress.enabled=0'| \
+    'fatal_error_backtraces=0|memory_limit=-1|session.upload_progress.enabled=0') return 0 ;;
+  esac
+  return 1
 }
 
 php_mitigate() {
-  local bin=$1 v d f
+  local bin=$1 v d f want dirs
   v=$(php_version "$bin")
-  local dirs
+  if ! want=$(php_mitigation_ini "$v"); then
+    note "no mitigations.json rule matches the unpatched CVEs of $bin"
+    act mitigation_add skipped "no mitigation rule for ${A_IDS:-$A_DRIVERS}"; return 1
+  fi
   if ! dirs=$(php_scan_dirs "$bin"); then
     msg ERR-PTCH-412-01 "No conf.d scan dir for {bin}; set the mitigation in its php.ini by hand." bin="$bin"
     warn "$REPLY"; add_warning ERR-PTCH-412-01 "$REPLY"; act mitigation_add failed "$REPLY" ERR-PTCH-412-01
     return 1
   fi
+  local rules; rules=$(sed -n '1s/^; qp-rules=\([^;]*\);.*/\1/p' <<<"$want")
   while read -r d; do
     [ -d "$d" ] || continue
     f="$d/$PHP_MITIGATION_FILE"
-    if [ -f "$f" ]; then note "mitigation already present: $f"; continue; fi
-    change file create "$f" "" "" "interim mitigation (FR-PTCH-MIT-001)"
-    if (( DRY_RUN )); then say "    [dry-run] write $f"; act mitigation_add planned "$f"; continue; fi
-    record created "$f" && php_mitigation_ini "$v" >"$f" && note "wrote $f"
-    act mitigation_add "done" "$f"
-    # shellcheck disable=SC2086
-    jas $A_DRIVERS; jo runtime_id=s:"${CUR_REF#runtime:}" file=s:"$f" action=s:added driver_ids=j:"$REPLY"; J_MITIG+=("$REPLY")
+    if [ ! -f "$f" ]; then
+      change file create "$f" "" "" "interim mitigation $rules (FR-PTCH-MIT-001)"
+      if (( DRY_RUN )); then say "    [dry-run] write $f"; act mitigation_add planned "$f"; continue; fi
+      record created "$f" && printf '%s\n' "$want" >"$f" && note "wrote $f"
+      act mitigation_add "done" "$f"; mit_json "$f" added; RESTART_PHP=1
+    elif [ "$(cat "$f")" = "$want" ]; then
+      note "$f unchanged"; mit_json "$f" unchanged
+    elif mit_by_tool "$f"; then
+      change file modify "$f" "" "" "rewrite interim mitigation $rules (FR-PTCH-MIT-001)"
+      if (( DRY_RUN )); then say "    [dry-run] rewrite $f"; act mitigation_add planned "rewrite $f"; continue; fi
+      if ! space_for "$(du -sk "$f" | awk '{print $1}')"; then
+        msg ERR-ENV-507-01 "Not enough disk space to back up before switching {site}." site="$f"
+        issue_c ERR-ENV-507-01 high "$f kept: not enough space in $STATE_DIR to back it up"; act mitigation_add skipped "$f" ERR-ENV-507-01; continue
+      fi
+      backup_file "$f"
+      local tmp; tmp=$(mktemp "$d/.qp-mitigation.XXXXXX") && printf '%s\n' "$want" >"$tmp" && chmod 0644 "$tmp" && mv -f "$tmp" "$f" \
+        && note "rewrote $f" && act mitigation_add "done" "rewrote $f" && mit_json "$f" rewritten && RESTART_PHP=1
+    else
+      local miss=() line; while IFS= read -r line; do
+        [[ $line == \;* ]] && continue
+        grep -qxF "$line" "$f" || miss+=("$line")
+      done <<<"$want"
+      note "$f kept (modified by hand)"; mit_json "$f" kept
+      issue high "$f was modified by hand and is kept; missing: ${miss[*]:-none}"
+    fi
   done <<<"$dirs"
-  (( NO_MEMLIMIT )) || note "memory_limit=-1 removes PHP's memory cap; apps calling ini_set('memory_limit') can still override it."
-  RESTART_PHP=1
+  (( NO_MEMLIMIT )) || [[ $rules != *MIT-PHP-002* ]] || note "memory_limit=-1 removes PHP's memory cap; apps calling ini_set('memory_limit') can still override it."
+  return 0
+}
+
+mit_json() { # mit_json FILE ACTION
+  # shellcheck disable=SC2086
+  jas $A_DRIVERS; jo runtime_id=s:"${CUR_REF#runtime:}" file=s:"$1" action=s:"$2" driver_ids=j:"$REPLY"; J_MITIG+=("$REPLY")
 }
 
 # Remove the interim mitigation once a runtime is patched (FR-PTCH-MIT-002).
@@ -1041,9 +1660,11 @@ php_unmitigate() {
   done <<<"$dirs"
 }
 
-# php_runtime_json BIN VERSION STATE: append a runtime object (FR-SCAN-RT-001)
+# php_runtime_json BIN VERSION STATE RAW: append a runtime object (FR-SCAN-RT-001);
+# scenario fields come from the last classify call.
+RT_PROVIDERS=()
 php_runtime_json() {
-  local bin=$1 v=$2 st=$3 rid mgr="" pkg="" pver="" src sfx d exts=() sapis=(cli) dirs=() owner
+  local bin=$1 v=$2 st=$3 raw=${4:-$2} rid mgr="" pkg="" pver="" src sfx d exts=() sapis=(cli) dirs=() owner
   runtime_id php "$bin"; rid=$REPLY
   owner=$(pkg_owner "$bin"); read -r mgr pkg <<<"$owner"
   [ -n "$mgr" ] && pver=$(pkg_version "$mgr" "$pkg")
@@ -1064,12 +1685,16 @@ php_runtime_json() {
   jas "${sapis[@]}"; local js_sapis=$REPLY
   jas ${dirs[@]+"${dirs[@]}"}; local js_dirs=$REPLY
   jas ${exts[@]+"${exts[@]}"}; local js_exts=$REPLY
-  jo runtime_id=s:"$rid" kind=s:php bin=s:"$bin" version_raw=S:"$v" version=S:"$v" branch=S:"${v%.*}" \
+  php_provider "$bin" "$mgr"; local pb=$REPLY; RT_PROVIDERS+=("$pb")
+  [ -n "$v" ] && RT_BRANCH[$bin]=${v%.*}
+  jas ${SCN_IDS[@]+"${SCN_IDS[@]}"}; local js_scn=$REPLY lr=""
+  (( SCN_LOCK )) && lr=scn.version.unrecognized
+  jo runtime_id=s:"$rid" kind=s:php bin=s:"$bin" version_raw=S:"$raw" version=S:"$v" branch=S:"${v%.*}" \
      sapis=j:"$js_sapis" ini_scan_dirs=j:"$js_dirs" extensions=j:"$js_exts" owner_pkg=j:"$jpkg" \
-     install_source=s:"$src" scenario_ids=j:"[]" state=s:"$st" locked=b:0 lock_reason=j:null \
-     abi=j:null npm_version=j:null apps=j:"[]" site_ids=j:"[]"
+     install_source=s:"$src" scenario_ids=j:"$js_scn" state=s:"$st" locked=b:$SCN_LOCK lock_reason=S:"$lr" \
+     pb_id=s:"$pb" abi=j:null npm_version=j:null apps=j:"[]" site_ids=j:"[]"
   local rt=$REPLY; assess_json; json_merge "$rt" "$REPLY"
-  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"
+  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"; deadline_add "$rid"
   count_state "$st"
 }
 
@@ -1089,14 +1714,30 @@ check_php() {
   php_sapis_note
   for bin in "${bins[@]}"; do
     runtime_id php "$bin"; rid=$REPLY; CUR_REF="runtime:$rid"
-    if ! v=$(php_version "$bin"); then
-      msg ERR-SCN-422-01 "Unrecognized {runtime} version '{raw}'. Automation for this runtime is locked." runtime="PHP ($bin)" raw=""
-      warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"
-      assess php ""; php_runtime_json "$bin" "" unknown; CUR_REF=""; continue
+    local raw m p pv; read -r m p <<<"$(pkg_owner "$bin")"; pv=""; [ -n "${m:-}" ] && pv=$(pkg_version "$m" "$p")
+    raw=$(probe 10 "$bin" -n -r 'echo PHP_VERSION;' 2>/dev/null) || raw=""
+    classify php "$raw" "$bin" "${m:-}" "$pv"
+    v=${raw%%[^0-9.]*}
+    if [ -z "$v" ]; then
+      scn_lock_error "PHP ($bin)" ""
+      assess php ""; php_runtime_json "$bin" "" unknown ""
+      [ "$MODE" = fix ] && act runtime_patch skipped "PHP $bin: automation locked (scn.version.unrecognized)" ERR-SCN-422-01
+      CUR_REF=""; continue
     fi
-    php_assess "$bin"; st=$A_STATE; label="PHP $v ($bin)"; before=$v
-    php_runtime_json "$bin" "$v" "$st"
+    ASSESS_LC=$SCN_LC; assess php "$v" "${m:-}" "${p:-}"; ASSESS_LC=""; st=$A_STATE; label="PHP $v ($bin)"; before=$v
+    php_runtime_json "$bin" "$v" "$st" "$raw"
     affected runtime "$rid" "PHP $v $bin"
+    if (( SCN_LOCK )); then
+      # BR-SCN-013: pre-release/abnormal version -> checks and report only.
+      scn_lock_error "PHP ($bin)" "$raw"
+      local sev; risk_sev critical; sev=$REPLY
+      issue_c ERR-SCN-422-01 "$sev" "PHP $raw ($bin): $SCN_LC version, automation locked (${SCN_IDS[*]})"
+      if [ "$MODE" = fix ]; then
+        act runtime_patch skipped "PHP $raw: automation locked (scn.version.unrecognized)" ERR-SCN-422-01
+        act mitigation_add skipped "PHP $raw: automation locked (scn.version.unrecognized)" ERR-SCN-422-01
+      fi
+      CUR_REF=""; continue
+    fi
     case $st in
       ok)          ok "$label is patched."; [ "$MODE" = fix ] && php_unmitigate "$bin" ;;
       ok-backport) cve_list; ok "$label has the vendor backport for $REPLY."; [ "$MODE" = fix ] && php_unmitigate "$bin" ;;
@@ -1210,7 +1851,7 @@ node_upgrade() { # node_upgrade BIN MAJOR
   RESTART_NODE_PREFIXES+=("${bin%/bin/node}")
 }
 
-# node_runtime_json BIN VERSION STATE (FR-SCAN-RT-002)
+# node_runtime_json BIN VERSION STATE RAW (FR-SCAN-RT-002)
 node_runtime_json() {
   local bin=$1 v=$2 st=$3 rid mgr="" pkg="" pver="" src abi="" npmv="" prefix=${1%/bin/node}
   runtime_id node "$bin"; rid=$REPLY
@@ -1225,12 +1866,18 @@ node_runtime_json() {
   elif [ -d "$prefix/lib/node_modules/npm" ]; then src=tarball
   else src=unknown; fi
   local jpkg=null; [ -n "$mgr" ] && { jo manager=s:"$mgr" name=s:"$pkg" version=S:"$pver"; jpkg=$REPLY; }
-  jo runtime_id=s:"$rid" kind=s:node bin=s:"$bin" version_raw=S:"$v" version=S:"$v" branch=S:"${v%%.*}" \
+  local pb=""   # §2.3 step 8: provider playbook of this binary
+  case $src in nvm) pb=PB-016 ;; nodesource) pb=PB-014 ;; tarball|package) pb=PB-015 ;; docker) pb=PB-013 ;; esac
+  [ -n "$pb" ] && add_unique PB_NODE "$pb"
+  node_apps "$bin"; local japps=$REPLY
+  jas ${SCN_IDS[@]+"${SCN_IDS[@]}"}; local js_scn=$REPLY lr=""
+  (( SCN_LOCK )) && lr=scn.version.unrecognized
+  jo runtime_id=s:"$rid" kind=s:node bin=s:"$bin" version_raw=S:"${4:-$v}" version=S:"$v" branch=S:"${v%%.*}" \
      sapis=j:"[]" ini_scan_dirs=j:"[]" extensions=j:"[]" owner_pkg=j:"$jpkg" install_source=s:"$src" \
-     scenario_ids=j:"[]" state=s:"$st" locked=b:0 lock_reason=j:null abi=S:"$abi" npm_version=S:"$npmv" \
-     apps=j:"[]" site_ids=j:"[]"
+     scenario_ids=j:"$js_scn" state=s:"$st" locked=b:$SCN_LOCK lock_reason=S:"$lr" pb_id=S:"$pb" abi=S:"$abi" \
+     npm_version=S:"$npmv" apps=j:"$japps" site_ids=j:"[]"
   local rt=$REPLY; assess_json; json_merge "$rt" "$REPLY"
-  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"
+  J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"; deadline_add "$rid"
   count_state "$st"
 }
 
@@ -1241,12 +1888,24 @@ check_node() {
   if [ ${#bins[@]} -eq 0 ]; then note "No Node.js binary found."; return; fi
   for bin in "${bins[@]}"; do
     runtime_id node "$bin"; rid=$REPLY; CUR_REF="runtime:$rid"
+    local raw m p pv; read -r m p <<<"$(pkg_owner "$bin")"; pv=""; [ -n "${m:-}" ] && pv=$(pkg_version "$m" "$p")
     if ! v=$(probe 10 "$bin" -v 2>/dev/null) || [ -z "$v" ]; then
-      msg ERR-SCN-422-01 "Unrecognized {runtime} version '{raw}'. Automation for this runtime is locked." runtime="Node.js ($bin)" raw=""
-      warn "$REPLY"; add_error ERR-SCN-422-01 "$REPLY"; assess node ""; node_runtime_json "$bin" "" unknown; CUR_REF=""; continue
+      classify node "" "$bin" "${m:-}" "$pv"
+      scn_lock_error "Node.js ($bin)" ""; assess node ""; node_runtime_json "$bin" "" unknown ""
+      [ "$MODE" = fix ] && act runtime_patch skipped "Node.js $bin: automation locked (scn.version.unrecognized)" ERR-SCN-422-01
+      CUR_REF=""; continue
     fi
-    v=${v#v}; major=${v%%.*}; node_assess "$bin" "$v"; st=$A_STATE; label="Node.js $v ($bin)"; before=$v
-    node_runtime_json "$bin" "$v" "$st"; affected runtime "$rid" "Node.js $v $bin"
+    raw=$v; classify node "$raw" "$bin" "${m:-}" "$pv"
+    v=${v#v}; v=${v%%[^0-9.]*}; major=${v%%.*}
+    ASSESS_LC=$SCN_LC; node_assess "$bin" "$v"; ASSESS_LC=""; st=$A_STATE; label="Node.js $v ($bin)"; before=$v
+    node_runtime_json "$bin" "$v" "$st" "$raw"; affected runtime "$rid" "Node.js $v $bin"
+    if (( SCN_LOCK )); then
+      scn_lock_error "Node.js ($bin)" "$raw"
+      local sev; risk_sev critical; sev=$REPLY
+      issue_c ERR-SCN-422-01 "$sev" "Node.js $raw ($bin): $SCN_LC version, automation locked (${SCN_IDS[*]})"
+      [ "$MODE" = fix ] && act runtime_patch skipped "Node.js $raw: automation locked (scn.version.unrecognized)" ERR-SCN-422-01
+      CUR_REF=""; continue
+    fi
     case $st in
       ok) ok "$label is patched." ;;
       unknown) warn "$label: newer than the advisory data, not checked." ;;
@@ -1705,7 +2364,8 @@ container_mitigate() { # container_mitigate ID NAME VERSION
   change file create "$name:$f" "" "" "interim mitigation in container"; affected container "$id" "$name"
   if (( DRY_RUN )); then say "    [dry-run] write $f in $name and restart it"; act container_mitigation planned "$name:$f"; return; fi
   record docker-created "$id" "$f"
-  if php_mitigation_ini "$v" | docker exec -i "$id" sh -c "cat > '$f'" 9>&- 3>&-; then
+  local want; want=$(php_mitigation_ini "$v") || { note "$name: no mitigation rule matches"; act container_mitigation skipped "$name: no rule"; return; }
+  if printf '%s\n' "$want" | docker exec -i "$id" sh -c "cat > '$f'" 9>&- 3>&-; then
     note "$name: interim mitigation written to $scan (kept across restarts, lost on recreate)"
     act container_mitigation "done" "$name:$f"
     (( NO_RESTART )) || { run docker restart "$id" && jo unit=s:"container:$name" status=s:restarted && J_RESTARTS+=("$REPLY"); }
@@ -2074,22 +2734,27 @@ scan_result_json() {
   jo runtimes=n:${#J_RUNTIMES[@]} by_state=j:"{\"ok\":$BY_STATE_OK,\"ok_backport\":$BY_STATE_BACKPORT,\"vulnerable\":$BY_STATE_VULN,\"eol\":$BY_STATE_EOL,\"unknown\":$BY_STATE_UNKNOWN}" \
      eol_within_90d=n:$EOL_90 kev_findings=n:$kev critical_issues=n:$CRITICAL vulnerable_packages=n:$VULN_PACKAGES
   local summary=$REPLY
-  fp=$(printf '%s\n' ${J_RUNTIMES[@]+"${J_RUNTIMES[@]}"} | grep -o '"bin":"[^"]*"\|"version":"[^"]*"' | sha256sum | cut -c1-64)
+  # site_ids of each runtime from the site inventory
+  local i r ids id
+  for i in "${!J_RUNTIMES[@]}"; do
+    r=${J_RUNTIMES[$i]}; [[ $r =~ \"runtime_id\":\"([^\"]+)\" ]] || continue
+    ids=${SITE_RT[${BASH_REMATCH[1]}]:-}; [ -n "$ids" ] || continue
+    local arr=(); for id in $ids; do arr+=("$id"); done; jas "${arr[@]}"
+    J_RUNTIMES[$i]=${r/\"site_ids\":\[\]/\"site_ids\":$REPLY}
+  done
+  jarr J_RUNTIMES; rt=$REPLY
+  local sites; jarr J_SITES; sites=$REPLY
+  # FR-PLAN-GEN-001: SHA-256 of the site bindings + runtime versions.
+  fp=$( { printf '%s\n' ${J_SITES[@]+"${J_SITES[@]}"} | sort; printf '%s\n' ${J_RUNTIMES[@]+"${J_RUNTIMES[@]}"} | grep -o '"bin":"[^"]*"\|"version_raw":"[^"]*"'; } | sha256sum | cut -c1-64)
+  local dls; jarr J_DEADLINES; dls=$REPLY
   env_json; local envj=$REPLY rk="" line
-  while IFS=$'\t' read -r _ _ line; do [ -n "$line" ] && rk+="${rk:+,}$line"; done < <(printf '%s\n' ${RANKING[@]+"${RANKING[@]}"} | sort -t$'\t' -k1,1n -k2,2n)
-  jo scan_fingerprint=s:"$fp" environment=j:"$envj" runtimes=j:"$rt" sites=j:"[]" projects=j:"$pr" containers=j:"$ct" \
+  while IFS=$'\t' read -r _ _ line; do [ -n "$line" ] && rk+="${rk:+,}$line"; done < <(printf '%s\n' ${RANKING[@]+"${RANKING[@]}"} | sort -t$'\t' -k1,1n -k2,2n -k3,3)
+  jo scan_fingerprint=s:"$fp" environment=j:"$envj" runtimes=j:"$rt" sites=j:"$sites" projects=j:"$pr" containers=j:"$ct" \
      dependency_findings=j:"$dp" wordpress_findings=j:"$wp" webshell_findings=j:"$ws" drift_warnings=j:"[]" \
-     ranking=j:"[$rk]" plan_deadlines=j:"[]" summary=j:"$summary"
+     ranking=j:"[$rk]" plan_deadlines=j:"$dls" summary=j:"$summary"
   SCAN_FP=$fp
 }
 SCAN_FP=""
-
-env_json() {
-  local os_id="" os_ver=""
-  [ -r /etc/os-release ] && { os_id=$(. /etc/os-release && echo "${ID:-}"); os_ver=$(. /etc/os-release && echo "${VERSION_ID:-}"); }
-  jo os_id=S:"$os_id" os_version=S:"$os_ver" pkg_mgr=s:"$PKG_MGR" panel=s:"$PANEL" has_systemd=b:$HAS_SYSTEMD \
-     has_docker=b:$HAS_DOCKER in_container=b:$IN_CONTAINER is_root=b:$IS_ROOT web_servers=j:"[]" playbooks=j:"[]" restrictions=j:"[]"
-}
 
 fix_result_json() {
   local only=() IFS=, p a m r rd rf c pv="" fpj=""
@@ -2113,7 +2778,7 @@ fix_result_json() {
     jo level=s:"$level" rollback_command=S:"$( [ "$MODE" = fix ] && echo "$0 rollback <run_id>")" notes=j:"$REPLY"; local rev=$REPLY
     jo expected_s=j:null scope=s:"$scope_d" basis=s:"restart/reload of the listed services"; local dis=$REPLY
     jo changes=j:"$ch" affected=j:"$af" disruption=j:"$dis" reversibility=j:"$rev" requires_retype=j:null; pv=$REPLY
-    jo bundle_id=j:null scan_fingerprint=S:"$SCAN_FP" catalog_version=j:null; fpj=$REPLY
+    jo bundle_id=S:"$DATA_BUNDLE_ID" scan_fingerprint=S:"$SCAN_FP" catalog_version=S:"$CATALOG_VERSION"; fpj=$REPLY
   fi
   local extra=""
   if [ "$MODE" = rollback ]; then
@@ -2230,6 +2895,7 @@ main() {
   LOG="$STATE_DIR/php-quickpatch.log"
   (umask 077; : >>"$LOG") 2>/dev/null
   local w; for w in ${STATE_WARN[@]+"${STATE_WARN[@]}"}; do log "WARN: $w"; done
+  catalog_open
   WORK_DIR=$(mktemp -d) || exit 2
   trap 'flock -u 9 2>/dev/null; rm -rf "$WORK_DIR"' EXIT
   exec 9>"$STATE_DIR/.lock"
@@ -2252,6 +2918,8 @@ main() {
   discover_projects
   want php && check_php
   want node && check_node
+  env_after_runtimes
+  want sites && inventory_sites
   want composer && check_composer
   want npm && check_npm
   want wp && check_wordpress

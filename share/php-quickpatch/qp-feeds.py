@@ -89,7 +89,7 @@ def cmd_audit(env, argv, warn):
     return 2, res
 
 
-NOT_YET = {'assess': 'M3', 'plan': 'M3', 'report': 'M7'}
+NOT_YET = {'report': 'M7'}
 SCHEMAS = {'audit': 'qp.audit/1', 'assess': 'qp.assess/1', 'plan': 'qp.plan/1', 'report': 'qp.report/1',
            'feeds': 'qp.feeds/1'}
 
@@ -116,6 +116,12 @@ def main(argv):
         elif command == 'feeds':
             from qplib.feeds import cli as feeds_cli
             code, result = feeds_cli.run(env, rest, warnings, Args)
+        elif command == 'assess':
+            from qplib import assess
+            code, result = assess.run(env, rest, Args, warnings, statedir.select(warnings))
+        elif command == 'plan':
+            from qplib import plan
+            code, result = plan.run(env, rest, Args, warnings, statedir.select(warnings))
         elif command in ('osv-check', 'backport', 'risk', 'build-snapshot'):
             from qplib.feeds import tools
             code, result = tools.COMMANDS[command](env, rest, Args, warnings)

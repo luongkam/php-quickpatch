@@ -255,7 +255,40 @@ def collect_php_releases(ctx):
         ctx.save_raw(src, name, body)
     for b in sorted(supported):
         facts.append({'type': 'supported', 'product': 'php', 'branch': b})
+    facts.extend(_php_prereleases(ctx, src))
     return {'facts': facts, 'records': sum(1 for f in facts if f['type'] == 'release'), 'origin': 'PRIMARY'}
+
+
+def _php_prereleases(ctx, src):
+    """Branches with an official pre-release build (BR-SCN-040 step 1): keys of
+    pre-release-builds.php?format=json whose release.version is set and
+    release.enabled is not false. Optional: on failure keep the previous facts."""
+    url = ctx.conf[src].get('prerelease_url')
+    if not url:
+        return []
+    name = 'pre-release-builds.json'
+    try:
+        body = ctx.get(src, name, url, conditional=False)
+        doc = _json(body, name, src)
+    except (FetchError, Invalid) as e:
+        ctx.warn(src, 'php.net pre-release builds: %s' % getattr(e, 'message', e))
+        return [f for f in ctx.prev_facts(src) if f['type'] == 'prerelease']
+    out = []
+    for key, info in (doc.items() if isinstance(doc, dict) else []):
+        if not re.match(r'^\d+\.\d+\.\d+$', key) or not isinstance(info, dict):
+            continue
+        rel = info.get('release') if isinstance(info.get('release'), dict) else {}
+        ver = rel.get('version')
+        if not ver or rel.get('enabled') is False:
+            continue
+        try:
+            d = iso_date(rel.get('date'))
+        except ValueError:
+            d = None
+        out.append({'type': 'prerelease', 'product': 'php', 'branch': V.branch_of('php', key), 'version': ver,
+                    'date': d})
+    ctx.save_raw(src, name, body)
+    return out
 
 
 def collect_php_releases_fallback(ctx):

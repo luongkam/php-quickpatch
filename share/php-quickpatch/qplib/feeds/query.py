@@ -106,5 +106,5 @@ class Bundle(object):
                 'eol_date': (lc or {}).get('eol_date'), 'days_to_eol': d, 'priority': sc['priority'],
                 'min_patched': (mp or {}).get('min_patched_sec'), 'latest': (mp or {}).get('latest'),
                 'driver_ids': ((mp or {}).get('driver_ids') or '').split(',') if (mp or {}).get('driver_ids') else [],
-                'exposure': exp, 'risk': {'R': sc['R'], 'level': sc['level'], 'components': sc['components']},
+                'exposure': exp, 'risk': {'R': sc['R'], 'score': sc['R'], 'level': sc['level'], 'components': sc['components']},
                 'bundle_id': self.bundle_id}

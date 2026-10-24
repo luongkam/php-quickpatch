@@ -39,6 +39,7 @@ sources_conf() {
         011) url="$b/SRC-011/index.json" ;;
       esac
       printf '[SRC-%s]\nurl = %s\nmirror_url = %s\nretry_delays = 0,0,0\nmin_interval_s = 0\ntimeout_s = 10\n' "$s" "$url" "$mirror"
+      [ "$s" = 002 ] && printf 'prerelease_url = %s\n' "$b/SRC-002/pre-release-builds.php?format=json"
     done
     [ -n "${2:-}" ] && printf '%s\n' "$2"
   } >"$d/sources.conf"

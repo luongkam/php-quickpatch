@@ -5,6 +5,7 @@ Archive layout:
   SHA256SUMS      sha256sum lines for every file under bundle/
   bundle/         the bundle files (no .lock, no host data)
   raw/            only with `feeds export --raw` (BR-FEED-012)
+  catalog/        the scenario catalog with its own SHA256SUMS (FR-SCN-CAT-001)
 """
 import hashlib
 import io
@@ -15,7 +16,7 @@ import shutil
 import tarfile
 import time
 
-from .. import VERSION, errors
+from .. import VERSION, catalog as qcatalog, errors
 from . import bundle
 from .store import parse_iso, utc_iso, write_json
 
@@ -75,7 +76,14 @@ def export(fs, out, variant='standard', raw=False, built_by='feeds export', extr
                                 continue
                             with open(p, 'rb') as fh:
                                 _add_bytes(tar, 'raw/' + os.path.relpath(p, root), fh.read(), mtime)
-                for name, data in (extra or {}).items():
+                files = dict(extra or {})
+                try:
+                    qcatalog.check(qcatalog.PACKAGED)
+                    for name, data in qcatalog.files_for_snapshot().items():
+                        files.setdefault(name, data)
+                except (qcatalog.CatalogError, OSError):
+                    pass
+                for name, data in sorted(files.items()):
                     _add_bytes(tar, name, data, mtime)
     finally:
         cur['release']()
@@ -180,8 +188,10 @@ def verify_archive(archive, expected_sha, workdir, now=None, current_generated_a
     return manifest, actual
 
 
-def install_extracted(fs, workdir, manifest, archive_sha, archive=None):
+def install_extracted(fs, workdir, manifest, archive_sha, archive=None, warnings=None):
     """W1-W5 for an extracted snapshot; caller holds feeds/.lock (BR-FEED-051)."""
+    if os.path.isdir(os.path.join(workdir, 'catalog')):
+        qcatalog.install_imported(os.path.join(workdir, 'catalog'), fs.root, [] if warnings is None else warnings)
     staging = fs.path('staging')
     if os.path.lexists(staging):
         shutil.rmtree(staging)
@@ -274,7 +284,7 @@ def maybe_install_packaged(fs, script, warnings, now=None):
     os.mkdir(work, 0o700)
     try:
         manifest, sha = verify_archive(path, packaged_sha(script) or '0' * 64, work, now=now)
-        install_extracted(fs, work, manifest, sha)
+        install_extracted(fs, work, manifest, sha, warnings=warnings)
         return manifest
     except errors.QPError as e:
         warnings.append((e.code, '%s: %s (%s)' % (path, e.message, e.details.get('detail', ''))))

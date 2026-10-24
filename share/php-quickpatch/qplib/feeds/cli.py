@@ -371,7 +371,7 @@ def import_(env, a, warnings):
             os.mkdir(wdir, 0o700)
             try:
                 manifest, actual = snapshot.verify_archive(path, sha, wdir, current_generated_at=cur_gen, force=force)
-                snapshot.install_extracted(fs, wdir, manifest, actual, archive=path)
+                snapshot.install_extracted(fs, wdir, manifest, actual, archive=path, warnings=warnings)
             finally:
                 shutil.rmtree(wdir, ignore_errors=True)
         return 0, {'file': path, 'sha256': actual, 'bundle_id': manifest['bundle_id'],

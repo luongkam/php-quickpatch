@@ -23,6 +23,11 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | C-15 | M2 | Ví dụ §8.5 số 2 và 5 của DOC-SRS-QP-FEED-002 (PHP 8.4.26: 2 critical) khác dữ liệu NVD ngày 2026-10-24: NVD Primary 3.1 chấm CVE-2026-109619 = 8,1 (`high`) → 1 critical + 1 high, R = 45 | merge-risk §8.5, BR-FEED-028 | Công thức kiểm bằng đúng đầu vào của bảng §8.5 (11 ví dụ + RT-1/RT-2, Bash và Python); số đếm thật lấy theo `BR-FEED-028` | A | Áp dụng |
 | C-16 | M2 | `BR-SCN-002` ưu tiên php.net cho ngày vòng đời PHP; merge-risk §4.1 / `BR-FEED-020` đặt `SRC-001` trước `SRC-003` (`eol.php`) | BR-SCN-002, BR-FEED-020 | Theo `BR-FEED-020` (§4.1); lệch > 3 ngày ghi `ERR-FEED-409-01` (vd PHP 5.4: 2015-09-14 vs 2015-09-03) | B | Áp dụng |
 | C-17 | M2 | M1 dùng 1 schema `qp.feeds/1` cho mọi lệnh con; DOC-SRS-QP-FEED-003 §6.2, §7 quy định `qp.feeds.<lệnh con>/1` | FR-FEED-CMD-001..006 | Tách `qp.feeds.update|verify|export|import|schedule/1`; `qp.feeds/1` chỉ còn cho lỗi lệnh con không hợp lệ | B | Áp dụng |
+| C-18 | M3 | `risk.components`: data dictionary DOC-SRS-QP-FEED-002 §2.2 ghi khoá `{cvss,count,kev,life,eol,floor}`; DOC-API-QP-005 §5.1/§6 và TC-ASMT-001 ghi `{S_cvss,S_cnt,S_kev,S_life,S_eol}` dạng số; FR-ASMT-RISK-001 ghi `risk.score`, DOC-API-QP-005 ghi `risk.R` | api-spec-cli-json §5.1, TC-ASMT-001 | Theo hợp đồng CLI + TC: `S_*` là số (1 chữ số thập phân, cùng cách tính số nguyên phần mười), thêm `floor`, `R_raw`; có cả `R` và `score` (cùng giá trị). Đổi so với M2 (chuỗi `cvss`/`count`…) | B | Áp dụng |
+| C-19 | M3 | BR-SCN-040 bước (1) cần `pre-release-builds.php?format=json` của php.net nhưng danh mục nguồn `SRC-001..017` (DOC-SRS-QP-FEED-001) không có nguồn này | BR-SCN-040 | Thu thêm trong `SRC-002` (php.net), khoá `prerelease_url` trong `sources.conf`; nhánh có bản pre-release → dòng `lifecycle.tsv` không `ga_date`, có `prerelease_date`, `latest_hint`. Không lấy được → giữ fact cũ; không có dữ liệu → bản `8.6.0RC4` vào `SCN-PHP-005` (vẫn khoá) | A | Áp dụng |
+| C-20 | M3 | Trường `environment` của `scan --json`: DOC-SRS-QP-ENV-001 §6 (`FR-SCAN-ENV-001`) ghi `{pb_provider, pb_bindings[], pb_node[], in_container, evidence[]}`; DOC-API-QP-005 §5 ghi `{os_id, …, playbooks[{pb_id, layer}], restrictions[]}` | FR-SCAN-ENV-001, api-spec-cli-json §5 | Xuất hợp của 2 tập trường (chỉ thêm trường) | A | Áp dụng |
+| C-21 | M3 | TC-SCN-013 KQ2 mô tả mục "(khi nâng)" mở rộng thành mục con theo từng package; tài liệu kịch bản (vd `CHK-PHP-011-11` "Như `CHK-PHP-010-13` … `-17`") cho thấy mục "(khi nâng)" là tập các mục mẫu | FR-SCN-CHK-001 | Mở rộng thành mục con `-NN` theo mục mẫu được tham chiếu; mở rộng theo package làm cùng `upgrade_items` (M4) | B | Áp dụng, báo PO ở M3 |
+| C-22 | M3 | TC-ASMT-001 kỳ vọng `cve_counts.critical = 2`, `R = 60` cho PHP 8.2.34; dữ liệu NVD thật (C-15) cho 1 critical + 1 high, R = 58; bảng so sánh §6: 8.2.35/8.3.36/8.5.12 = 40/20/0 đúng, `delta_R` lệch 2 | C-15 | Test kiểm R của ứng viên theo bảng §6 và `delta_R = R − R(hiện tại)`; số đếm theo dữ liệu thật | A | Áp dụng |
 
 ## Giả định khi triển khai M2 (không đổi hành vi so với thiết kế)
 
@@ -40,3 +45,21 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | A-M2-10 | Snapshot đóng gói chưa kèm repo tới M7 (`QP_SNAPSHOT_SHA256` rỗng): máy không mạng, không bundle → `ERR-FEED-503-01`, thoát 2 |
 | A-M2-11 | `BR-FEED-012` (không Python thì `feeds update` chỉ tải raw) chưa làm: `feeds` cần Python (`ERR-CLI-424-01`); `scan`/`fix`/`rollback` vẫn chạy không Python với bundle/snapshot |
 | A-M2-12 | Fixture `tests/fixtures/feeds` lấy từ nguồn thật ngày 2026-10-24; trạng thái vòng đời tính theo ngày chạy test, nên một số kỳ vọng (vd PHP 8.2 hết hạn 2026-12-31) sẽ phải cập nhật khi dữ liệu fixture được làm mới |
+
+## Giả định khi triển khai M3 (không đổi hành vi so với thiết kế)
+
+| Mã | Nội dung |
+| :--- | :--- |
+| A-M3-01 | Catalog sinh bằng `tools/build-catalog.py` từ các bảng Markdown; `catalog_version` = `2026.10.24-1`. Trường thêm của mục checklist: `flow` (`both` = luồng vá cùng nhánh, `upgrade` = chỉ khi đổi nhánh), `refs` (mục mẫu "Như …"), `expand`, `optional` ("(Tuỳ chọn)"), `manual_condition` (điều kiện "(khi có …)" người vận hành tự xét) |
+| A-M3-02 | Kế hoạch `same_branch` đặt `SKIPPED` cho mục `flow=upgrade` (các kịch bản 001–010 không gắn nhãn "(khi nâng)" cho luồng nâng cấp) |
+| A-M3-03 | `cli_action` chỉ có cho `scan`, `assess`, `fix`; mục P1 `AUTO` trả lời được bằng `scan`/`assess` được đặt `DONE` khi tạo kế hoạch (bằng chứng: dấu vân tay scan + bundle) |
+| A-M3-04 | Mục theo site: P3–P5, P6 (trừ cron/pm2), mục "baseline"/"mỗi site"; khoá mục trong kế hoạch là `chk_id@site_id`, CLI nhận `CHK@SITE` hoặc `--site`. Runtime không có site → mục theo site `SKIPPED` ("no site uses this runtime") |
+| A-M3-05 | `applies_when` 3 trạng thái: không thoả → `SKIPPED`; chưa xác định (framework khác WordPress, loader, site không có docroot) → `PENDING` (T-CHK-01). Framework chỉ nhận WordPress (`wp-includes/version.php`); loader/framework khác ở M4 |
+| A-M3-06 | `mitigations.json`: 3 luật `MIT-PHP-001..003` kế thừa v0.1 (CVE PHP2Shell, `memory_limit` theo `--no-memlimit`, `fatal_error_backtraces` chỉ 8.5); không luật nào khớp CVE chưa vá → không ghi file. Không có catalog → dùng 3 luật gắn sẵn trong script |
+| A-M3-07 | PB-000 + `ERR-ENV-422-01` khi mọi binary PHP không khớp playbook cung cấp và không có playbook gán site (bước 6); `pb_id` của từng runtime vẫn có thể là PB-000 (vd PHP tự build cạnh Nginx) |
+| A-M3-08 | Site có trong file cấu hình web server nhưng không được tiến trình nào nạp → `sites[]` với `pb_id = PB-000`, `binding_kind = unmapped`, issue `high` `ERR-ENV-422-02`; mục checklist của site này ở mức `MANUAL` |
+| A-M3-09 | `assess`/`plan` dùng `state/last-scan.json` (do `scan` ghi, mọi chế độ text/JSON); chạy `scan --only php,node,sites` khi file cũ hơn 24 giờ hoặc thiếu runtime. Ngày T lấy từ `--today` / `QP_TODAY` (kiểm thử) |
+| A-M3-10 | Ứng viên nhánh không phải `RECOMMENDED`: bắt buộc `--reason`; nhánh không có trong danh sách ứng viên nhưng còn hỗ trợ (vd Node.js 24 cho runtime 20) được chọn với lý do (`override_reason`) |
+| A-M3-11 | Node.js `CURRENT` trước ngày LTS: coi mọi site là production (chưa có cờ môi trường) → `selectable=false` |
+| A-M3-12 | Kế hoạch `in_progress`: một lần chạy `fix` thoát 1 vì runtime khác vẫn được tính `DONE` cho mục khi không có hành động lỗi của runtime của kế hoạch (T-CHK-06) |
+| A-M3-13 | Khoá ghi kế hoạch: `STATE_DIR/plans/.lock` (độc quyền, chờ ≤ 10 s), không dùng `STATE_DIR/.lock` để `scan` chạy song song được |

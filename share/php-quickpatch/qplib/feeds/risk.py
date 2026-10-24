@@ -94,6 +94,11 @@ def tenths(v):
     return '%d.%d' % (v // 10, v % 10)
 
 
+def tenths_num(v):
+    """Integer tenths as a JSON number with 1 decimal (392 -> 39.2), same digits as Bash."""
+    return float(tenths(v))
+
+
 def score(status, d, n_crit, n_high, n_med, n_low, n_kev, cvss10, public_prerelease=False):
     """§8.2 -> dict(R, level, components, priority)."""
     s_cvss = 4 * cvss10
@@ -114,6 +119,6 @@ def score(status, d, n_crit, n_high, n_med, n_low, n_kev, cvss10, public_prerele
     prio = priority(status, d, n_kev, cvss10, public_prerelease)
     r = max((r10 + 5) // 10, FLOOR[prio])
     return {'R': r, 'level': level(r), 'priority': prio, 'R10': r10,
-            'components': {'cvss': tenths(s_cvss), 'count': tenths(s_cnt), 'kev': tenths(s_kev),
-                           'life': tenths(s_life), 'eol': tenths(s_eol), 'floor': FLOOR[prio],
-                           'R_raw': tenths(r10)}}
+            'components': {'S_cvss': tenths_num(s_cvss), 'S_cnt': tenths_num(s_cnt), 'S_kev': tenths_num(s_kev),
+                           'S_life': tenths_num(s_life), 'S_eol': tenths_num(s_eol), 'floor': FLOOR[prio],
+                           'R_raw': tenths_num(r10)}}

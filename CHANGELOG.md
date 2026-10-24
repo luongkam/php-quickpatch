@@ -1,5 +1,54 @@
 # Changelog
 
+## 2.0.0-alpha.3 — 2026-10-24 (Phase 1, milestone M3)
+
+Development build of v2 (not a release).
+
+### Added
+- Scenario catalog `share/php-quickpatch/catalog/` (`scenarios.json`,
+  `checklists.json`, `playbooks.json`, `bc_rules.json`, `mitigations.json`,
+  `framework_php.tsv`, `catalog.json`, `SHA256SUMS`): 28 scenarios and 623
+  checklist items (399 PHP, 224 Node.js), generated from the scenario
+  documents by `tools/build-catalog.py`. A newer valid catalog imported with
+  a snapshot (`feeds/catalog`) replaces the packaged one; a catalog with a
+  wrong SHA-256 (`ERR-FEED-422-02`) or missing keys (`ERR-FEED-502-02`) is
+  never used. `catalog_version` is in every `--json` envelope (FR-SCN-CAT-001).
+- `scan`: each runtime gets `scenario_ids` (one VERSION + OVERLAYs, BR-SCN-040
+  for PHP from the raw `PHP_VERSION`, BR-SCN-020 for Node.js), `locked` and
+  `lock_reason` for pre-release/abnormal versions (`ERR-SCN-422-01`; `fix`
+  skips every change on them), `pb_id`, Node.js `apps[]` (systemd).
+- `scan`: environment detection and playbooks (`environment.playbooks[]`,
+  `pb_provider`, `pb_bindings`, `pb_node`, `evidence[]`, `restrictions[]`,
+  PB-000 with `ERR-ENV-422-01`), site inventory `sites[]` for Nginx and Apache
+  with PHP-FPM and Apache `mod_php` (`--only sites`; sites in files that no
+  running server loads get `ERR-ENV-422-02`), `site_key`, `site_ids` of each
+  runtime, `scan_fingerprint` over site bindings and runtime versions,
+  `plan_deadlines[]` (EOL − 30 days), ranking reason codes of the CLI
+  contract. The result is also saved to `state/last-scan.json`.
+- `assess [--runtime-id ID | --bin PATH] [--candidates]` (`qp.assess/1`):
+  current version (CVE counts, KEV, lifecycle, EOL, latest/min patch, R),
+  advisories, candidates `SAME_BRANCH_LATEST`/`NEXT_SUPPORTED`/`RECOMMENDED`/
+  `LATEST_STABLE` with `selectable` (BR-ASMT-002, BR-SCN-005/006/007) and
+  `installable` (PB-001 via `apt-cache policy`), comparison rows (R, delta_R)
+  on one bundle and one day.
+- `plan create|list|show|approve|item|run|cancel|complete|close|canary|waive`
+  (`qp.plan/1`): target checks (BR-UPG-004, BR-PLAN-001), effective checklist
+  per site (OVERLAY first, `applies_when`, "(khi nâng)" sub-items, variables
+  replaced), plan and item state machines (T-PLN-*, T-CHK-*), dependencies
+  (`ERR-SCN-424-01`), stale plans (BR-PLAN-006), approval deadline, audit
+  records and `events.jsonl` under `STATE_DIR/plans/<plan_id>/`.
+- PHP pre-release builds of php.net collected with SRC-002 (`prerelease_url`).
+
+### Changed
+- Interim PHP mitigation follows `mitigations.json`: the file starts with
+  `; qp-rules=<ids>; sha256=<body>`; a file written by the tool (or a v0.1
+  file) is backed up and rewritten when the rules change, a file edited by
+  hand is kept and reported (`high`) (FR-PTCH-MIT-001, CR-FR-07).
+- `risk.components` uses `S_cvss`, `S_cnt`, `S_kev`, `S_life`, `S_eol` as
+  numbers (plus `floor`, `R_raw`); `risk.score` added next to `risk.R`.
+- Ranking reason codes: `KEV`, `CVSS_GE_9`, `EOL`, `CVSS_7_TO_8_9`,
+  `EOL_LE_90D`, `OTHER`; same `R` sorts by `object_ref`.
+
 ## 2.0.0-alpha.2 — 2026-10-24 (Phase 1, milestone M2)
 
 Development build of v2 (not a release).

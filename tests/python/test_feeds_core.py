@@ -111,8 +111,9 @@ class Risk(unittest.TestCase):
 
     def test_components_are_tenths(self):
         res = risk.score('SECURITY_ONLY', 70, 2, 0, 0, 0, 0, 98)
-        self.assertEqual(res['components'], {'cvss': '39.2', 'count': '8.0', 'kev': '0.0', 'life': '5.0',
-                                             'eol': '8.0', 'floor': 40, 'R_raw': '60.2'})
+        self.assertEqual(res['components'], {'S_cvss': 39.2, 'S_cnt': 8.0, 'S_kev': 0.0, 'S_life': 5.0,
+                                             'S_eol': 8.0, 'floor': 40, 'R_raw': 60.2})
+        self.assertEqual(json.dumps(res['components']['S_cnt']), '8.0')
 
     def test_levels(self):
         self.assertEqual([risk.level(r) for r in (0, 19, 20, 39, 40, 69, 70, 100)],

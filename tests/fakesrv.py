@@ -142,6 +142,8 @@ def route(src, rest, qs, body, ctl=None):
         if rest.endswith('.json'):
             return 200, read('SRC-001/legacy-%s' % rest), {}
     if src == 'SRC-002':
+        if rest == 'pre-release-builds.php':
+            return 200, read('SRC-002/pre-release-builds.json'), {}
         if 'version' in qs:
             b = read('SRC-002/branch-%s.json' % qs['version'][0])
             return 200, b if b is not None else b'{"error":"Unknown version"}', {}
