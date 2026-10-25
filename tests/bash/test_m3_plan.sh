@@ -194,7 +194,7 @@ qp plan run "$P85" CHK-PHP-010-23 --json >"$J" 2>/dev/null; rc=$?
 assert_eq "plan run: ambiguous per-site item needs --site" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-CLI-400-01"
 qp plan approve "$P85" --json >"$J" 2>/dev/null; rc=$?
 assert_eq "TC-PLAN-020 (BR-PLAN-003): approve blocked, compatibility scan missing -> ERR-PLAN-412-01" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-PLAN-412-01"
-assert_contains "BR-PLAN-003: missing lists the sites and the P1 AUTO baseline" "$(json_get "$J" 'd["errors"][0]["message"]')" "compatibility scan of 2 site(s)"
+assert_contains "BR-PLAN-003: missing lists the P1 AUTO baseline (M4: code scan of both sites done at create)" "$(json_get "$J" 'd["errors"][0]["message"]')" "P1 AUTO items not done"
 qp plan item "$P85" CHK-PHP-010-14 --set waive --reason 'too short' --json >"$J" 2>/dev/null; rc=$?
 assert_eq "T-CHK-14: waive reason < 20 -> ERR-PLAN-422-01" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-PLAN-422-01"
 qp plan item "$P85" CHK-PHP-010-14 --set 'done' --evidence 'short' --json >"$J" 2>/dev/null; rc=$?
@@ -305,7 +305,7 @@ assert_eq "ERR-PLAN-404-01: unknown plan" "$rc $(json_get "$J" 'd["errors"][0]["
 qp plan item "$P83" CHK-PHP-999-01 --set 'done' --evidence 'whatever evidence text' --json >"$J" 2>/dev/null; rc=$?
 assert_eq "T-CHK-16: unknown item -> ERR-PLAN-404-01" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-PLAN-404-01"
 qp plan waive "$P83" --site wp.test --hits H-0123456789ab --reason 'tests folder is not deployed to prod' --json >"$J" 2>/dev/null; rc=$?
-assert_eq "plan waive: unknown hit (no compatibility result before M4) -> ERR-PLAN-404-01" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-PLAN-404-01"
+assert_eq "plan waive: hit not in the compatibility result -> ERR-CON-422-01 (A-M4)" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-CON-422-01"
 qp plan frobnicate --json >"$J" 2>/dev/null; rc=$?
 assert_eq "TC-CLI-018: unknown subcommand -> ERR-CLI-400-01" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-CLI-400-01"
 

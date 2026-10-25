@@ -1,5 +1,65 @@
 # Changelog
 
+## 2.0.0-alpha.4 — 2026-10-25 (Phase 1, milestone M4)
+
+Development build of v2 (not a release).
+
+### Added
+- Compatibility scan of every site of a cross-branch plan (`qplib/compat/`,
+  FR-CMPT-*), run by `plan create` and stored in
+  `STATE_DIR/plans/<plan_id>/compat/<site_key>.json`:
+  - catalog breaking-change rules of the range (OLD, NEW] with curated
+    patterns per rule (`bc_rules.json` `scan[]`), one read of every
+    `*.php`/`*.inc`/`*.phtml` (JS for Node.js apps); `vendor/`,
+    `node_modules/`, `.git/` and the directories declared "not deployed" in
+    `sites.d/<site_key>.conf` (reason >= 20 characters) are left out; files
+    over 2 MiB are listed (`ERR-CMPT-413-01`); 1,800 s budget
+    (`ERR-CMPT-504-01`);
+  - PHPCompatibility 10.0.0-alpha2 / PHP_CodeSniffer 4.0.4 (PHPCompatibilityWP
+    for WordPress), run with `$NEW_BIN` or the highest PHP >= 7.2, ladder
+    5.6/7.4 for grouping when OLD < 7.0;
+  - `php -l` with `$NEW_BIN` (pending + `ERR-ENV-412-01` before it is
+    installed);
+  - Composer: `require.php` of `composer.lock`, smallest compatible version
+    from Packagist (p2, 24 h cache, `[registry]` mirrors in
+    `feeds/sources.conf`), `check-platform-reqs` on a copy with
+    `config.platform.php` and `--no-plugins --no-scripts`;
+  - npm `engines.node` (lockfile v1/v2/v3, registry lookup when the lockfile
+    has no engines, devDependencies as warnings), native addons rebuilt and
+    `require()`d with `$NEW_BIN` on a copy, lockfile v1 regenerated with the
+    new npm (diff kept in the plan);
+  - ini directives removed in the range (php.ini, conf.d, FPM pool,
+    `.user.ini`, `.htaccess`, vhost), extensions of the old runtime on the
+    target (available / pecl / replaced / missing) with their call count,
+    frameworks (WordPress, Laravel, Symfony, Drupal, Magento, CodeIgniter,
+    Joomla) against `framework_php.tsv`, encoded-file loaders (ionCube,
+    SourceGuardian) against the catalog loader table.
+- Scan tools pinned in `catalog.json` (`tools`, from `tools/pinned-tools.json`
+  made by `tools/pin-tools.py`): installed into `STATE_DIR/tools/php` from the
+  pinned git commit with the SHA-256 of its `git archive` checked, Composer
+  2.10.3 / 2.2.30 phars by SHA-256 (`ERR-PTCH-502-01` on a mismatch,
+  `ERR-CMPT-424-01` offline), `tools_manifest.json`.
+- Plan: verdict per site `PASS`/`FAIL`/`PENDING` (`compat_verdicts[]`), site
+  order PASS -> PENDING -> FAIL by PHP file count, canary, `blocked_sites[]`
+  (FAIL, or a loader with no build for the target), `upgrade_items[]` with one
+  P4 item per component (`-01`, `-02`, ...), P3 items answered by the scan
+  (DONE/FAILED/PENDING by part), P5 items of a blocked site refused with
+  `ERR-UPG-409-01`; approval needs the code scan of every site.
+- `plan waive` marks error hits as waived (reason >= 20 characters, audit,
+  `ERR-CON-422-01` for a hit that is not an error of the site); waivers are
+  kept by `hit_id` across rescans.
+- `plan compat ID [--site S] [--level error|warning] [--rule R] [--waived
+  true|false]`: the stored results with filtered hits.
+- `plan run` of the scan items rescans the site when the scan fingerprint,
+  the target or the tools changed (else the result is reused); the Rector
+  item runs Rector 2.7.0 `--dry-run` on a copy in `STATE_DIR/work/` and keeps
+  `rector-<site_key>.diff`; `--yes` after that applies it to the copy only.
+- `assess`: frameworks found in `composer.lock` limit the candidates
+  (`ERR-SCN-409-01` with the framework to upgrade first); branches with no
+  build of a loaded encoded-file loader are left out (`ERR-SCN-409-03`).
+- `scan`: Node.js apps run by systemd units are sites (`app:systemd:<unit>`,
+  `binding_kind = systemd_execstart`, docroot = `WorkingDirectory`, PB-017).
+
 ## 2.0.0-alpha.3 — 2026-10-24 (Phase 1, milestone M3)
 
 Development build of v2 (not a release).

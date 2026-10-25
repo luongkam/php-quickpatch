@@ -38,5 +38,40 @@ Loader ionCube/SourceGuardian thật; native addon build với Node đích ở p
 | `FR-CMPT-RES-001` | Kết luận tương thích theo site | P0 | `US-CMPT-10` | `AC-CMPT-28`, `AC-CMPT-29`, `AC-CMPT-30` | TC-CMPT-028, TC-CMPT-029, TC-CMPT-030 |
 | `FR-CMPT-RCT-001` | Chạy Rector tuỳ chọn trên bản sao | P2 | `US-CMPT-11` | `AC-CMPT-31`, `AC-CMPT-32`, `AC-CMPT-33` | TC-CMPT-031, TC-CMPT-032, TC-CMPT-033 |
 
+## 6. Thiết kế đã làm (tóm tắt)
+- Mã: `share/php-quickpatch/qplib/compat/` — `scan.py` (luật BC, tập file, loader, framework, mức dùng extension), `ini.py`, `deps.py` (Composer, Packagist, npm, native addon), `tools.py` (cài công cụ, PHPCompatibility, `php -l`, Rector), `semver.py`, `engine.py` (chạy theo site, kết luận, miễn trừ, `upgrade_items`); `plan.py` nối kết quả vào kế hoạch.
+- Mẫu quét: tài liệu "Mẫu quét" của luật BC là văn xuôi, nên `tools/build-catalog.py` có bảng regex soạn tay cho từng luật (`bc_rules.json` → `scan[]`, 75 mẫu, kiểm biên dịch khi build), cùng bảng ini bị gỡ (`BR-SCN-046`), extension bị gỡ, gói Debian, package framework.
+- Công cụ: `tools/pin-tools.py` sinh `tools/pinned-tools.json` (commit git + SHA-256 của `git archive`, phar Composer + SHA-256 công bố); catalog mang bảng này (`catalog.json` → `tools`). Zip dist của GitHub bị proxy chặn (403) nên `dist_sha256` để trống, cài từ git.
+- Kết quả theo site ở `plans/<plan_id>/compat/<site_key>.json`; quét chạy ngoài khoá `plans/.lock`; `plan run` mục quét chỉ quét lại khi `scan_fingerprint`, đích, công cụ hoặc catalog đổi.
+- Mục P3 có `cli_action` `compat --site $SITE --parts …` (lint, PHPCompatibility, luật BC, Composer, engines, addon) → `DONE`/`FAILED`/`PENDING` theo phần; mục Rector `compat-rector --site $SITE` (SEMI).
+- Mục P4: mỗi dòng `upgrade_items` thành 1 mục con `-NN` của mục P4 khớp loại (Composer/npm/addon/framework/loader/extension); mục mẫu bị thay được giữ trong `plan.p4_replaced` để dựng lại khi quét lại.
+
 ## Trạng thái FR
-Cập nhật khi kết thúc mốc (Xong / Một phần / Chưa thử trên máy thật).
+
+| FR | Trạng thái | Test | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| `FR-CMPT-TOOL-001` | Xong | `test_m4_compat.py` (ToolsTest), cài thật qua mạng | Cài thật PHPCompatibility 10.0.0-alpha2 + WP/Paragonie, PHPCSUtils 1.2.3, PHP_CodeSniffer 4.0.4, Composer 2.10.3/2.2.30 (14 MB, 5 s); Rector 2.7.0 + PHPStan 2.3.2 cài khi bật Rector (tổng 122 MB, vượt mục tiêu 80 MB của TC-CMPT-001 KQ3 — A-M4-04) |
+| `FR-CMPT-CODE-001` | Xong | `test_m4_compat.sh`, `test_m4_compat.py` | TC-CMPT-004, 005, 006 |
+| `FR-CMPT-CODE-002` | Xong | `test_m4_compat.sh` (có `QP_TEST_TOOLS_DIR`) | Chạy thật bằng PHP 8.3 của container (đóng vai `$NEW_BIN` 8.5): sniff `PHPCompatibility.FunctionUse.RemovedFunctions.eachDeprecatedRemoved`, `Keywords.ForbiddenNames.matchFound` |
+| `FR-CMPT-CODE-003` | Xong | `test_m4_compat.sh` | `php -l` thật (PHP 8.3), 200 file/tiến trình từ 8.3 |
+| `FR-CMPT-COMP-001` | Xong | `test_m4_compat.sh` (có công cụ) | `check-platform-reqs` thật bằng Composer 2.10.3 trên bản sao, script không chạy, bản sao bị xoá |
+| `FR-CMPT-COMP-002` | Xong | `test_m4_compat.py` | Cache p2; đã gọi thử Packagist thật (guzzle, phpunit, laravel) |
+| `FR-CMPT-NPM-001` | Xong | `test_m4_compat.sh`, `.py` | Đã gọi thử registry.npmjs.org thật |
+| `FR-CMPT-NPM-002` | Một phần | `test_m4_compat.py` (AddonTest) | Node.js 22 thật chép ra prefix riêng: nạp addon được/không được, tạo lại lockfile v1 bằng npm mới (diff), lockfile gốc giữ nguyên SHA-256. Chưa thử build native thật (node-gyp), chưa thử chạy dưới uid chủ site |
+| `FR-CMPT-INI-001` | Xong | `test_m4_compat.sh`, `.py` | TC-CMPT-019, 021 |
+| `FR-CMPT-EXT-001` | Một phần | `test_m4_compat.sh` | Gói đích qua `apt-cache policy` (Debian/Ubuntu); `pecl` chỉ suy từ kho gói, chưa tra pecl.php.net; RHEL/remi chưa có |
+| `FR-CMPT-FWK-001` | Xong | `test_m4_compat.sh`, `.py` | TC-CMPT-025 (dữ liệu test), 026 (`assess`), 027 (mục MANUAL xác nhận dải) |
+| `FR-CMPT-LDR-001` | Một phần | `test_m4_compat.py` | Nhận diện header + bảng loader catalog, loại nhánh không có loader (`ERR-SCN-409-03`), site vào `blocked_sites`; chạy file mã hoá mẫu bằng `$NEW_BIN` là mục P4 SEMI (người vận hành), chưa tự động; chưa thử ionCube/SourceGuardian thật |
+| `FR-CMPT-RES-001` | Xong | `test_m4_compat.sh`, `.py` | TC-CMPT-028..030; `plan waive`, `plan compat` |
+| `FR-CMPT-RCT-001` | Xong | `test_m4_compat.sh` (có công cụ) | Rector 2.7.0 thật: dry-run trên bản sao, `rector-<site_key>.diff`, `--yes` chỉ ghi bản sao, docroot giữ nguyên SHA-256 |
+| `FR-PLAN-GEN-002` (M3) | Xong | `test_m4_compat.sh`, `.py` | Thứ tự PASS → PENDING → FAIL, canary, `blocked_sites` |
+| `FR-PLAN-DEP-001` (M3) | Xong | `test_m4_compat.sh`, `.py` | `upgrade_items[]` + mục P4 theo thành phần (TC-PLAN-011, 013, TC-SCN-013 KQ2) |
+
+Kết quả chạy: `tests/run.sh` — 844 kiểm tra Bash + 114 test Python, 0 lỗi (`test_m4_compat.sh` 70 kiểm tra khi có `QP_TEST_TOOLS_DIR`, 63 khi không; `test_m4_compat.py` 32 test); `shellcheck -S warning` sạch.
+
+## 7. Chưa thử trên máy thật
+- Loader ionCube/SourceGuardian thật (chỉ thử header giả lập và bảng catalog).
+- Build native addon thật bằng node-gyp; chạy npm dưới uid chủ ứng dụng (`runuser`).
+- Ứng dụng Node.js chạy bằng systemd thật (thử bằng unit file trong mount namespace riêng, có `/run/systemd/system` giả).
+- PHP 8.5 thật làm `$NEW_BIN` (thử bằng PHP 8.3 của container khoác phiên bản 8.5.11).
+- Zip dist của GitHub (proxy chặn 403): `dist_sha256` trống, công cụ cài từ git; máy có mạng tự do vẫn đi đường git.

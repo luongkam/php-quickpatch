@@ -13,7 +13,7 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH
   exit 2
 fi
 
-QP_VERSION="2.0.0-alpha.3"
+QP_VERSION="2.0.0-alpha.4"
 
 # --- Advisory data ----------------------------------------------------------
 # Patched versions, CVEs and lifecycle come from the normalized feeds bundle
@@ -1421,13 +1421,25 @@ inventory_sites() {
   return 0
 }
 
-# node_apps BIN: systemd units whose ExecStart runs BIN (PB-017). REPLY = JSON array.
+# node_apps BIN RID BRANCH: systemd units whose ExecStart runs BIN (PB-017). REPLY = JSON array of apps;
+# each app is also a site (binding_kind systemd_execstart, docroot = WorkingDirectory) for the
+# compatibility scan of the plan (FR-CMPT-NPM-*). NODE_APP_IDS = their site ids.
 node_apps() {
-  local bin=$1 u apps=() user
+  local bin=$1 rid=${2:-} b=${3:-} f u apps=() user wd id
+  NODE_APP_IDS=()
   if (( HAS_SYSTEMD )); then
-    for u in $(grep -lsE "ExecStart=.*${bin//./\\.}" /etc/systemd/system/*.service /lib/systemd/system/*.service 2>/dev/null | xargs -r -n1 basename | sort -u); do
-      user=$(sed -n 's/^User=//p' "/etc/systemd/system/$u" 2>/dev/null | head -n1)
-      jo app_id=s:"app:systemd:${u%.service}" manager=s:systemd unit_or_name=s:"$u" user=s:"${user:-root}"; apps+=("$REPLY")
+    for f in $(grep -lsE "ExecStart=.*${bin//./\\.}" /etc/systemd/system/*.service /lib/systemd/system/*.service 2>/dev/null | sort -u); do
+      u=${f##*/}; id="app:systemd:${u%.service}"
+      [ -n "${SITE_SEEN[$id]:-}" ] && continue
+      SITE_SEEN[$id]=1
+      user=$(sed -n 's/^User=//p' "$f" 2>/dev/null | head -n1)
+      wd=$(sed -n 's/^WorkingDirectory=-\{0,1\}//p' "$f" 2>/dev/null | head -n1)
+      jo app_id=s:"$id" manager=s:systemd unit_or_name=s:"$u" user=s:"${user:-root}"; apps+=("$REPLY")
+      site_key "$id"
+      jo site_id=s:"$id" site_key=s:"$REPLY" pb_id=s:PB-017 server_names=j:"[]" docroot=S:"$wd" owner_user=s:"${user:-root}" \
+         binding_kind=s:systemd_execstart binding_ref=s:"$f" current_branch=S:"$b" current_bin=s:"$bin" runtime_id=S:"$rid" \
+         runtime_endpoint=j:null log_sources=j:"[\"journald:$u\"]" hc_urls=j:"[]" hc_mode=s:full
+      J_SITES+=("$REPLY"); NODE_APP_IDS+=("$id")
     done
     (( ${#apps[@]} )) && add_unique PB_NODE PB-017
   fi
@@ -1869,13 +1881,14 @@ node_runtime_json() {
   local pb=""   # §2.3 step 8: provider playbook of this binary
   case $src in nvm) pb=PB-016 ;; nodesource) pb=PB-014 ;; tarball|package) pb=PB-015 ;; docker) pb=PB-013 ;; esac
   [ -n "$pb" ] && add_unique PB_NODE "$pb"
-  node_apps "$bin"; local japps=$REPLY
+  node_apps "$bin" "$rid" "${v%%.*}"; local japps=$REPLY js_apps
+  jas ${NODE_APP_IDS[@]+"${NODE_APP_IDS[@]}"}; js_apps=$REPLY
   jas ${SCN_IDS[@]+"${SCN_IDS[@]}"}; local js_scn=$REPLY lr=""
   (( SCN_LOCK )) && lr=scn.version.unrecognized
   jo runtime_id=s:"$rid" kind=s:node bin=s:"$bin" version_raw=S:"${4:-$v}" version=S:"$v" branch=S:"${v%%.*}" \
      sapis=j:"[]" ini_scan_dirs=j:"[]" extensions=j:"[]" owner_pkg=j:"$jpkg" install_source=s:"$src" \
      scenario_ids=j:"$js_scn" state=s:"$st" locked=b:$SCN_LOCK lock_reason=S:"$lr" pb_id=S:"$pb" abi=S:"$abi" \
-     npm_version=S:"$npmv" apps=j:"$japps" site_ids=j:"[]"
+     npm_version=S:"$npmv" apps=j:"$japps" site_ids=j:"$js_apps"
   local rt=$REPLY; assess_json; json_merge "$rt" "$REPLY"
   J_RUNTIMES+=("$REPLY"); rank_add "runtime:$rid"; deadline_add "$rid"
   count_state "$st"

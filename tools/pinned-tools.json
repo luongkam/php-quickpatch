@@ -1,0 +1,95 @@
+{
+ "composer": [
+  {
+   "name": "composer",
+   "sha256": "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6",
+   "url": "https://getcomposer.org/download/2.10.3/composer.phar",
+   "version": "2.10.3"
+  },
+  {
+   "name": "composer-lts",
+   "sha256": "8c2b4478b64f8f7cdf1574838fdb0033b29049ca821dad452db7a3dcfcdbffc2",
+   "url": "https://getcomposer.org/download/2.2.30/composer.phar",
+   "version": "2.2.30"
+  }
+ ],
+ "packages": [
+  {
+   "archive_bytes": 3328000,
+   "archive_sha256": "a34cd4fa0d8387fa9c2667067c3ecde66c73bee703e39c9b0cc777d678865a7e",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/bbdc3d0532623e21838b7041a4364383a8126f96",
+   "git_url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
+   "group": "phpcs",
+   "name": "squizlabs/php_codesniffer",
+   "reference": "bbdc3d0532623e21838b7041a4364383a8126f96",
+   "version": "4.0.4"
+  },
+  {
+   "archive_bytes": 747520,
+   "archive_sha256": "07c0a4de88572858bd90ec80477d9c7d8c3405fca24460525f9e5dd7728b3183",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/PHPCSStandards/PHPCSUtils/zipball/5f35d9408c54d7b529501f3c688b6eae562aea1f",
+   "git_url": "https://github.com/PHPCSStandards/PHPCSUtils.git",
+   "group": "phpcs",
+   "name": "phpcsstandards/phpcsutils",
+   "reference": "5f35d9408c54d7b529501f3c688b6eae562aea1f",
+   "version": "1.2.3"
+  },
+  {
+   "archive_bytes": 2549760,
+   "archive_sha256": "12b7062f9c00a0d6e986746f4d597a9344d55211b8b398e906bb77541e33edcd",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibility/zipball/e0f0e5a3dc819a4a0f8d679a0f2453d941976e18",
+   "git_url": "https://github.com/PHPCompatibility/PHPCompatibility.git",
+   "group": "phpcs",
+   "name": "phpcompatibility/php-compatibility",
+   "reference": "e0f0e5a3dc819a4a0f8d679a0f2453d941976e18",
+   "version": "10.0.0-alpha2"
+  },
+  {
+   "archive_bytes": 61440,
+   "archive_sha256": "291f3b649e05210b2a10db930c6bb70240a7a2bd98d96ee1681f08ef913f6654",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibilityParagonie/zipball/7a979711c87d8202b52f56c56bd719d09d8ed7f5",
+   "git_url": "https://github.com/PHPCompatibility/PHPCompatibilityParagonie.git",
+   "group": "phpcs",
+   "name": "phpcompatibility/phpcompatibility-paragonie",
+   "reference": "7a979711c87d8202b52f56c56bd719d09d8ed7f5",
+   "version": "2.0.0-alpha2"
+  },
+  {
+   "archive_bytes": 40960,
+   "archive_sha256": "2c542ccb4c8644d57d28be2d24748b39ab49482da31f9d09df7a4e5e1bef3aaa",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibilityWP/zipball/bd53f24e7528422ac51d64dc8d53e8d4c4a877b3",
+   "git_url": "https://github.com/PHPCompatibility/PHPCompatibilityWP.git",
+   "group": "phpcs",
+   "name": "phpcompatibility/phpcompatibility-wp",
+   "reference": "bd53f24e7528422ac51d64dc8d53e8d4c4a877b3",
+   "version": "3.0.0-alpha2"
+  },
+  {
+   "archive_bytes": 15513600,
+   "archive_sha256": "159154674b7e98178c67c41681580aade47a22fae802b32eeba69d6e94aebc6b",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/rectorphp/rector/zipball/4d6a39b7fff302cac0ce90cd959a53c2f6a32776",
+   "git_url": "https://github.com/rectorphp/rector.git",
+   "group": "rector",
+   "name": "rector/rector",
+   "reference": "4d6a39b7fff302cac0ce90cd959a53c2f6a32776",
+   "version": "2.7.0"
+  },
+  {
+   "archive_bytes": 87879680,
+   "archive_sha256": "c5c23071131936ed495d997f518a05bf76212c3f2a872f031231ba9c8c23818e",
+   "dist_sha256": null,
+   "dist_url": "https://api.github.com/repos/phpstan/phpstan/zipball/18bc23a0682f08591529377d271b5c4dfe9ed1dd",
+   "git_url": "https://github.com/phpstan/phpstan.git",
+   "group": "rector",
+   "name": "phpstan/phpstan",
+   "reference": "18bc23a0682f08591529377d271b5c4dfe9ed1dd",
+   "version": "2.3.2"
+  }
+ ]
+}

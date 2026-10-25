@@ -1,6 +1,6 @@
 {
  "schema": "qp.catalog/1",
- "catalog_version": "2026.10.24-1",
+ "catalog_version": "2026.10.25-1",
  "items": [
   {
    "chk_id": "CHK-PHP-001-01",
@@ -283,7 +283,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -303,7 +303,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -323,7 +323,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -385,7 +385,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -1005,7 +1005,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -1025,7 +1025,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -1067,7 +1067,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -1109,7 +1109,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -1718,7 +1718,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -1738,7 +1738,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -1780,7 +1780,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -1800,7 +1800,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -1842,7 +1842,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -2420,7 +2420,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -2440,7 +2440,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -2460,7 +2460,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -2480,7 +2480,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -2520,7 +2520,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -3378,7 +3378,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -3398,7 +3398,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -3418,7 +3418,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -3460,7 +3460,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -3502,7 +3502,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -4096,7 +4096,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -4116,7 +4116,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -4136,7 +4136,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -4180,7 +4180,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -4222,7 +4222,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -4836,7 +4836,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -4856,7 +4856,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -4876,7 +4876,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -4898,7 +4898,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -4940,7 +4940,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -5532,7 +5532,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin",
    "flow": "upgrade"
   },
   {
@@ -5552,7 +5552,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts phpcompat",
    "flow": "upgrade"
   },
   {
@@ -5572,7 +5572,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -5594,7 +5594,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -5638,7 +5638,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -6291,7 +6291,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin,phpcompat,code_scan",
    "flow": "upgrade"
   },
   {
@@ -6313,7 +6313,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts composer_platform",
    "flow": "upgrade"
   },
   {
@@ -6358,7 +6358,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat-rector --site $SITE",
    "flow": "upgrade"
   },
   {
@@ -7685,7 +7685,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts lint_new_bin,phpcompat",
    "flow": "upgrade"
   },
   {
@@ -8644,7 +8644,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts npm_engines",
    "flow": "upgrade"
   },
   {
@@ -8664,7 +8664,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -8704,7 +8704,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts native_addons",
    "flow": "upgrade"
   },
   {
@@ -9310,7 +9310,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts npm_engines",
    "flow": "upgrade"
   },
   {
@@ -9332,7 +9332,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -9374,7 +9374,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts native_addons",
    "flow": "upgrade"
   },
   {
@@ -9988,7 +9988,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts npm_engines",
    "flow": "upgrade"
   },
   {
@@ -10010,7 +10010,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -10052,7 +10052,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts native_addons",
    "flow": "upgrade"
   },
   {
@@ -10666,7 +10666,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts npm_engines",
    "flow": "upgrade"
   },
   {
@@ -10688,7 +10688,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts code_scan",
    "flow": "upgrade"
   },
   {
@@ -10730,7 +10730,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "compat --site $SITE --parts native_addons",
    "flow": "upgrade"
   },
   {

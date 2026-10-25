@@ -15,8 +15,9 @@ import sys
 import time
 
 from . import assess as A, audit, catalog as qcatalog, errors
+from .compat import engine as CE
 from .envelope import iso_ms
-from .feeds import risk as R, versions as V
+from .feeds import risk as R
 from .feeds.query import Bundle
 from .feeds.store import FeedsDir
 
@@ -26,8 +27,9 @@ CTRL_RE = re.compile(r'[\x00-\x1f\x7f]')
 TERMINAL = ('completed', 'rolled_back', 'cancelled')
 CLOSED_ITEM = ('DONE', 'SKIPPED', 'WAIVED')
 PHASES = ('P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7')
-READ_ACTIONS = ('scan', 'assess')
+READ_ACTIONS = ('scan', 'assess', 'compat')
 WRITE_ACTIONS = ('fix',)
+INTERNAL = ('compat', 'compat-rector')          # run by plan run itself (no child process)
 
 
 def actor():
@@ -75,7 +77,7 @@ class Store(object):
 
     def ids(self):
         return sorted(os.path.basename(p) for p in glob.glob(os.path.join(self.root, 'PLN-*'))
-                      if PLAN_ID_RE.match(os.path.basename(p)))
+                      if PLAN_ID_RE.match(os.path.basename(p)) and os.path.isfile(os.path.join(p, 'plan.json')))
 
     def load(self, plan_id):
         if not PLAN_ID_RE.match(plan_id or '') or not os.path.isfile(os.path.join(self.dir(plan_id), 'plan.json')):
@@ -111,21 +113,26 @@ class Store(object):
 
 
 # --- checklist assembly (FR-SCN-CHK-001) ------------------------------------------
-def site_facts(site, scan):
-    """framework / composer / sapi / phpunit of one site: True/False, or None when unknown."""
+def site_facts(site, scan, compat=None):
+    """framework / loader / composer / sapi / phpunit of one site; None when unknown.
+    framework and loader come from the compatibility scan (FR-CMPT-FWK-001, FR-CMPT-LDR-001)."""
     root = site.get('docroot') or ''
     known = bool(root) and os.path.isdir(root)
     wp = known and os.path.isfile(os.path.join(root, 'wp-includes', 'version.php'))
     for w in scan.get('result', {}).get('wordpress_findings') or []:
         if root and (w.get('site_dir') or '').rstrip('/') == root.rstrip('/'):
             wp = True
+    facts = (compat or {}).get('facts') or {}
+    fw = facts.get('framework') or ('wordpress' if wp else None)
     return {
-        'framework': 'wordpress' if wp else None,
-        'not_wordpress': (not wp) if known else None,
-        'composer': os.path.isfile(os.path.join(root, 'composer.json')) if known else None,
+        'framework': fw,
+        'not_wordpress': (fw not in (None, 'wordpress')) or ((not wp) if known and compat is None else None)
+        if fw != 'wordpress' else False,
+        'composer': facts['composer'] if 'composer' in facts else
+        (os.path.isfile(os.path.join(root, 'composer.json')) if known else None),
         'phpunit': bool(glob.glob(os.path.join(root, 'phpunit.xml*'))) if known else None,
         'sapi': 'mod_php' if site.get('binding_kind') == 'apache_mod_php' else 'fpm',
-        'loader': None,
+        'loader': facts.get('loader'),
     }
 
 
@@ -144,9 +151,10 @@ def clause(key, op, val, facts, ctx):
             is_wp = True if facts['framework'] == 'wordpress' else (False if facts['not_wordpress'] else None)
             return is_wp if op == '=' or is_wp is None else not is_wp
         if val == 'none':
-            has = True if facts['framework'] else None      # other frameworks: detected in M4
+            fw = facts['framework']
+            has = None if fw is None else fw != 'none'
             return has if op == '!=' or has is None else not has
-        return None
+        return None if facts['framework'] is None else (facts['framework'] == val) == (op == '=')
     if key == 'composer':
         return None if facts['composer'] is None else (facts['composer'] == (val == 'true')) == (op == '=')
     if key == 'phpunit':
@@ -181,7 +189,7 @@ def applies(expr, facts_list, ctx):
 
 
 def per_site(it):
-    if (it.get('cli_action') or '').split(' ')[0] in READ_ACTIONS:
+    if (it.get('cli_action') or '').split(' ')[0] in ('scan', 'assess'):
         return False
     a = it['action'].lower()
     if it['phase'] in ('P3', 'P4', 'P5'):
@@ -217,7 +225,7 @@ def env_items(rt, env, runtime_kind):
     return out
 
 
-def assemble(cat, rt, sites, mode, target, scan, old_branch):
+def assemble(cat, rt, sites, mode, target, scan, old_branch, compat=None):
     """Effective checklist: VERSION + OVERLAY items (OVERLAY first in a phase), playbook/env items."""
     env = scan.get('result', {}).get('environment') or {}
     sids = list(rt.get('scenario_ids') or [])
@@ -229,7 +237,7 @@ def assemble(cat, rt, sites, mode, target, scan, old_branch):
         base.extend(cat.items_of(s))
     base.sort(key=lambda it: (PHASES.index(it['phase']), order.get(it['scenario_id'], -1), it['chk_id']))
     ctx = {'mode': mode, 'old_branch': old_branch, 'scenario_ids': sids}
-    facts = {s['site_id']: site_facts(s, scan) for s in sites}
+    facts = {s['site_id']: site_facts(s, scan, (compat or {}).get(s['site_id'])) for s in sites}
     target_branch = target['branch']
     nd = lambda b: (b or '').replace('.', '')   # noqa: E731
     out = []
@@ -282,13 +290,18 @@ def assemble(cat, rt, sites, mode, target, scan, old_branch):
                     'optional': bool(one.get('optional')), 'depends_on': [], 'status': st, 'blocked_by': [],
                     'cli_action': substitute(one.get('cli_action'), vars_), 'verified': bool(one.get('verified', True)),
                     'job_id': None, 'reason': why, 'evidence': None, 'updated_at': iso_ms(), 'updated_by': 'system',
-                    'parent': one.get('parent'), 'template': one.get('template'), 'flow': one.get('flow')})
-    # BR-SCN-018: a P5 item of a site waits for the mandatory P3/P4 items of the same site.
-    for it in out:
-        if it['phase'] == 'P5':
-            it['depends_on'] = [o['item_key'] for o in out if o['phase'] in ('P3', 'P4') and not o['optional']
-                                and o['site_id'] in (it['site_id'], None) and o['status'] != 'SKIPPED']
+                    'parent': one.get('parent'), 'template': one.get('template'), 'flow': one.get('flow'),
+                    'seq': len(out)})
+    p5_depends(out)
     return out
+
+
+def p5_depends(items):
+    """BR-SCN-018: a P5 item of a site waits for the mandatory P3/P4 items of the same site."""
+    for it in items:
+        if it['phase'] == 'P5':
+            it['depends_on'] = [o['item_key'] for o in items if o['phase'] in ('P3', 'P4') and not o['optional']
+                                and o['site_id'] in (it['site_id'], None) and o['status'] != 'SKIPPED']
 
 
 def blocked_by(it, items):
@@ -299,6 +312,241 @@ def blocked_by(it, items):
 def refresh_blocked(items):
     for it in items:
         it['blocked_by'] = blocked_by(it, items) if it['status'] not in CLOSED_ITEM else []
+
+
+# --- compatibility results in the plan (FR-CMPT-RES-001, FR-PLAN-GEN-002, FR-PLAN-DEP-001) --------
+PART_SOURCES = {'lint_new_bin': 'php-l', 'phpcompat': 'phpcompatibility', 'code_scan': 'bc_rules'}
+STATUS_RANK = {'PASS': 0, 'PENDING': 1, 'FAIL': 2}
+REPLACED = 'replaced by per-component items'
+
+
+def compat_ctx(ctx, cat, offline):
+    return {'state_dir': ctx.state_dir, 'catalog': cat, 'offline': offline,
+            'feeds_dir': os.path.join(ctx.state_dir, 'feeds'),
+            'budget_s': int(os.environ.get('QP_COMPAT_BUDGET_S') or 1800)}
+
+
+def parts_of(it):
+    m = re.search(r'--parts (\S+)', it.get('cli_action') or '')
+    return m.group(1).split(',') if m else []
+
+
+def part_failures(res, part):
+    """Unresolved findings of one part of the compatibility result."""
+    if part in PART_SOURCES:
+        return sum(1 for h in res.get('hits') or [] if h['source'] == PART_SOURCES[part] and h['level'] == 'error'
+                   and not h.get('waived'))
+    if part == 'composer_platform':
+        return sum(1 for b in res.get('composer_blockers') or [] if not b.get('dev'))
+    if part == 'npm_engines':
+        return sum(1 for v in res.get('npm_engine_violations') or [] if v.get('severity') == 'error')
+    if part == 'native_addons':
+        return sum(1 for a in res.get('native_addons') or [] if a.get('load_ok') is False)
+    return 0
+
+
+def site_blocked(res):
+    """FAIL verdict, or an encoded-file loader with no build for the target (BR-SCN-043)."""
+    if res is None:
+        return False
+    return res['verdict']['status'] == 'FAIL' or any(not ld['target_supported'] for ld in res.get('loaders') or [])
+
+
+def compat_items(items, results):
+    """P3 AUTO items answered by the compatibility scan: DONE / FAILED by part, PENDING while a part is pending."""
+    for it in items:
+        if (it.get('cli_action') or '').split(' ')[0] != 'compat' or it['status'] in ('SKIPPED', 'WAIVED'):
+            continue
+        res = results.get(it['site_id'])
+        parts = parts_of(it)
+        if res is None or not parts:
+            continue
+        states = [res['parts'].get(p, 'done' if p == 'npm_engines' else 'pending') for p in parts]
+        if any(st != 'done' for st in states):
+            new, ev = 'PENDING', 'compat %s: %s' % (res['site_id'], ', '.join(
+                '%s %s' % (p, st) for p, st in zip(parts, states) if st != 'done'))
+        else:
+            bad = sum(part_failures(res, p) for p in parts)
+            new = 'FAILED' if bad else 'DONE'
+            ev = 'compat %s (%s): %d unresolved finding(s)' % (res['site_id'], res.get('finished_at'), bad)
+        if (new, ev) != (it['status'], it.get('evidence')):
+            it['status'], it['evidence'] = new, ev
+            it['updated_at'], it['updated_by'] = iso_ms(), 'system'
+
+
+def _anchor_match(it, row):
+    a = it['action'].lower()
+    t = row['component_type']
+    if t == 'composer':
+        return 'composer' in a or 'dependency' in a
+    if t == 'npm':
+        return 'dependency' in a or 'engines' in a
+    if t == 'native_addon':
+        return 'addon' in a or 'dependency' in a
+    if t == 'framework':
+        if 'framework' not in a and 'wordpress' not in a:
+            return False
+        wp_only = 'framework=wordpress' in (it.get('applies_when') or '')
+        return wp_only == (row['name'] == 'wordpress')
+    if t == 'loader':
+        return 'loader' in a
+    if t == 'extension':
+        return 'extension' in a or 'composer' in a or 'dependency' in a
+    return False
+
+
+def _row_item(anchor, row, n):
+    t, name = row['component_type'], row['name']
+    if t == 'composer':
+        act = 'Upgrade Composer package %s %s to %s (%s)' % (
+            name, row['current'], '>= ' + row['min_compatible'] if row.get('min_compatible') not in (None, 'none', 'unknown')
+            else 'a version that allows the target (minimum: %s)' % (row.get('min_compatible') or 'unknown'), row['required'])
+    elif t == 'npm':
+        act = 'Upgrade npm package %s %s: %s' % (name, row['current'], row['required'])
+    elif t == 'native_addon':
+        act = 'Rebuild native addon %s (%s -> %s) and load it with $NEW_BIN' % (name, row['current'], row['required'])
+    elif t == 'extension':
+        act = 'Provide extension %s on the target: %s (%s)' % (name, row['required'], row.get('resolution'))
+    elif t == 'framework' and row.get('confirm_range'):
+        act = 'Confirm the PHP range of %s %s covers the target (not in the framework matrix)' % (name, row['current'])
+    elif t == 'framework':
+        act = 'Upgrade %s %s: %s' % (name, row['current'], row['required'])
+    else:
+        act = 'Install the %s loader for the target and run %s with $NEW_BIN (exit 0)' % (
+            name, row.get('evidence') or 'one encoded file')
+    it = dict(anchor, chk_id='%s-%02d' % (anchor['chk_id'], n), action=act, status='PENDING', reason=None,
+              evidence=None, job_id=None, depends_on=[], blocked_by=[], cli_action=None, updated_at=iso_ms(),
+              updated_by='system', parent=anchor['chk_id'], component={'type': t, 'name': name}, sub=n)
+    it['item_key'] = it['chk_id'] + '@' + anchor['site_id']
+    if t == 'framework' and row.get('confirm_range'):
+        it['exec_type'] = 'MANUAL'
+    if t == 'extension' and row.get('usage_hits') == 0:
+        it['status'], it['reason'] = 'SKIPPED', 'extension %s is not called by the site code (0 calls, BR-SCN-045)' % name
+    return it
+
+
+def expand_p4(plan, items, results):
+    """FR-PLAN-DEP-001: one P4 item per component to upgrade (TC-SCN-013 KQ2); the matched P4 item
+    (or the template items of a "(khi nâng)" item) is replaced and kept in plan['p4_replaced'] for a rescan."""
+    old = {i['item_key']: i for i in items if i.get('component')}
+    replaced = plan.get('p4_replaced') or []
+    items[:] = [i for i in items if not i.get('component')] + replaced
+    plan['p4_replaced'] = []
+    rows_out = []
+    new_items = []
+    for sid, res in sorted(results.items()):
+        rows = [r for r in CE.upgrade_items(res) if not r.get('warning_only')]
+        anchors = [i for i in items if i['phase'] == 'P4' and i['site_id'] == sid]
+        live = sorted(anchors, key=lambda i: (i['status'] == 'SKIPPED', i.get('flow') != 'upgrade'))
+        groups = {}
+        for r in rows:
+            a = next((i for i in live if _anchor_match(i, r)), None)
+            r = dict(r, site_id=sid, chk_id=None)
+            if a is not None:
+                key = a['parent'] if a.get('parent') and a.get('template') else a['chk_id']
+                groups.setdefault(key, {'anchor': a, 'rows': []})['rows'].append(r)
+            rows_out.append(r)
+        for key, g in groups.items():
+            a = g['anchor']
+            gone = [i for i in anchors if (i.get('parent') == key and i.get('template')) or i['chk_id'] == key]
+            base = dict(a, chk_id=key, seq=min(i['seq'] for i in gone))
+            for n, r in enumerate(g['rows'], 1):
+                it = _row_item(base, r, n)
+                prev = old.get(it['item_key'])
+                if prev and prev['status'] not in ('PENDING', 'SKIPPED') and prev.get('component') == it['component']:
+                    it = prev
+                r['chk_id'] = it['chk_id']
+                new_items.append(it)
+            for i in gone:
+                plan['p4_replaced'].append(i)
+            keys = {i['item_key'] for i in gone}
+            items[:] = [i for i in items if i['item_key'] not in keys]
+    items.extend(new_items)
+    items.sort(key=lambda i: (PHASES.index(i['phase']), i.get('seq', 0), i.get('sub', 0)))
+    for r in rows_out:
+        r.pop('warning_only', None)
+    warn = [dict(r, site_id=sid, chk_id=None) for sid, res in sorted(results.items())
+            for r in CE.upgrade_items(res) if r.get('warning_only')]
+    return rows_out + warn
+
+
+def apply_compat(plan, items, results, nfiles=None):
+    """Verdicts, site order / canary, blocked sites, upgrade items and the P3/P4/P5 items of the plan."""
+    sids = list(plan.get('site_order') or [])
+    verdicts = []
+    for sid in sids:
+        res = results.get(sid)
+        verdicts.append(res['verdict'] if res else {'site_id': sid, 'status': 'PENDING', 'errors': 0, 'warnings': 0,
+                                                    'waived': 0, 'blockers': 0,
+                                                    'pending_parts': list(CE.PARTS_BEFORE_INSTALL)})
+    by = {v['site_id']: v for v in verdicts}
+    blocked = [s for s in sids if site_blocked(results.get(s))]
+    files = dict(plan.get('site_files') or {}, **(nfiles or {}))
+    plan['site_files'] = files
+    early = lambda s: bool(set(by[s].get('pending_parts') or []) & set(CE.PARTS_BEFORE_INSTALL))   # noqa: E731
+    order = sorted(sids, key=lambda s: (STATUS_RANK[by[s]['status']], s in blocked, early(s), files.get(s, 0), s))
+    if plan.get('canary_by_operator') and plan.get('canary_site_id') in order:     # BR-PLAN-004
+        order = [plan['canary_site_id']] + [s for s in order if s != plan['canary_site_id']]
+    plan['site_order'] = order
+    plan['canary_site_id'] = order[0] if order else None
+    reasons = {}
+    for sid in blocked:
+        v = by[sid]
+        reasons[sid] = 'blocked: compatibility FAIL (%d error(s), %d blocker(s))' % (
+            v['errors'], v.get('blockers', 0)) if v['status'] == 'FAIL' else \
+            'blocked: no encoded-file loader for the target (ERR-SCN-409-03)'
+    plan['blocked_sites'] = [{'site_id': sid, 'reason': reasons[sid]} for sid in blocked]
+    plan['compat_verdicts'] = [by[s] for s in order]
+    compat_items(items, results)
+    plan['upgrade_items'] = expand_p4(plan, items, results)
+    p5_depends(items)
+    for it in items:
+        if it['phase'] == 'P5' and it['status'] == 'PENDING':
+            if it['site_id'] in reasons:
+                it['reason'] = reasons[it['site_id']]
+            elif (it.get('reason') or '').startswith('blocked: '):
+                it['reason'] = None
+    refresh_blocked(items)
+
+
+def load_results(plan_dir, sites):
+    out = {}
+    for s in sites:
+        r = CE.load_result(plan_dir, s)
+        if r is not None:
+            out[s['site_id']] = r
+    return out
+
+
+SITE_KEYS = ('site_id', 'site_key', 'docroot', 'owner_user', 'binding_kind', 'binding_ref', 'runtime_endpoint',
+             'pb_id', 'runtime_id')
+
+
+def plan_sites(plan, scan=None):
+    """Sites of the plan as recorded at creation; fresher data from SCAN when the site is still there."""
+    known = {s['site_id']: s for s in (scan or {}).get('result', {}).get('sites') or []}
+    out = []
+    for s in plan.get('sites') or [{'site_id': sid} for sid in plan.get('site_order') or []]:
+        cur = known.get(s['site_id'])
+        out.append(dict(s, **{k: cur.get(k) for k in SITE_KEYS if cur.get(k) is not None}) if cur else s)
+    return out
+
+
+def blocked_site_error(plan, it):
+    """BR-UPG-002: a P5 item of a blocked site is refused (TC-PLAN-009 KQ2, TC-PLAN-012)."""
+    if it['phase'] != 'P5' or it.get('site_id') not in [b['site_id'] for b in plan.get('blocked_sites') or []]:
+        return
+    v = next((x for x in plan.get('compat_verdicts') or [] if x['site_id'] == it['site_id']), {})
+    if v.get('status') == 'FAIL':
+        raise errors.error('ERR-UPG-409-01', site=it['site_id'], errors=v.get('errors', 0) + v.get('blockers', 0),
+                           details={'verdict': v})
+    raise errors.error('ERR-SCN-409-03', loader='loader', target=plan['target']['branch'], vhost=it['site_id'])
+
+
+def report_errors(ctx, results):
+    for sid, res in sorted(results.items()):
+        for e in res.get('errors') or []:
+            ctx.env.error(e['code'], e['message'], 'site:%s' % sid)
 
 
 # --- inputs, stale, deadline, preconditions --------------------------------------------
@@ -508,23 +756,48 @@ def cmd_create(ctx):
             raise errors.error('ERR-PLAN-422-01', min=20, details={'min': 20, 'why': cand.get('not_selectable_reason')})
         override = reason
 
+    def in_progress_check(store):
+        olds = []
+        for pid in store.ids():
+            p, _ = store.load(pid)
+            if p['runtime_id'] != rid:
+                continue
+            if p['status'] == 'in_progress':
+                raise errors.error('ERR-PLAN-409-01', runtime=rid, plan_id=pid)
+            if p['status'] in ('draft', 'approved'):
+                olds.append(p)
+        return olds
+
     def work():
         with Store(ctx.state_dir) as store:
-            olds = []
-            for pid in store.ids():
-                p, _ = store.load(pid)
-                if p['runtime_id'] != rid:
-                    continue
-                if p['status'] == 'in_progress':
-                    raise errors.error('ERR-PLAN-409-01', runtime=rid, plan_id=pid)
-                if p['status'] in ('draft', 'approved'):
-                    olds.append(p)
-            items = assemble(cat, rt, sites, mode, {'branch': tgt_branch}, scan, cur_branch)
+            in_progress_check(store)
             plan_id = new_plan_id()
+            plan_dir = store.dir(plan_id)
+            os.mkdir(plan_dir, 0o700)
+        target = {'branch': tgt_branch, 'patch_version': cand['version']}
+        results = {}
+        try:
+            if mode == 'cross_branch':          # FR-CMPT-*: outside the plans lock, it can take minutes
+                cctx = compat_ctx(ctx, cat, offline)
+                for s in sites:
+                    res = CE.run_site(cctx, s, rt, target, plan_id, plan_dir, scan)
+                    CE.save_result(plan_dir, s, res)
+                    results[s['site_id']] = res
+                report_errors(ctx, results)
+            return finish(plan_id, plan_dir, target, results)
+        except BaseException:
+            if not os.path.isfile(os.path.join(plan_dir, 'plan.json')):
+                shutil.rmtree(plan_dir, ignore_errors=True)
+            raise
+
+    def finish(plan_id, plan_dir, target, results):
+        with Store(ctx.state_dir) as store:
+            olds = in_progress_check(store)
+            items = assemble(cat, rt, sites, mode, {'branch': tgt_branch}, scan, cur_branch, results)
             # P1 checks answered by this scan/assess (T-CHK-05 with the read actions run now).
             for it in items:
                 head = (it.get('cli_action') or '').split(' ')[0]
-                if it['status'] == 'PENDING' and it['exec_type'] == 'AUTO' and head in READ_ACTIONS:
+                if it['status'] == 'PENDING' and it['exec_type'] == 'AUTO' and head in ('scan', 'assess'):
                     it['status'] = 'DONE'
                     it['evidence'] = 'scan %s (%s); assess on bundle %s' % (
                         scan['result'].get('scan_fingerprint', '')[:12], scan.get('generated_at'),
@@ -533,8 +806,9 @@ def cmd_create(ctx):
             refresh_blocked(items)
             with Bundle(FeedsDir(ctx.state_dir)) as b:
                 tf = target_facts(A.Evaluator(b, ctx.today), rt['kind'], cand['version'])
-            order = sorted(sites, key=lambda s: (php_files(s.get('docroot')), s['site_id']))
-            site_order = [s['site_id'] for s in order]
+            nfiles = {s['site_id']: (results[s['site_id']].get('files_scanned') if s['site_id'] in results
+                                     else None) or php_files(s.get('docroot')) for s in sites}
+            site_order = [s['site_id'] for s in sorted(sites, key=lambda s: (nfiles[s['site_id']], s['site_id']))]
             plan = {
                 'plan_id': plan_id, 'runtime_id': rid, 'status': 'draft', 'mode': mode,
                 'target': {'branch': tgt_branch, 'patch_version': cand['version'], 'types': cand['types'],
@@ -542,9 +816,8 @@ def cmd_create(ctx):
                 'stale': False, 'stale_reasons': [],
                 'site_order': site_order, 'canary_site_id': site_order[0] if site_order else None, 'blocked_sites': [],
                 'upgrade_items': [], 'preconditions': preconditions(rt) if mode == 'cross_branch' else [],
-                'compat_verdicts': [{'site_id': s, 'status': 'PENDING', 'errors': 0, 'warnings': 0, 'waived': 0,
-                                     'pending_parts': ['code_scan', 'phpcompat', 'lint_new_bin']}
-                                    for s in site_order] if mode == 'cross_branch' else [],
+                'compat_verdicts': [], 'site_files': nfiles, 'p4_replaced': [],
+                'sites': [{k: s.get(k) for k in SITE_KEYS} for s in sites],
                 'deadline': deadline_of(cur, ctx.today, 'draft'),
                 'inputs': {'bundle_id': ctx.env.data.get('bundle_id'), 'catalog_version': cat.version,
                            'scan_fingerprint': scan['result'].get('scan_fingerprint'),
@@ -557,6 +830,8 @@ def cmd_create(ctx):
                 'created_at': iso_ms(), 'created_by': actor(), 'approved_at': None, 'approved_by': None,
                 'started_at': None, 'completed_at': None, 'updated_at': None,
             }
+            if mode == 'cross_branch':
+                apply_compat(plan, items, results)
             store.save(plan, items)
             store.event(plan_id, 'created', status='draft', target=plan['target'], mode=mode)
             for p in olds:      # T-PLN-04 / BR-PLAN-002
@@ -615,8 +890,11 @@ def cmd_approve(ctx, plan_id):
             if plan['stale']:
                 raise errors.error('ERR-PLAN-410-01', reasons=','.join(plan['stale_reasons']))
             missing = []
-            pend = [v['site_id'] for v in plan.get('compat_verdicts') or [] if v['status'] == 'PENDING'
-                    and set(v.get('pending_parts') or []) - {'lint_new_bin'}]
+            have = {v['site_id'] for v in plan.get('compat_verdicts') or []}
+            pend = [v['site_id'] for v in plan.get('compat_verdicts') or []
+                    if set(v.get('pending_parts') or []) & set(CE.PARTS_BEFORE_INSTALL)]
+            if plan['mode'] == 'cross_branch':
+                pend += [s for s in plan.get('site_order') or [] if s not in have]
             if pend:
                 missing.append('compatibility scan of %d site(s): %s' % (len(pend), ', '.join(pend)))
             p1 = [i['item_key'] for i in items if i['phase'] == 'P1' and i['exec_type'] == 'AUTO'
@@ -713,6 +991,7 @@ def cmd_canary(ctx, plan_id, site_id):
                 raise not_allowed('set canary %s' % site_id, plan['status'])
             plan['site_order'] = [site_id] + [s for s in plan['site_order'] if s != site_id]
             plan['canary_site_id'] = site_id
+            plan['canary_by_operator'] = True
             if plan['status'] == 'approved':      # T-PLN-06
                 plan['status'] = 'draft'
                 plan['approved_at'] = None
@@ -772,6 +1051,7 @@ def cmd_item(ctx, plan_id, chk):
             elif action == 'done':                      # T-CHK-09
                 if it['exec_type'] != 'MANUAL' or src not in ('PENDING', 'RUNNING'):
                     raise not_allowed('done %s (%s item: use plan run)' % (it['item_key'], it['exec_type']), src)
+                blocked_site_error(plan, it)
                 deps_ok(it, items)
                 if it['phase'] == 'P5' and plan['stale']:
                     raise errors.error('ERR-PLAN-410-01', reasons=','.join(plan['stale_reasons']))
@@ -809,25 +1089,131 @@ def cmd_item(ctx, plan_id, chk):
 
 
 def cmd_waive(ctx, plan_id):
+    """FR-CMPT-RES-001: waive error hits of one site (control action plan_waive_hits)."""
     a = ctx.a
-    site = a.opts.get('--site')
+    site_id = a.opts.get('--site')
     hits = [h for h in (a.opts.get('--hits') or '').split(',') if h]
-    reason_ok(a.opts.get('--reason'), 20)
-    if not site or not hits or len(hits) > 200 or any(not HIT_RE.match(h) for h in hits):
+    reason = reason_ok(a.opts.get('--reason'), 20)
+    if not site_id or not hits or len(hits) > 200 or any(not HIT_RE.match(h) for h in hits):
         raise errors.error('ERR-CLI-400-01', 'Invalid or missing value for {arg}.', arg='--site/--hits')
 
     def work():
         with Store(ctx.state_dir) as store:
-            plan, _ = store.load(plan_id)
-            known = set()
-            for v in plan.get('compat_verdicts') or []:
-                if v['site_id'] == site:
-                    known.update(h.get('hit_id') for h in v.get('hits') or [])
-            missing = [h for h in hits if h not in known]
-            if missing:
-                raise errors.error('ERR-PLAN-404-01', id=missing[0])
-            return 0, {'plan': view(plan, [], with_items=False)}
+            plan, items = load_checked(ctx, store, plan_id)
+            if plan['status'] in TERMINAL:
+                raise not_allowed('waive', plan['status'])
+            site = next((s for s in plan_sites(plan) if s['site_id'] == site_id), None)
+            if site is None:
+                raise errors.error('ERR-PLAN-404-01', id=site_id)
+            plan_dir = store.dir(plan_id)
+            res = CE.load_result(plan_dir, site)
+            if res is None:
+                raise errors.error('ERR-PLAN-404-01', id='compatibility result of %s' % site_id)
+            done, already, bad = CE.waive(res, list(dict.fromkeys(hits)), reason, actor())
+            if bad:
+                raise errors.error('ERR-CON-422-01', field='--hits %s' % bad[0], details={'invalid_hits': bad})
+            CE.save_result(plan_dir, site, res)
+            apply_compat(plan, items, load_results(plan_dir, plan_sites(plan)))
+            store.save(plan, items)
+            store.event(plan_id, 'waive', site_id=site_id, hits=done, already=already, reason=reason)
+            return 0, {'plan_id': plan_id, 'site_id': site_id, 'waived': done, 'already_waived': already,
+                       'compat_verdict': res['verdict']}
     return audited(ctx, 'plan_waive_hits', work, plan_id)
+
+
+def cmd_compat(ctx, plan_id):
+    """Compatibility results of the plan (read): hits filtered by --site, --level, --rule, --waived."""
+    a = ctx.a
+    level, waived = a.opts.get('--level'), a.opts.get('--waived')
+    if level not in (None, 'error', 'warning') or waived not in (None, 'true', 'false'):
+        raise errors.error('ERR-CLI-400-01', 'Invalid or missing value for {arg}.', arg='--level/--waived')
+    with Store(ctx.state_dir) as store:
+        plan, _ = load_checked(ctx, store, plan_id)
+        plan_dir = store.dir(plan_id)
+    sites = plan_sites(plan)
+    if a.opts.get('--site'):
+        sites = [s for s in sites if s['site_id'] == a.opts['--site']]
+        if not sites:
+            raise errors.error('ERR-CON-404-01', resource='site', id=a.opts['--site'], details={'resource': 'site'})
+    out = []
+    for s in sites:
+        res = CE.load_result(plan_dir, s)
+        if res is None:
+            out.append({'site_id': s['site_id'], 'verdict': None})
+            continue
+        res['hits'] = CE.hit_filter(res['hits'], level, a.opts.get('--rule'),
+                                    None if waived is None else waived == 'true')
+        out.append(res)
+    return 0, {'plan_id': plan_id, 'mode': plan['mode'], 'target': plan['target'],
+               'target_branch': plan['target']['branch'], 'verdicts': plan.get('compat_verdicts') or [],
+               'blocked_sites': plan.get('blocked_sites') or [],
+               'upgrade_items': plan.get('upgrade_items') or [], 'sites': out}
+
+
+def run_internal(ctx, plan, it, head):
+    """compat / compat-rector items: run by plan run itself, they only write STATE_DIR/plans and STATE_DIR/work."""
+    a = ctx.a
+    plan_id = plan['plan_id']
+    scan = A.read_scan(ctx.state_dir)
+    rt = A.find_runtime(scan, plan['runtime_id']) if scan else None
+    if rt is None:
+        raise errors.QPError('ERR-ASMT-404-01', errors.message('ERR-ASMT-404-01', runtime_id=plan['runtime_id']),
+                             exit_code=2)
+    cat = qcatalog.select(ctx.state_dir, [])
+    site = next((s for s in plan_sites(plan, scan) if s['site_id'] == it['site_id']), None)
+    with Store(ctx.state_dir) as store:
+        plan_dir = store.dir(plan_id)
+    cctx = dict(compat_ctx(ctx, cat, '--offline' in a.flags), plan_id=plan_id)
+    target = plan['target']
+    out = {'action': it['cli_action']}
+    if head == 'compat':
+        prev = CE.load_result(plan_dir, site)
+        if CE.reusable(prev, scan, target, rt['kind'], ctx.state_dir, '--offline' in a.flags) and \
+                prev.get('catalog_version') == cat.version:
+            res, out['reused'] = prev, True           # TC-CMPT-030 KQ3
+        else:
+            res = CE.run_site(cctx, site, rt, target, plan_id, plan_dir, scan, prev)
+            CE.save_result(plan_dir, site, res)
+            out['reused'] = False
+        report_errors(ctx, {site['site_id']: res})
+        out['verdict'] = res['verdict']
+        status = None
+    else:
+        php = CE.T.pick_phpcs_php(CE.new_bin_for(scan, 'php', target['branch']), CE.php_candidates(scan))
+        diff = os.path.join(plan_dir, 'rector-%s.diff' % (site.get('site_key') or site['site_id']))
+        apply = '--yes' in a.flags and '--dry-run' not in a.flags    # else a dry-run (FR-CMPT-RCT-001)
+        if apply and not os.path.isfile(diff):
+            raise errors.error('ERR-CLI-428-01', command='plan run %s (run --dry-run first and review the diff)'
+                               % it['item_key'])
+        try:
+            if not php:
+                raise CE.T.ToolError('ERR-CMPT-422-01', errors.message('ERR-CMPT-422-01', target=target['branch']))
+            out['rector'] = CE.rector_run(cctx, site, plan_dir, target, apply=apply, php=php)
+            status = 'DONE' if apply else None
+        except CE.T.ToolError as e:
+            msg = e.message if e.code != 'ERR-CMPT-424-01' else \
+                errors.message('ERR-CMPT-424-01', tool='Rector') + ' (%s)' % e.message
+            ctx.env.error(e.code, msg, 'site:%s' % site['site_id'])
+            out['error'] = {'code': e.code, 'message': msg}
+            status = None
+    with Store(ctx.state_dir) as store:
+        plan2, items2 = store.load(plan_id)
+        it2 = find_item(items2, it['item_key'])
+        src = it2['status']
+        if head == 'compat':
+            apply_compat(plan2, items2, load_results(plan_dir, plan_sites(plan2, scan)))
+            it2 = find_item(items2, it['item_key'])
+        elif status:
+            it2['status'] = status
+            it2['evidence'] = 'rector applied to %s (diff %s)' % (out['rector']['copy'], out['rector']['diff_file'])
+            it2['updated_at'], it2['updated_by'] = iso_ms(), actor()
+        it2['job_id'] = os.environ.get('QP_JOB_ID') or it2.get('job_id')
+        refresh_blocked(items2)
+        store.save(plan2, items2)
+        store.event(plan_id, 'run', item=it2['item_key'], action=it['cli_action'],
+                    **{'from': src, 'to': it2['status']})
+    ok = it2['status'] == 'DONE' or (head == 'compat-rector' and 'error' not in out)
+    return (0 if ok else 1), {'plan_id': plan_id, 'item': it2, 'run': out}
 
 
 def cmd_run(ctx, plan_id, chk):
@@ -841,13 +1227,17 @@ def cmd_run(ctx, plan_id, chk):
         raise not_allowed('run %s' % it['item_key'], plan['status'])
     if it['status'] not in ('PENDING', 'FAILED'):                # T-CHK-03 / T-CHK-12
         raise not_allowed('run %s' % it['item_key'], it['status'])
+    blocked_site_error(plan, it)                                  # BR-UPG-002: ERR-UPG-409-01
     deps_ok(it, items)                                            # T-CHK-04: ERR-SCN-424-01
     if it['phase'] == 'P5' and plan['stale']:
         raise errors.error('ERR-PLAN-410-01', reasons=','.join(plan['stale_reasons']))
-    if it['exec_type'] == 'MANUAL' or not it.get('cli_action') or head not in READ_ACTIONS + WRITE_ACTIONS:
+    if it['exec_type'] == 'MANUAL' or not it.get('cli_action') or \
+            head not in READ_ACTIONS + WRITE_ACTIONS + INTERNAL:
         raise not_allowed('run %s (no CLI action in this build)' % it['item_key'], it['status'])
     if it['exec_type'] == 'AUTO' and not it.get('verified', True):
         raise not_allowed('run %s (command not verified, BR-ENV-010)' % it['item_key'], it['status'])
+    if head in INTERNAL:
+        return audited(ctx, 'plan_run_item', lambda: run_internal(ctx, plan, it, head), plan_id)
     write = head in WRITE_ACTIONS
     if write and plan['status'] not in ('approved', 'in_progress'):
         raise not_allowed('run %s' % it['item_key'], plan['status'])
@@ -921,7 +1311,8 @@ def _runtime_ok(child, runtime_id):
     return False
 
 
-SUBCOMMANDS = ('create', 'list', 'show', 'approve', 'item', 'run', 'cancel', 'complete', 'close', 'canary', 'waive')
+SUBCOMMANDS = ('create', 'list', 'show', 'approve', 'item', 'run', 'cancel', 'complete', 'close', 'canary', 'waive',
+               'compat')
 
 
 def run(env, argv, Args, warnings, state_dir):
@@ -931,11 +1322,11 @@ def run(env, argv, Args, warnings, state_dir):
         raise errors.error('ERR-CLI-400-01', arg='plan %s' % sub)
     a = Args(argv[1:], flags=('--json', '--dry-run', '--yes', '--offline'),
              options=('--runtime-id', '--target', '--sites', '--reason', '--set', '--evidence', '--site', '--hits',
-                      '--today'))
+                      '--today', '--level', '--rule', '--waived'))
     ctx = Ctx(env, state_dir, a, warnings)
     pos = a.positional
     need = {'create': 0, 'list': 0, 'show': 1, 'approve': 1, 'cancel': 1, 'complete': 1, 'close': 1, 'canary': 2,
-            'item': 2, 'run': 2, 'waive': 1}[sub]
+            'item': 2, 'run': 2, 'waive': 1, 'compat': 1}[sub]
     if len(pos) != need:
         raise errors.error('ERR-CLI-400-01', 'Invalid or missing value for {arg}.', arg='plan %s arguments' % sub)
     cat = qcatalog.select(state_dir, [])
@@ -960,6 +1351,8 @@ def run(env, argv, Args, warnings, state_dir):
         code, res = cmd_item(ctx, pos[0], pos[1])
     elif sub == 'waive':
         code, res = cmd_waive(ctx, pos[0])
+    elif sub == 'compat':
+        code, res = cmd_compat(ctx, pos[0])
     else:
         code, res = cmd_run(ctx, pos[0], pos[1])
     if '--json' not in a.flags:
@@ -985,6 +1378,21 @@ def print_text(sub, res):
         for it in p.get('checklist_items') or []:
             print('  %-8s %-24s %-2s %-6s %s' % (it['status'], it['item_key'], it['phase'], it['exec_type'],
                                                  it['action'][:80]))
+        return
+    if sub == 'compat':
+        for v in res['verdicts']:
+            print('%-30s %-8s errors %d, warnings %d, waived %d%s' % (
+                v['site_id'], v['status'], v['errors'], v['warnings'], v['waived'],
+                ', pending: ' + ','.join(v['pending_parts']) if v.get('pending_parts') else ''))
+        for s in res['sites']:
+            for h in s.get('hits') or []:
+                print('  %s %s %s:%s %s %s%s' % (h['hit_id'], h['level'], h['file'], h['line'], h['rule_id'],
+                                                 h['snippet'][:60], ' (waived)' if h.get('waived') else ''))
+        return
+    if sub == 'waive':
+        v = res['compat_verdict']
+        print('%s %s: waived %d, already %d -> %s' % (res['plan_id'], res['site_id'], len(res['waived']),
+                                                      len(res['already_waived']), v['status']))
         return
     it = res.get('item') or {}
     print('%s %s: %s' % (res.get('plan_id'), it.get('item_key'), it.get('status')))

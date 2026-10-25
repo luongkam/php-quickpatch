@@ -72,7 +72,7 @@ Phân bổ FR → mốc do script sinh từ `srs/functional-requirements.md` và
 | M1 | Xong | `5b0a0ed` | 26 FR: 21 xong, 5 một phần (phần còn lại thuộc M2/M3/M5) |
 | M2 | Xong | `3fe9502` | 40 FR: 31 xong, 9 một phần (assess ở M3; GHSA có token, Wordfence, tracker distro thật; snapshot đóng gói ở M7) |
 | M3 | Xong | `c27baa1` | 25 FR: 15 xong, 9 một phần, 1 chưa (`FR-PLAN-DEP-001` cần M4); phần còn lại thuộc M4 (quét tương thích), M5 (baseline, chuyển site), M6 (job) |
-| M4 | Chưa bắt đầu | | |
+| M4 | Xong | (xem commit M4) | 14 FR: 11 xong, 3 một phần (native addon build thật, PECL/RHEL, chạy file mã hoá mẫu tự động); thêm `FR-PLAN-GEN-002`, `FR-PLAN-DEP-001` của M3 xong |
 | M5 | Chưa bắt đầu | | |
 | M6 | Chưa bắt đầu | | |
 | M7 | Chưa bắt đầu | | |

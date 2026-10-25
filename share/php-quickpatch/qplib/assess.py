@@ -192,11 +192,30 @@ def framework_limits(cat, doc, runtime_id):
         for r in rows:
             if r['framework'] == 'WordPress' and mm in [x.strip() for x in re.split(r'[,/]', r['versions'])]:
                 out.append((r['php_min'] or None, r['php_max'] or None, 'WordPress %s' % ver))
+    # Composer-installed frameworks (FR-CMPT-FWK-001); WordPress comes from the scan above.
+    from .compat import scan as CS
+    bc = cat.bc_doc()
+    for root in roots:
+        for f in CS.frameworks(root, rows, bc, '0.0') if os.path.isdir(root) else []:
+            if f['name'] != 'wordpress' and f['php_min']:
+                out.append((f['php_min'], f['php_max'], '%s %s' % (f['name'], f['version'])))
+    return out
+
+
+def loader_limits(cat, rt):
+    """Encoded-file loaders loaded by the runtime (BR-SCN-043): [(name, supports(branch) -> bool)]."""
+    from .compat import scan as CS
+    exts = ' '.join(rt.get('extensions') or []).lower()
+    meta = (cat.meta.get('loaders') if cat else None) or {}
+    out = []
+    for key, name in (('ioncube', 'ionCube'), ('sourceguardian', 'SourceGuardian')):
+        if key in exts:
+            out.append((name, lambda b, n=name: CS.loader_supports(n, b, meta)))
     return out
 
 
 def fits(branch, limits):
-    for lo, hi, _ in limits:
+    for lo, hi, _ in [x[:3] for x in limits]:
         if lo and V.vlt(branch, '.'.join(lo.split('.')[:2])):
             return False
         if hi and V.vlt(hi, branch):
@@ -227,11 +246,14 @@ def candidates(ev, cat, rt, doc, cur_q, expired=False, warnings=None, production
         tag(same, 'SAME_BRANCH_LATEST')
     higher = [r for r in table if V.vlt(cur_b, r['branch'])]
     limits = framework_limits(cat, doc, rt['runtime_id']) if product == 'php' else []
+    loaders = loader_limits(cat, rt) if product == 'php' else []
+    no_loader = lambda b: [n for n, ok in loaders if not ok(b)]    # noqa: E731
     if product == 'php':
         nxt = next((r for r in higher if r['status'] in SUPPORTED_PHP), None)
         ga_cut = add_days(today, -th.get('php_target_ga_age_days', 90))
         good = [r for r in table if r['lc'].get('ga_date') and r['lc']['ga_date'] <= ga_cut
-                and r['lc'].get('eol_date') and r['lc']['eol_date'] >= min_eol and fits(r['branch'], limits)]
+                and r['lc'].get('eol_date') and r['lc']['eol_date'] >= min_eol and fits(r['branch'], limits)
+                and not no_loader(r['branch'])]
         rec = next((r for r in reversed(good) if r['status'] == 'ACTIVE'), None) or \
             next((r for r in reversed(good) if r['status'] == 'SECURITY_ONLY'), None)
         stable = next((r for r in reversed(table) if r['status'] in SUPPORTED_PHP), None)
@@ -249,8 +271,20 @@ def candidates(ev, cat, rt, doc, cur_q, expired=False, warnings=None, production
     if rec:
         tag(rec, 'RECOMMENDED')
     elif higher or same:
-        comp = limits[0][2] if limits else ('PHP' if product == 'php' else 'Node.js')
-        errs.append(('ERR-SCN-409-01', errors.message('ERR-SCN-409-01', component=comp, version=cur_b)))
+        if limits:
+            name, _, ver = limits[0][2].partition(' ')
+            msg = errors.message('ERR-SCN-409-01', component=name, version=ver) + \
+                ' Upgrade %s first (PHP %s - %s).' % (limits[0][2], limits[0][0] or '?', limits[0][1] or '?')
+        else:
+            msg = errors.message('ERR-SCN-409-01', component='PHP' if product == 'php' else 'Node.js', version=cur_b)
+        errs.append(('ERR-SCN-409-01', msg))
+    for name, ok in loaders:             # TC-CMPT-023: branches with no loader are not candidates
+        live = [r['branch'] for r in higher if r['status'] not in CLOSED]
+        miss = [b for b in live if not ok(b)]
+        if miss and len(miss) == len(live):
+            for s in sites_of(doc, rt['runtime_id']) or [{'site_id': rt['runtime_id']}]:
+                errs.append(('ERR-SCN-409-03', errors.message('ERR-SCN-409-03', loader=name, target=miss[-1],
+                                                               vhost=s['site_id'])))
     if stable:
         tag(stable, 'LATEST_STABLE')
     pre = [r for r in table if r['status'] == 'PRE_RELEASE' and V.vlt(cur_b, r['branch'])]
@@ -279,6 +313,8 @@ def candidates(ev, cat, rt, doc, cur_q, expired=False, warnings=None, production
             c['selectable'] = False
             c['not_selectable_reason'] = 'EOL %s is before %s (BR-ASMT-002)' % (eol or '-', min_eol)
             c['manual_with_reason'] = bool(eol and eol >= manual_eol)
+        if not same_b and no_loader(r['branch']):
+            continue
         if c['selectable'] and limits and not same_b and not fits(r['branch'], limits):
             c['selectable'] = False
             c['not_selectable_reason'] = 'outside the PHP range of %s' % ', '.join(x[2] for x in limits)

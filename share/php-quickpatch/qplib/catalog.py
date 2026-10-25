@@ -118,6 +118,11 @@ class Catalog(object):
     def bc_rules(self):
         return self._load('bc_rules.json', 'rules')
 
+    def bc_doc(self):
+        """Whole bc_rules.json (rules + ini/extension/framework tables used by the compatibility scan)."""
+        self._load('bc_rules.json', 'rules')
+        return self._cache['bc_rules.json']
+
     @property
     def mitigations(self):
         return self._load('mitigations.json', 'rules')

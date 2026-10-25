@@ -64,8 +64,8 @@ Nhận diện panel thật (lệnh `whmapi1`, `plesk bin`, `selectorctl`…), `a
 | `FR-SCN-ENV-001` | Xong | `test_m3_scan.sh` (TC-SCN-014/016 qua hàm, PB-000), `test_m3_catalog_plan.py` | Container chỉ thử bằng biến `IN_CONTAINER` (không tạo `/.dockerenv` trên máy test) |
 | `FR-PLAN-TGT-001` | Xong | `test_m3_plan.sh` (TC-SCN-102 KQ1, TC-SCN-108 KQ1/2, PRE_RELEASE) | Ràng buộc framework chỉ có WordPress (M4 nhận diện framework khác) |
 | `FR-PLAN-GEN-001` | Một phần | `test_m3_plan.sh` | `upgrade_items[]` rỗng tới M4 (cần kết quả quét Composer/extension) |
-| `FR-PLAN-GEN-002` | Một phần | `test_m3_plan.sh` | Thứ tự site theo số file PHP; site `PASS`/`FAIL` chờ quét tương thích (M4): mọi site `PENDING` |
-| `FR-PLAN-DEP-001` | Chưa | — | Cần kết quả `FR-CMPT-*` (M4) |
+| `FR-PLAN-GEN-002` | Một phần → Xong ở M4 | `test_m3_plan.sh`, `test_m4_compat.sh` | Thứ tự site theo số file PHP; `PASS`/`FAIL`/`blocked_sites` làm ở M4 |
+| `FR-PLAN-DEP-001` | Chưa → Xong ở M4 | `test_m4_compat.sh` | Làm ở M4 (`upgrade_items[]`, mục P4 theo thành phần) |
 | `FR-PLAN-CHK-001` | Xong | `test_m3_plan.sh` (T-CHK-02/04/09/10/11/14/15/16) | |
 | `FR-PLAN-CHK-002` | Một phần | `test_m3_plan.sh` (scan/assess/fix, dry-run, `--yes`, ERR-SCN-424-01) | Chỉ `scan`, `assess`, `fix` có `cli_action`; job console ở M6; `fix --only php` vá mọi runtime PHP của máy |
 | `FR-PLAN-STS-001` | Một phần | `test_m3_plan.sh` (T-PLN-01..05, 07, 09, 12, 13) | `approve` kế hoạch khác nhánh có site cần quét tương thích (M4) và baseline health check (M5); `close` cần lượt chuyển `ROLLED_BACK` (M5) |
