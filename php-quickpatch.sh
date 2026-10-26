@@ -187,9 +187,18 @@ Usage:
   php-quickpatch.sh schema COMMAND       print the JSON Schema of COMMAND's --json
   php-quickpatch.sh compat --path DIR --target N [--current N] [--node-bin PATH]
                          [--report FILE.html|FILE.md] [--lang en|vi] [--offline]
+                         [--security-report FILE] [--compat-report FILE]
+                         [--client TEXT] [--project-name TEXT] [--prepared-by TEXT]
+                         [--classification TEXT] [--doc-version X.Y]
                                           Node.js compatibility of project
                                           directories (Lambda, repos) with a
-                                          target branch, and a report
+                                          target branch, a report and two
+                                          client documents (security posture,
+                                          compatibility and migration plan)
+  php-quickpatch.sh report security|compatibility --result RUN_ID|FILE
+                         --out FILE.html|FILE.md [--lang en|vi] [cover options]
+                                          re-render a client document from a
+                                          saved compat run (never overwrites)
   php-quickpatch.sh migrate SUBCOMMAND ... side-by-side upgrade, one site at a time
       install --runtime php|node --target X.Y|N [--from X.Y] [--add-repo] [--plan ID]
       switch SITE --target X.Y|N (--plan ID | --no-plan --reason TEXT)

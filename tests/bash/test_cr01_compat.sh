@@ -132,6 +132,42 @@ assert_eq "CR-02: result.brief risk levels (sorted)" "$(json_get "$J" '[r["level
 assert_eq "CR-02: result.brief final target = recommended branch" "$(json_get "$J" 'd["result"]["brief"]["final_target"]')" 24
 check "CR-02: --json with brief valid against qp.compat/1" schema_ok "$J"
 
+# --- CR-04: the two enterprise documents --------------------------------------------------------
+qp compat --path "$R" --target 22 --lang vi --client "ACME <Corp>" --project-name "Portal" \
+  --security-report "$T/spa.html" --compat-report "$T/rca.md" --json >"$J" 2>/dev/null
+RD=$(json_get "$J" "d['result']['artifacts_dir']")
+for f in security-assessment.html security-assessment.md compatibility-assessment.html compatibility-assessment.md; do
+  check "CR-04: $f kept in the run directory" test -s "$RD/$f"
+done
+check "CR-04: --security-report and --compat-report written" test -s "$T/spa.html" -a -s "$T/rca.md"
+assert_eq "CR-04: documents listed in result.reports" \
+  "$(json_get "$J" "sum(1 for r in d['result']['reports'] if 'assessment' in r or r.endswith(('spa.html', 'rca.md')))")" 6
+assert_contains "CR-04: SPA title, doc id and cover fields" "$(cat "$T/spa.html")" "SPA-PORTAL-"
+assert_contains "CR-04: SPA cover is escaped" "$(cat "$T/spa.html")" "ACME &lt;Corp&gt;"
+assert_eq "CR-04: SPA has no script and no external resource" \
+  "$(grep -c '<script' "$T/spa.html") $(grep -c '<link\|src="http\|@import' "$T/spa.html")" "0 0"
+assert_contains "CR-04: SPA findings carry IDs and due dates" "$(cat "$RD/security-assessment.md")" "| SEC-01 |"
+assert_contains "CR-04: RCA options and runtime commands" "$(cat "$T/rca.md")" "## 3. Phân tích phương án nền tảng đích"
+assert_contains "CR-04: RCA rollback plan" "$(cat "$T/rca.md")" "### Phương án rollback"
+check "CR-04: --json with enterprise documents valid against qp.compat/1" schema_ok "$J"
+assert_eq "CR-04: metadata with a control character refused" \
+  "$(qp compat --path "$R" --target 22 --client "$(printf 'a\033b')" --json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["errors"][0]["code"])')" "ERR-CLI-400-01"
+RUN=$(json_get "$J" "d['result']['run_id']")
+qp report security --result "$RUN" --out "$T/spa2.html" --lang en --client "Client B" --doc-version 1.1 --json >"$J" 2>/dev/null; rc=$?
+assert_eq "CR-04: report security from a saved run" "$rc $(json_get "$J" "d['result']['format']")" "0 html"
+check "CR-04: report --json valid against qp.report/1" schema_ok "$J"
+assert_eq "CR-04: report prints the SHA-256 of the file" "$(json_get "$J" "d['result']['sha256']")" "$(sha256sum "$T/spa2.html" | cut -d' ' -f1)"
+assert_contains "CR-04: English SPA, new version" "$(cat "$T/spa2.html")" "1.1 — Draft for review"
+qp report compatibility --result "$RD/result.json" --out "$T/spa2.html" --json >"$J" 2>/dev/null; rc=$?
+assert_eq "CR-04: existing --out refused" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-RPT-409-01"
+qp report compatibility --result "$RD/result.json" --out "$T/rca.pdf" --json >"$J" 2>/dev/null; rc=$?
+assert_eq "CR-04: unsupported format refused" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-RPT-422-01"
+qp report assess --json >"$J" 2>/dev/null; rc=$?
+assert_eq "CR-04: other report kinds still wait for M7" "$rc $(json_get "$J" 'd["errors"][0]["code"]')" "2 ERR-CLI-400-01"
+if [ -n "${QP_KEEP_REPORTS:-}" ]; then
+  cp "$RD/security-assessment.html" "$RD/compatibility-assessment.html" "$QP_KEEP_REPORTS/"
+fi
+
 # --- target 24 with a Node.js 24 binary for the native addon ---------------------------------
 fake_node "$T/n24" 24.22.1 137
 qp compat --path "$F2" --target 24 --node-bin "$T/n24/bin/node" --json >"$J" 2>/dev/null; rc=$?

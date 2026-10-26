@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-alpha.5 — 2026-10-26 (Phase 1, milestone M5 and CR-01)
+## 2.0.0-alpha.5 — 2026-10-26 (Phase 1, milestone M5, CR-01 to CR-04)
 
 Development build of v2 (not a release).
 
@@ -37,6 +37,25 @@ Development build of v2 (not a release).
 - `scan` reports `drift_warnings[]` (ERR-SCAN-409-01) when a site no longer uses the binding
   of the tool's last PASSED switch, and warns about interrupted health checks.
 - FastCGI client for the trial run and the pool check (`qp-feeds.py fcgi`, standard library).
+
+### Added (CR-04)
+- Two client documents built by the tool from a `compat --path` run, in the layout of a consulting
+  deliverable (cover, document control, contents, executive summary with decisions, scope and
+  limitations, rated findings with evidence and target dates, roadmap and timeline, client inputs,
+  appendices), HTML for A4 print and Markdown, English and Vietnamese:
+  - Security Posture Assessment & Remediation Plan (`SPA-<PROJECT>-<YYYYMMDD>`): SEC-nn findings with
+    remediation deadlines (critical 7, high 30, medium 90, low 180 days), further assessments,
+    four-phase remediation roadmap, assurance and acceptance criteria, vulnerability register;
+  - Runtime Compatibility Assessment & Migration Plan (`RCA-<PROJECT>-<YYYYMMDD>`): target options
+    (Node.js and AWS Lambda dates per LTS line), compatibility matrix, CMP-nn findings, migration
+    approach, rollback, test strategy, work breakdown and schedule, migration risks.
+- `compat` always writes `security-assessment.{html,md}` and `compatibility-assessment.{html,md}` to
+  the run directory; new options `--security-report FILE`, `--compat-report FILE`, `--client`,
+  `--project-name`, `--prepared-by`, `--classification`, `--doc-version`.
+- `report security|compatibility --result RUN_ID|FILE --out FILE [--lang] [cover options]`: re-renders
+  a document from a saved run without scanning again; never overwrites (`ERR-RPT-409-01`), prints the
+  SHA-256 (`qp.report/1`).
+- `compat` result: `lifecycle.branches`, `projects[].has_tests`.
 
 ### Added (CR-03)
 - `compat --path` reads how projects are deployed:

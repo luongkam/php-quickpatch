@@ -134,6 +134,9 @@ def main(argv):
         elif command in ('osv-check', 'backport', 'risk', 'build-snapshot'):
             from qplib.feeds import tools
             code, result = tools.COMMANDS[command](env, rest, Args, warnings)
+        elif command == 'report' and rest[:1] and rest[0] in ('security', 'compatibility'):   # CR-04
+            from qplib.compat import docs
+            code, result = docs.run(env, rest, Args, warnings, statedir.select(warnings))
         elif command in NOT_YET:
             raise errors.error('ERR-CLI-400-01', '{arg} is not available in this build yet (milestone %s).' % NOT_YET[command],
                                arg=command)

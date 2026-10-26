@@ -478,12 +478,15 @@ def lifecycle(fs, today, current, target, min_days=365):
     good = [r for r in table if r['branch'].isdigit() and int(r['branch']) % 2 == 0 and r['status'] in A.LTS_NODE
             and (r['lc'].get('eol_date') or '') >= cut]
     rec = good[-1]['branch'] if good else None
+    branches = [info(r['branch']) for r in table if r['branch'].isdigit() and int(r['branch']) % 2 == 0
+                and (not current or not str(current).isdigit() or int(r['branch']) >= int(current))]
     cur_info = info(current) if current else None
     if cur_info is not None:
         cur_info['unpatched'] = exposure or None
     return {'today': today, 'bundle_id': bundle_id, 'current': cur_info,
             'target': info(target), 'recommended': rec, 'min_eol': cut,
             'recommended_eol': (rows[rec]['lc'].get('eol_date') or None) if rec in rows else None,
+            'branches': branches,
             'target_ok': bool(rows.get(target)) and rows[target]['status'] in A.LTS_NODE
             and (rows[target]['lc'].get('eol_date') or '') >= cut}
 
@@ -512,6 +515,8 @@ def scan_project(ctx, root, target, current_opt, node_bin, projects, decl, share
            'native_addons': [], 'vulnerabilities': None, 'vuln_meta': None, 'deprecated': [],
            'deprecated_unknown': [], 'parts': {}, 'errors': [], 'notes': []}
     res['declarations'] = decl
+    test = str((pj.get('scripts') or {}).get('test') or '')
+    res['has_tests'] = bool(test) and 'no test specified' not in test
     res['deploy'] = deploy_info(root, [p for p in projects if p != root and p.startswith(root.rstrip('/') + '/')])
     eng = (pj.get('engines') or {}).get('node') if isinstance(pj.get('engines'), dict) else None
     res['engines'] = eng

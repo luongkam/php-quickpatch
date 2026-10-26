@@ -1,7 +1,8 @@
 """`compat --path DIR --target N` (CR-01, qp.compat/1): compatibility of Node.js project directories.
 
-Read only for the scanned paths. Writes the report (HTML and Markdown) and the
-JSON result to STATE_DIR/reports/compat-<run_id>/, plus --report FILE when given.
+Read only for the scanned paths. Writes the report (HTML and Markdown), the two enterprise
+documents (CR-04: security-assessment, compatibility-assessment) and the JSON result to
+STATE_DIR/reports/compat-<run_id>/, plus --report / --security-report / --compat-report FILE when given.
 """
 import json
 import os
@@ -9,7 +10,7 @@ import re
 import subprocess
 
 from .. import assess as A, errors
-from . import brief as BR, project as P, report as RP
+from . import brief as BR, enterprise as EN, project as P, report as RP
 
 
 def node_major(binary):
@@ -25,9 +26,39 @@ def bad(arg):
     return errors.error('ERR-CLI-400-01', 'Invalid or missing value for {arg}.', arg=arg)
 
 
+META = (('--client', 'client'), ('--project-name', 'project'), ('--prepared-by', 'prepared_by'),
+        ('--classification', 'classification'), ('--doc-version', 'version'))
+DOCS = (('security', 'security-assessment'), ('compatibility', 'compatibility-assessment'))
+
+
+def meta_opts(a):
+    """Cover-page fields of the enterprise documents; printable text, at most 120 characters."""
+    out = {}
+    for opt, key in META:
+        v = a.opts.get(opt)
+        if v is None:
+            continue
+        if not v.strip() or len(v) > 120 or re.search(r'[\x00-\x1f\x7f]', v):
+            raise bad(opt)
+        out[key] = v.strip()
+    return out
+
+
+def out_path(a, opt):
+    v = a.opts.get(opt)
+    if v is None:
+        return None
+    if not v.lower().endswith(('.html', '.htm', '.md')):
+        raise bad('%s (.html or .md)' % opt)
+    if not os.path.isdir(os.path.dirname(os.path.abspath(v))):
+        raise bad('%s %s' % (opt, v))
+    return os.path.abspath(v)
+
+
 def run(env, argv, Args, warnings, state_dir):
     a = Args(argv, flags=('--json', '--offline'),
-             options=('--target', '--current', '--node-bin', '--report', '--lang', '--today', '--runtime'),
+             options=('--target', '--current', '--node-bin', '--report', '--lang', '--today', '--runtime',
+                      '--security-report', '--compat-report') + tuple(o for o, _ in META),
              multi=('--path',))
     if a.positional:
         raise errors.error('ERR-CLI-400-01', arg=a.positional[0])
@@ -57,12 +88,9 @@ def run(env, argv, Args, warnings, state_dir):
         if got != target:
             raise bad('--node-bin (Node.js %s, target %s)' % (got or '?', target))
         node_bin = os.path.realpath(node_bin)
-    out_file = a.opts.get('--report')
-    if out_file is not None:
-        if not out_file.lower().endswith(('.html', '.htm', '.md')):
-            raise bad('--report (.html or .md)')
-        if not os.path.isdir(os.path.dirname(os.path.abspath(out_file))):
-            raise bad('--report %s' % out_file)
+    out_file = out_path(a, '--report')
+    doc_out = {'security': out_path(a, '--security-report'), 'compatibility': out_path(a, '--compat-report')}
+    meta = meta_opts(a)
     today = A.today_of(a)
     res = P.run(state_dir, paths, target, cur, node_bin, '--offline' in a.flags, lang, today, warnings=warnings)
     env.catalog_version = res['catalog_version']
@@ -74,7 +102,12 @@ def run(env, argv, Args, warnings, state_dir):
     res['reports'] = [RP.write(res, os.path.join(d, 'report.html'), lang),
                       RP.write(res, os.path.join(d, 'report.md'), lang)]
     if out_file:
-        res['reports'].append(RP.write(res, os.path.abspath(out_file), lang))
+        res['reports'].append(RP.write(res, out_file, lang))
+    for kind, base in DOCS:                                 # enterprise documents (CR-04)
+        doc = EN.build(kind, res, lang, meta)
+        res['reports'] += [EN.write(doc, os.path.join(d, base + '.html')), EN.write(doc, os.path.join(d, base + '.md'))]
+        if doc_out[kind]:
+            res['reports'].append(EN.write(doc, doc_out[kind]))
     with open(os.path.join(d, 'result.json'), 'w', encoding='utf-8') as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     worst = RP.overall(res)

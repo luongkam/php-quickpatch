@@ -286,8 +286,11 @@ AUDIT_RESULT = {'type': ['object', 'null'], 'properties': {
     'anchors_checked': arr(obj({'seq': I, 'hash': S, 'source': enum('job', 'manual'), 'match': B})),
     'last_anchor': {'type': ['object', 'null']}}}
 
-REPORT_RESULT = obj({'report_type': enum('assess', 'evidence'), 'format': enum('json', 'csv', 'md', 'html'),
-                     'file': S, 'sha256': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}, 'bytes': I},
+# CR-04 adds the enterprise documents `report security|compatibility --result RUN_ID|FILE` (from a compat run).
+REPORT_RESULT = obj({'report_type': enum('assess', 'evidence', 'security', 'compatibility'),
+                     'format': enum('json', 'csv', 'md', 'html'),
+                     'file': S, 'sha256': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}, 'bytes': I,
+                     'lang': enum('en', 'vi'), 'doc_id': S, 'source_run_id': SN, 'findings': I},
                     required=['report_type', 'format', 'file', 'sha256'], nullable=True)
 
 SCHEMA_RESULT = obj({'command': S, 'schema_file': S, 'schema': {'type': 'object'}}, nullable=True)
@@ -357,7 +360,7 @@ COMMANDS = {
     'feeds.schedule': ('qp.feeds.schedule/1', FEEDS_SCHEDULE_RESULT, 'Output of `feeds schedule --json` (FR-FEED-CMD-006)'),
     'feeds': ('qp.feeds/1', {'type': ['object', 'null']}, 'Error envelope of `feeds` with an unknown subcommand'),
     'audit': ('qp.audit/1', AUDIT_RESULT, 'Output of `audit list|verify --json` (FR-JOB-AUD-002, FR-JOB-AUD-003)'),
-    'report': ('qp.report/1', REPORT_RESULT, 'Output of `report assess|evidence --json` (FR-RPT-ASMT-001, FR-RPT-AUD-001)'),
+    'report': ('qp.report/1', REPORT_RESULT, 'Output of `report assess|evidence|security|compatibility --json` (FR-RPT-ASMT-001, FR-RPT-AUD-001, CR-04)'),
     'schema': ('qp.schema/1', SCHEMA_RESULT, 'Output of `schema <command> --json`'),
     'compat': ('qp.compat/1', COMPAT_RESULT, 'Output of `compat --path DIR --target N --json` (CR-01)'),
 }
