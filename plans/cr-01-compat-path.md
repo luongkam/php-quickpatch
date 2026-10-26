@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Nguồn yêu cầu | PO, trao đổi ngày 2026-10-26 (yêu cầu thật của dự án eKYC: AWS Lambda Node.js 18.x → 20/22, kiểm package có lỗ hổng, đưa phương án + effort) |
 | Loại | Thêm lệnh mới, **ngoài danh sách FR Phase 1** (không có trong `srs/functional-requirements.md`); không đổi hành vi lệnh có sẵn |
-| Trạng thái | Xong (xem commit CR-01) |
+| Trạng thái | Xong (`ac41c67`) |
 | Lý do | Lệnh `plan`/M4 chỉ quét được site có runtime trên máy; mã chạy nơi khác (AWS Lambda, container build ở CI, repo checkout) không có runtime/site nên không lập kế hoạch được |
 
 ## 1. Lệnh
