@@ -119,6 +119,12 @@ def main(argv):
         elif command == 'assess':
             from qplib import assess
             code, result = assess.run(env, rest, Args, warnings, statedir.select(warnings))
+        elif command == 'fcgi':             # internal: FastCGI probe/status for migrate (DOC-SRS-QP-ENV-002 §3.3)
+            from qplib import fcgi
+            return fcgi.main(rest)
+        elif command == 'plan-gate':        # internal: FR-UPG-SEQ-001 checks for migrate switch / ack / rollback
+            from qplib import plan
+            return plan.gate_main(rest)
         elif command == 'compat':
             from qplib.compat import cli as compat_cli
             code, result = compat_cli.run(env, rest, Args, warnings, statedir.select(warnings))

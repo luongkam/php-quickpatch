@@ -33,6 +33,9 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | C-25 | M4 | TC-CMPT-012 kỳ vọng `Parse error` cho file hỏng trên 8.5; với PHP 8 một số lỗi cú pháp cũ (vd `$s{0}`) là `Fatal error` lúc biên dịch | TC-CMPT-012 | Nhận cả `Parse error` và `Fatal error` của `php -l` là lỗi cú pháp (hit `php-l`, mức `error`); fixture dùng `function match()` (Parse error từ 8.0) | A | Áp dụng |
 | C-26 | M4 | Mục "Mẫu quét" của luật BC trong DOC-SRS-QP-SCN-PHP-8X là mô tả, không phải regex chạy được | version-scenarios-php-8x | Regex soạn tay trong `tools/build-catalog.py` (`SCAN`), kiểm biên dịch khi build; phát hiện ngữ nghĩa (vd so sánh lỏng chuỗi–số) vẫn để PHPCompatibility/test | B | Áp dụng |
 | C-27 | CR-01 | Lệnh `compat --path` (quét thư mục dự án Node.js với nhánh đích + báo cáo) không có trong FR Phase 1 | PO yêu cầu 2026-10-26 | Thêm lệnh mới, không đổi lệnh có sẵn; mô tả ở [cr-01-compat-path.md](cr-01-compat-path.md). Cần PO bổ sung FR/AC/TC vào SRS nếu giữ cho bản phát hành | C | PO đã yêu cầu; chờ cập nhật SRS |
+| C-28 | M5 | Nhiều tiêu chí vi phạm trong cùng 1 vòng: `rollback_reason` là 1 mã (`HC-C0..C9`) nhưng tài liệu HC không nói chọn mã nào; mã 5xx luôn vi phạm cả `HC-C1` | DOC-SRS-QP-ENV-002 §6, states.md `T-SW-11` | `rollback_reason` = `HC-C2` khi có, ngược lại mã nhỏ nhất; mọi tiêu chí vẫn có trong `hc.violations[]` | A | Áp dụng |
+| C-29 | M5 | `rollback <run_id>` của lượt có dòng `switch` (states.md `T-SW-15`): api-spec-cli-json §8 chỉ mô tả `qp.fix/1` cho `rollback` | states.md, api-spec-cli-json §8, §9 | Chạy R1–R7 của `migrate rollback --purge-pool`; xuất `qp.migrate/1` (`command.name = migrate`, `subcommand = rollback`) | A | Áp dụng |
+| C-30 | M5 | `BR-PLAN-006`: `scan_fingerprint` gồm `site_binding`; mỗi lượt chuyển `PASSED` đổi gán site → lần `scan` kế tiếp làm kế hoạch `stale` (`SCAN_CHANGED`) và `FR-UPG-SEQ-001` từ chối site kế tiếp (`ERR-PLAN-410-01`) | BR-PLAN-006, FR-UPG-SEQ-001 | Giữ đúng thiết kế (kiểm `stale` trước mỗi lượt chuyển); người vận hành không chạy `scan` giữa các lượt chuyển hoặc tạo lại kế hoạch. Đề xuất PO: loại phần gán của các site đã chuyển bởi chính kế hoạch khỏi so sánh | C | Chờ PO |
 
 ## Giả định khi triển khai M2 (không đổi hành vi so với thiết kế)
 
@@ -86,3 +89,22 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | A-M4-11 | Ứng dụng Node.js chạy bằng unit systemd là site `app:systemd:<unit>` (docroot = `WorkingDirectory`, PB-017); pm2/Docker chưa thành site |
 | A-M4-12 | `catalog_version` = `2026.10.25-1` (thêm `scan[]`, bảng ini/extension/framework, công cụ ghim, `cli_action` cho mục quét) |
 | A-M4-13 | Thư mục `sites.d` khai báo "không triển khai": `/etc/php-quickpatch/sites.d/<site_key>.conf` (root) hoặc `~/.config/php-quickpatch/sites.d/` (không root); dòng đầu `# qp-site-id = <site_id>`; `exclude_dirs`, `exclude_reason` ≥ 20 ký tự |
+
+## Giả định khi triển khai M5 (không đổi hành vi so với thiết kế)
+
+| Mã | Nội dung |
+| :--- | :--- |
+| A-M5-01 | `migrate` (install/switch/rollback/healthcheck/ack/status/hc-urls/remove-old) viết bằng Bash trong `share/php-quickpatch/lib/{migrate,hc,pb,install}.sh`, nạp khi chạy `migrate` (C-01); Python chỉ cho FastCGI probe/kiểm pool (`qp-feeds.py fcgi`) và kiểm kế hoạch (`qp-feeds.py plan-gate`) |
+| A-M5-02 | `run_id` của lượt chuyển = tên thư mục `backups/<run_id>`; `switches/index.tsv` thêm cột `site_key`, `note` (dòng `ack:<thời điểm>` khi xác nhận); `switch.vars` (key=value) là bản Bash của `switch.json` |
+| A-M5-03 | Kiểm HC-C0 (C10, §3.4 cách 1): `accepted conn` của trang status pool đích tăng thêm ít nhất 1 ngoài chính các yêu cầu status (mỗi lần hỏi status cũng được đếm); thử lại tối đa 10 lần vì reload graceful có hiệu lực sau khi gửi tín hiệu. Vòng thăm dò sau rollback cũng thử lại ≤ 10 lần |
+| A-M5-04 | Mọi yêu cầu health check dùng `curl --noproxy '*' --resolve <host của URL>:<port>:<địa chỉ vhost>`: biến `http_proxy` của máy không làm lệch kết quả; URL khai báo với host phụ (`www.`) được trỏ đúng địa chỉ |
+| A-M5-05 | Ghim mặc định (`BR-SCN-012`) ghi manifest `link alt:<nhóm> <Value>|auto`; rollback lượt cài chạy `update-alternatives --set`/`--auto`. Gói đã cài không gỡ khi rollback (dòng `note`, như v0.1) |
+| A-M5-06 | File kho/khoá do `add-apt-repository` tạo được ghi `created` sau khi lệnh chạy (tên không biết trước). Không có `add-apt-repository` dùng được → tool tự thêm `ppa:ondrej/php`: fingerprint từ Launchpad API, khoá từ keyserver.ubuntu.com, kiểm fingerprint bằng `gpg`, nguồn deb822 `Signed-By` riêng |
+| A-M5-07 | `FR-UPG-CFG-002` "giá trị khác mặc định trong `php.ini`": so `php.ini` của `$OLD` với `/usr/lib/php/<OLD>/php.ini-production` của gói, ghi các dòng khác vào `conf.d/90-php-quickpatch-from-<OLD>.ini` của `$NEW` |
+| A-M5-08 | `remove-old`: "xác nhận kép" của mục `SEMI` = `--yes` + `--reason` (≥ 20 ký tự). Bằng chứng 14 ngày: không site nào gán nhánh cũ, không tiến trình CLI của binary cũ, mtime log FPM/pool cũ và lượt chuyển `PASSED` cuối rời nhánh cũ ≥ 14 ngày. Node.js chỉ gỡ prefix `/opt/node-<major>` (lưu tar, rollback được) |
+| A-M5-09 | Drift (`FR-SCAN-DRF-001`) so nhánh + endpoint (socket/cổng) với lượt `PASSED` gần nhất, không so `binding_ref` (số dòng đổi khi sửa file không liên quan) |
+| A-M5-10 | `plan run` mục P5 `migrate switch` thêm `--yes` (đã xác nhận ở `plan run`); 1 lượt chuyển `PASSED` đặt `DONE` cho mọi mục P5 `migrate switch` của cùng site (mục "canary" và "từng site còn lại" cùng tồn tại cho mỗi site). `cli_action` P2/P5 chỉ cho mục cài song song / chuyển site trên chính máy (không cho "máy mới", nvm, prefix tự build) |
+| A-M5-11 | `steps[]` của `install`/`remove-old` dùng tên `INST-*`/`RMV` (api-spec chỉ định nghĩa `C1..C12`, `R1..R7` cho switch/rollback) |
+| A-M5-12 | Test switch chạy Nginx + PHP-FPM thật (2 nhánh) trong mount namespace với overlay `/etc`, `/var/lib`, `/var/log`, `/run` thay cho stub `nginx -t`/`systemctl` dự kiến ở mục 2 (giả lập lỗi bằng file cờ: không reload, `nginx -t` lỗi); `sleep` ≥ 5 s được tua nhanh |
+| A-M5-13 | `catalog_version` = `2026.10.26-1` (thêm `cli_action` `migrate install`/`migrate switch`) |
+| A-M5-14 | Không systemd: dịch vụ qua `service`; gói PHP của ondrej không đặt `pid =` nên script init không thấy tiến trình (môi trường test thêm `pid =`; máy dùng systemd không bị ảnh hưởng) |

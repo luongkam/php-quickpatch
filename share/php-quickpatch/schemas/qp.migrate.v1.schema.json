@@ -327,88 +327,95 @@
                   ]
                 },
                 "switch": {
-                  "type": "object",
-                  "properties": {
-                    "run_id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "type": "null"
                     },
-                    "site_id": {
-                      "type": "string"
-                    },
-                    "plan_id": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "from_branch": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "to_branch": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "status": {
-                      "enum": [
-                        "PREFLIGHT",
-                        "SWITCHED",
-                        "HC_RUNNING",
-                        "PASSED",
-                        "ROLLED_BACK",
-                        "ROLLBACK_FAILED",
-                        "HC_FAILED_KEPT",
-                        "ABORTED"
-                      ]
-                    },
-                    "t_start": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "t_switched": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "t_hc_end": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "t_rollback_end": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "rollback_reason": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "rollback_available": {
-                      "type": "boolean"
-                    },
-                    "actor": {
-                      "type": [
-                        "string",
-                        "null"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "run_id": {
+                          "type": "string"
+                        },
+                        "site_id": {
+                          "type": "string"
+                        },
+                        "plan_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "from_branch": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "to_branch": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "status": {
+                          "enum": [
+                            "PREFLIGHT",
+                            "SWITCHED",
+                            "HC_RUNNING",
+                            "PASSED",
+                            "ROLLED_BACK",
+                            "ROLLBACK_FAILED",
+                            "HC_FAILED_KEPT",
+                            "ABORTED"
+                          ]
+                        },
+                        "t_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "t_switched": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "t_hc_end": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "t_rollback_end": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "rollback_reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "rollback_available": {
+                          "type": "boolean"
+                        },
+                        "actor": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "run_id",
+                        "site_id",
+                        "status"
                       ]
                     }
-                  },
-                  "required": [
-                    "run_id",
-                    "site_id",
-                    "status"
                   ]
                 },
                 "switches": {
@@ -500,13 +507,221 @@
                   }
                 },
                 "steps": {
-                  "type": "array"
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "step": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "enum": [
+                          "done",
+                          "failed",
+                          "skipped"
+                        ]
+                      },
+                      "started_at": {
+                        "type": "string"
+                      },
+                      "duration_ms": {
+                        "type": "integer"
+                      },
+                      "detail": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "error_code": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^ERR-[A-Z]+-[0-9]{3}-[0-9]{2,3}$"
+                      }
+                    },
+                    "required": [
+                      "step",
+                      "status",
+                      "detail"
+                    ]
+                  }
                 },
                 "hc": {
                   "type": [
                     "object",
                     "null"
+                  ],
+                  "properties": {
+                    "verdict": {
+                      "enum": [
+                        "PASS",
+                        "FAIL",
+                        null
+                      ]
+                    },
+                    "mode": {
+                      "enum": [
+                        "full",
+                        "skip"
+                      ]
+                    },
+                    "window_s": {
+                      "type": "integer"
+                    },
+                    "rounds_done": {
+                      "type": "integer"
+                    },
+                    "violations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "criterion": {
+                            "type": "string",
+                            "pattern": "^HC-C[0-9]$"
+                          },
+                          "url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "detail": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "criterion",
+                          "detail"
+                        ]
+                      }
+                    },
+                    "report_ref": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "verdict",
+                    "mode",
+                    "window_s",
+                    "rounds_done",
+                    "violations"
                   ]
+                },
+                "hc_urls": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "manifest": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "seq": {
+                        "type": "integer"
+                      },
+                      "action": {
+                        "enum": [
+                          "copy",
+                          "created",
+                          "untar",
+                          "docker-created",
+                          "composer-install",
+                          "npm-ci",
+                          "note",
+                          "switch",
+                          "reload",
+                          "panel",
+                          "link",
+                          "systemd",
+                          "pm2",
+                          "compose"
+                        ]
+                      },
+                      "args": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "status": {
+                        "enum": [
+                          "done",
+                          "failed",
+                          "skipped",
+                          "planned"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "seq",
+                      "action",
+                      "args",
+                      "status"
+                    ]
+                  }
+                },
+                "locked_after_rollback_failed": {
+                  "type": "boolean"
+                },
+                "site_id": {
+                  "type": "string"
+                },
+                "baseline_only": {
+                  "type": "boolean"
+                },
+                "baseline": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "rounds": {
+                      "type": "integer"
+                    },
+                    "per_url": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "code_b": {
+                            "type": "string"
+                          },
+                          "size_b": {
+                            "type": "integer"
+                          },
+                          "p95_ms": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "code_b"
+                        ]
+                      }
+                    },
+                    "w0": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "rounds",
+                    "per_url",
+                    "w0"
+                  ]
+                },
+                "config_file": {
+                  "type": "string"
                 },
                 "acknowledgement": {
                   "type": "object",
@@ -563,6 +778,130 @@
                     "switch_lock_released",
                     "next_allowed_sites"
                   ]
+                },
+                "runtime": {
+                  "enum": [
+                    "php",
+                    "node"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "new_bin": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "install_source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "repo_added": {
+                  "type": "boolean"
+                },
+                "packages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "cfg_report": {
+                  "type": "object",
+                  "properties": {
+                    "copied": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "dropped_directives": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "extensions_installed": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "not_transferable": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "copied",
+                    "dropped_directives",
+                    "extensions_installed",
+                    "not_transferable"
+                  ]
+                },
+                "preconditions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string"
+                      },
+                      "required": {
+                        "type": "string"
+                      },
+                      "actual": {
+                        "type": "string"
+                      },
+                      "pass": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "check",
+                      "required",
+                      "actual",
+                      "pass"
+                    ]
+                  }
+                },
+                "runtime_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "idle_days": {
+                  "type": "integer"
+                },
+                "removed_packages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "affected_switches": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "run_id": {
+                        "type": "string"
+                      },
+                      "rollback_available": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "run_id",
+                      "rollback_available"
+                    ]
+                  }
                 },
                 "preview": {
                   "type": "object",

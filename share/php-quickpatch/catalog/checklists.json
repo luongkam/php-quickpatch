@@ -1,6 +1,6 @@
 {
  "schema": "qp.catalog/1",
- "catalog_version": "2026.10.25-1",
+ "catalog_version": "2026.10.26-1",
  "items": [
   {
    "chk_id": "CHK-PHP-001-01",
@@ -565,7 +565,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -943,7 +943,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -1276,7 +1276,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -1656,7 +1656,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -1992,7 +1992,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -2014,7 +2014,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -2360,7 +2360,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -2660,7 +2660,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -2680,7 +2680,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -3316,7 +3316,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -3652,7 +3652,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -3674,7 +3674,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -4034,7 +4034,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -4392,7 +4392,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -4414,7 +4414,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -4774,7 +4774,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -5068,7 +5068,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -5090,7 +5090,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -5470,7 +5470,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -5766,7 +5766,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -5788,7 +5788,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -6247,7 +6247,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -6404,7 +6404,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -6426,7 +6426,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -6798,7 +6798,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -6867,7 +6867,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -7161,7 +7161,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -7230,7 +7230,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -7662,7 +7662,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime php --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -7731,7 +7731,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -8604,7 +8604,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -8864,7 +8864,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -8884,7 +8884,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -9266,7 +9266,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -9548,7 +9548,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -9570,7 +9570,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -9944,7 +9944,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -10226,7 +10226,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -10248,7 +10248,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -10622,7 +10622,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -10924,7 +10924,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -10946,7 +10946,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -11292,7 +11292,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -11367,7 +11367,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -11636,7 +11636,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -11711,7 +11711,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -12142,7 +12142,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -12191,7 +12191,7 @@
    "expand": false,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -12579,7 +12579,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -12816,7 +12816,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -12868,7 +12868,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate switch $SITE --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {
@@ -13115,7 +13115,7 @@
    "expand": true,
    "depends_on": [],
    "verified": true,
-   "cli_action": null,
+   "cli_action": "migrate install --runtime node --target $NEW --plan $PLAN_ID",
    "flow": "upgrade"
   },
   {

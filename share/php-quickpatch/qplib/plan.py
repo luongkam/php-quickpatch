@@ -28,7 +28,7 @@ TERMINAL = ('completed', 'rolled_back', 'cancelled')
 CLOSED_ITEM = ('DONE', 'SKIPPED', 'WAIVED')
 PHASES = ('P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7')
 READ_ACTIONS = ('scan', 'assess', 'compat')
-WRITE_ACTIONS = ('fix',)
+WRITE_ACTIONS = ('fix', 'migrate')
 INTERNAL = ('compat', 'compat-rector')          # run by plan run itself (no child process)
 
 
@@ -1245,9 +1245,11 @@ def cmd_run(ctx, plan_id, chk):
         raise errors.error('ERR-SCN-422-01', runtime=plan['runtime_id'], raw=plan['current']['version'])
     if write and not dry and '--yes' not in a.flags and not sys.stdin.isatty():
         raise errors.error('ERR-CLI-428-01', command='plan run')
-    args = it['cli_action'].split() + ['--json']
+    args = substitute(it['cli_action'], {'PLAN_ID': plan_id}).split() + ['--json']
     if write and dry:
         args.append('--dry-run')
+    elif head == 'migrate':
+        args.append('--yes')                       # confirmed above (BR-SCN-008: one approval per switch)
     if '--offline' in a.flags:
         args.append('--offline')
 
@@ -1281,6 +1283,12 @@ def cmd_run(ctx, plan_id, chk):
             it2['evidence'] = '%s exit %s (%s)' % (it['cli_action'], code, child.get('generated_at'))
             it2['updated_at'] = iso_ms()
             it2['updated_by'] = actor()
+            if ok and it['cli_action'].startswith('migrate switch'):
+                for o in items2:                                  # one switch run answers every P5 item of the site
+                    if o is not it2 and o['phase'] == 'P5' and o.get('site_id') == it2.get('site_id') and \
+                            (o.get('cli_action') or '').startswith('migrate switch') and o['status'] in ('PENDING', 'FAILED'):
+                        o.update(status='DONE', evidence=it2['evidence'], updated_at=it2['updated_at'],
+                                 updated_by=it2['updated_by'])
             if write and plan2['status'] == 'approved':          # T-PLN-07
                 plan2['status'] = 'in_progress'
                 plan2['started_at'] = iso_ms()
@@ -1398,3 +1406,127 @@ def print_text(sub, res):
     print('%s %s: %s' % (res.get('plan_id'), it.get('item_key'), it.get('status')))
     if res.get('run'):
         print('  %s -> exit %s' % (res['run']['action'], res['run'].get('child_exit_code')))
+
+
+# --- migrate gate (FR-UPG-SEQ-001), called by migrate.sh ------------------------------------
+SWITCH_FAILED = ('ROLLED_BACK', 'HC_FAILED_KEPT', 'ROLLBACK_FAILED')
+
+
+def switch_runs(state_dir, plan_id=None):
+    """Runs of switches/index.tsv: {run_id: {site, status, plan, acked, reason}} in file order."""
+    runs = {}
+    try:
+        with open(os.path.join(state_dir, 'switches', 'index.tsv'), encoding='utf-8') as f:
+            for line in f:
+                c = line.rstrip('\n').split('\t')
+                if line.startswith('#') or len(c) < 11:
+                    continue
+                r = runs.setdefault(c[1], {'run_id': c[1], 'site': c[2], 'status': None, 'plan': c[7], 'acked': False,
+                                           'reason': None})
+                if c[10].startswith('ack:'):
+                    r['acked'] = True
+                else:
+                    r['status'], r['reason'] = c[5], c[9]
+    except OSError:
+        pass
+    return [r for r in runs.values() if plan_id is None or r['plan'] == plan_id]
+
+
+def gate_checks(state_dir, plan_id, site, target, today):
+    """[(code, message)] that refuse `migrate switch SITE --plan PLAN` (empty = allowed)."""
+    def err(code, default=None, **kw):
+        e = errors.error(code, default, **kw)
+        return (e.code, e.message)
+    with Store(state_dir) as store:
+        try:
+            plan, items = store.load(plan_id)
+        except errors.QPError as e:
+            return [(e.code, e.message)]
+        if check_stale(plan, state_dir, today):
+            store.save(plan)
+            store.event(plan_id, 'stale', reasons=plan['stale_reasons'])
+    out = []
+    if plan['status'] not in ('approved', 'in_progress'):
+        return [err('ERR-UPG-409-02', site=site)]
+    if plan['stale']:
+        return [err('ERR-PLAN-410-01', reasons=','.join(plan['stale_reasons']))]
+    order = plan.get('site_order') or []
+    if site not in order:
+        return [err('ERR-UPG-409-03', 'Switch {site} only after the previous site of the plan passed.', site=site)]
+    if target and (plan.get('target') or {}).get('branch') != target:
+        out.append(err('ERR-CLI-400-01', 'Invalid or missing value for {arg}.',
+                       arg='--target %s (plan target %s)' % (target, (plan.get('target') or {}).get('branch'))))
+    p5 = [i for i in items if i['phase'] == 'P5' and i.get('site_id') == site and
+          (i.get('cli_action') or '').startswith('migrate switch')]
+    for it in p5[:1]:
+        try:
+            blocked_site_error(plan, it)
+            deps_ok(it, items)
+        except errors.QPError as e:
+            out.append((e.code, e.message))
+    runs = switch_runs(state_dir, plan_id)
+    open_fail = [r for r in runs if r['status'] in SWITCH_FAILED and not r['acked']]
+    if open_fail:
+        out.append(err('ERR-UPG-409-03', 'Switch {site} only after the previous site of the plan passed.', site=site))
+        return out
+    for prev in order[:order.index(site)]:
+        mine = [r for r in runs if r['site'] == prev]
+        passed = bool(mine) and mine[-1]['status'] == 'PASSED'
+        acked = any(r['acked'] for r in mine)
+        waived = any(i['status'] in ('WAIVED', 'SKIPPED') for i in items if i['phase'] == 'P5' and i.get('site_id') == prev)
+        if not (passed or acked or waived):
+            out.append(err('ERR-UPG-409-03', 'Switch {site} only after the previous site of the plan passed.', site=site))
+            break
+    return out
+
+
+def mark_rolled_back(state_dir, plan_id, site, run_id):
+    """T-CHK-13: P5 items of a site rolled back by hand go back to FAILED."""
+    with Store(state_dir) as store:
+        plan, items = store.load(plan_id)
+        n = 0
+        for it in items:
+            if it['phase'] == 'P5' and it.get('site_id') == site and it['status'] == 'DONE':
+                it['status'] = 'FAILED'
+                it['reason'] = 'site_rolled_back %s' % run_id
+                it['updated_at'] = iso_ms()
+                it['updated_by'] = actor()
+                n += 1
+        if n:
+            refresh_blocked(items)
+            store.save(plan, items)
+            store.event(plan_id, 'site_rolled_back', site_id=site, run_id=run_id)
+        return n
+
+
+def gate_main(argv):
+    """plan-gate PLAN --site SITE [--target X] [--next] [--rolled-back RUN]: TSV for migrate.sh."""
+    import argparse
+    from . import statedir
+    p = argparse.ArgumentParser(prog='plan-gate')
+    p.add_argument('plan_id')
+    p.add_argument('--site', required=True)
+    p.add_argument('--target', default='')
+    p.add_argument('--next', action='store_true')
+    p.add_argument('--rolled-back', default='')
+    a = p.parse_args(argv)
+    state_dir = statedir.select([])
+    try:
+        if a.next:
+            with Store(state_dir) as store:
+                plan, _ = store.load(a.plan_id)
+            order = plan.get('site_order') or []
+            if a.site in order and order.index(a.site) + 1 < len(order):
+                print(order[order.index(a.site) + 1])
+            return 0
+        if a.rolled_back:
+            print('OK\t%d item(s) FAILED' % mark_rolled_back(state_dir, a.plan_id, a.site, a.rolled_back))
+            return 0
+        res = gate_checks(state_dir, a.plan_id, a.site, a.target, A.today_of())
+    except errors.QPError as e:
+        res = [(e.code, e.message)]
+    for code, msg in res:
+        print('%s\t%s' % (code, msg.replace('\t', ' ').replace('\n', ' ')))
+    if not res:
+        print('OK\tallowed')
+    return 0 if not res else 1

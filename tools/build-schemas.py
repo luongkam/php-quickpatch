@@ -213,11 +213,31 @@ SWITCH = obj({'run_id': S, 'site_id': S, 'plan_id': SN, 'from_branch': SN, 'to_b
                              'HC_FAILED_KEPT', 'ABORTED'),
               't_start': SN, 't_switched': SN, 't_hc_end': SN, 't_rollback_end': SN, 'rollback_reason': SN,
               'rollback_available': B, 'actor': SN}, required=['run_id', 'site_id', 'status'])
+STEP = obj({'step': S, 'status': enum('done', 'failed', 'skipped'), 'started_at': S, 'duration_ms': I, 'detail': SN,
+            'error_code': {'type': ['string', 'null'], 'pattern': ERR}}, required=['step', 'status', 'detail'])
+HC_SUMMARY = obj({'verdict': enum('PASS', 'FAIL', nullable=True), 'mode': enum('full', 'skip'), 'window_s': I,
+                  'rounds_done': I,
+                  'violations': arr(obj({'criterion': {'type': 'string', 'pattern': '^HC-C[0-9]$'}, 'url': SN,
+                                         'detail': S}, required=['criterion', 'detail'])),
+                  'report_ref': SN}, required=['verdict', 'mode', 'window_s', 'rounds_done', 'violations'], nullable=True)
+BASELINE = obj({'rounds': I, 'per_url': arr(obj({'url': S, 'code_b': S, 'size_b': I, 'p95_ms': I}, required=['url', 'code_b'])),
+                'w0': I}, required=['rounds', 'per_url', 'w0'], nullable=True)
 MIGRATE_RESULT = {'type': ['object', 'null'], 'properties': {
-    'run_id': SN, 'switch': SWITCH, 'switches': arr(SWITCH), 'steps': arr(), 'hc': {'type': ['object', 'null']},
+    'run_id': SN, 'switch': {'anyOf': [{'type': 'null'}, SWITCH]}, 'switches': arr(SWITCH), 'steps': arr(STEP),
+    'hc': HC_SUMMARY, 'hc_urls': arr(S),
+    'manifest': arr(obj({'seq': I, 'action': enum(*MANIFEST_ACTIONS), 'args': arr(S),
+                         'status': enum('done', 'failed', 'skipped', 'planned')})),
+    'locked_after_rollback_failed': B,
+    'site_id': S, 'baseline_only': B, 'baseline': BASELINE, 'config_file': S,
     'acknowledgement': obj({'run_id': S, 'site_id': S, 'plan_id': SN, 'status': enum('ROLLED_BACK', 'HC_FAILED_KEPT', 'ROLLBACK_FAILED'),
                             'acknowledged_at': S, 'acknowledged_by': S, 'binding_now': {'type': ['object', 'null']},
                             'switch_lock_released': B, 'next_allowed_sites': arr(S)}),
+    'runtime': enum('php', 'node'), 'target': S, 'new_bin': SN, 'install_source': SN, 'repo_added': B, 'packages': arr(S),
+    'cfg_report': obj({'copied': arr(S), 'dropped_directives': arr(S), 'extensions_installed': arr(S),
+                       'not_transferable': arr(S)}),
+    'preconditions': arr(obj({'check': S, 'required': S, 'actual': S, 'pass': B})),
+    'runtime_id': SN, 'idle_days': I, 'removed_packages': arr(S),
+    'affected_switches': arr(obj({'run_id': S, 'rollback_available': B})),
     'preview': PREVIEW, 'fingerprint': FINGERPRINT}}
 
 FEEDS_STATUS_RESULT = obj({

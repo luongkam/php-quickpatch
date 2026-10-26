@@ -1,4 +1,4 @@
-{"schema": "qp.catalog/1", "catalog_version": "2026.10.25-1", "rules": [
+{"schema": "qp.catalog/1", "catalog_version": "2026.10.26-1", "rules": [
 {"rule_id": "MIT-PHP-001", "runtime": "php", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": [], "directive": "session.upload_progress.enabled = 0", "flag": null, "note": "PHP2Shell: turn off session upload progress (v0.1)"},
 {"rule_id": "MIT-PHP-002", "runtime": "php", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": [], "directive": "memory_limit = -1", "flag": "memlimit", "note": "PHP2Shell: no memory_limit (skipped with --no-memlimit; an app may override it)"},
 {"rule_id": "MIT-PHP-003", "runtime": "php", "cves": ["CVE-2026-109618", "CVE-2026-109619"], "branches": ["8.5"], "directive": "fatal_error_backtraces = 0", "flag": null, "note": "PHP2Shell: no backtraces in fatal errors (8.5 only)"}

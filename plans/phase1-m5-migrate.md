@@ -49,3 +49,44 @@ Reload Nginx/Apache/PHP-FPM bằng systemd thật, API panel thật, pm2/systemd
 
 ## Trạng thái FR
 Cập nhật khi kết thúc mốc (Xong / Một phần / Chưa thử trên máy thật).
+
+| FR | Trạng thái | Test | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| `FR-UPG-PRE-001` | Xong | `test_m5_install.sh` | 5 kiểm `preconditions[]` (đĩa ≥ 2 GB, RAM ≥ 512 MB, root, OS còn hỗ trợ theo bảng ngày hết hỗ trợ, kho có gói đích) + RAM của pool (`pm = ondemand`, §6.7) trong `pb5_pool` |
+| `FR-UPG-INST-001` | Xong (PHP Debian/Ubuntu, Node.js tarball) | `test_m5_install.sh`; chạy thật | PHP 8.4 cài thật trong container từ `ppa:ondrej/php` (15 gói, 2 phút): ghim `alternatives`, kiểm liên kết mặc định không đổi, `php8.4-fpm` active. Node.js PB-015 thử bằng tarball giả lập (SHASUMS256, glibc). RHEL/Remi, Alpine, panel: `ERR-ENV-422-01` (chưa có) |
+| `FR-UPG-CFG-001` | Xong (Debian layout) | `test_m5_migrate.sh` | Pool `qp-<site_key>` riêng, socket `/run/php/qp-<site_key>-<NEW>.sock`, error_log riêng, `pm.status_path`, chặn trùng tên (`; qp-site-id`) |
+| `FR-UPG-CFG-002` | Xong | `test_m5_install.sh` | `conf.d/*.ini` không thuộc gói + giá trị `php.ini` khác bản production → `90-php-quickpatch-from-<OLD>.ini`; bỏ file mitigation; loại directive `BR-SCN-046` (bảng catalog) |
+| `FR-UPG-SWT-001` | Xong (Nginx thật; Apache chưa thử) | `test_m5_migrate.sh` (nginx + PHP-FPM 8.3/8.4 thật) | C1–C12, `ABORTED` ở C2/C3/C4/C5/C8, thứ tự manifest §5.4, `phase` = `MANIFEST_WRITTEN`, bỏ qua SIGHUP/SIGPIPE |
+| `FR-UPG-SWT-002` | Chưa | — | API panel (cPanel/Plesk/aaPanel/CyberPanel/DirectAdmin): `ERR-ENV-422-01` |
+| `FR-UPG-SWT-003` | Chưa | — | `mod_php` → FPM: switch từ chối `ERR-SCN-412-02` |
+| `FR-UPG-RBK-001` | Xong | `test_m5_migrate.sh` | `rollback-site` R1–R7 (≤ 60 s, đo ~2 s), `rollback <run_id>` của lượt chuyển = `--purge-pool` |
+| `FR-UPG-RBK-002` | Xong | `test_m5_migrate.sh` | Tự rollback cho từng tiêu chí `HC-C0..C9`; `ROLLBACK_FAILED` khi cấu hình khôi phục không qua `nginx -t` |
+| `FR-UPG-NODE-001` | Một phần | — | PB-017 (unit systemd: drop-in `ExecStart`, `daemon-reload`, `/proc/MainPID/exe`) đã viết, chưa chạy được: container không có systemd; pm2 chưa có |
+| `FR-UPG-DKR-001` | Chưa | — | Compose: chưa có |
+| `FR-UPG-HC-001` | Xong | `test_m5_migrate.sh` | Trang chủ + `hc_url` của `sites.d` + `--hc-url`, `expect=`, `size=ignore`, `cachebust=off`, URL host khác/userinfo/fragment bị loại |
+| `FR-UPG-HC-002` | Xong | `test_m5_migrate.sh`, `test_m5_migrate.py` | FastCGI probe Python (`qplib/fcgi.py`); không có Python → bỏ bước với `ERR-HC-424-02` |
+| `FR-UPG-HC-003` | Xong | `test_m5_migrate.sh` | 5 vòng baseline, `code_b`, `size_b`, spread, P95, chuỗi cấm, W0; `healthcheck --baseline-only` |
+| `FR-UPG-HC-004` | Xong | `test_m5_migrate.sh` | Cửa sổ 600 s/60 s (test tua nhanh `sleep`), fail-fast C1/C2/C3/C5/C7/C8/C9, C4/C6 cuối cửa sổ |
+| `FR-UPG-HC-005` | Xong | `test_m5_migrate.sh` | PASS → `PASSED`; FAIL → tự rollback / `HC_FAILED_KEPT` (`--no-auto-rollback --reason`) |
+| `FR-UPG-HC-006` | Xong | `test_m5_migrate.sh` | `backups/<run_id>/hc.json`, `baseline.json`, `result.hc` |
+| `FR-UPG-SEQ-001` | Xong | `test_m5_migrate.sh`, `test_m5_migrate.py` | `plan-gate`: kế hoạch approved/in_progress, stale, thứ tự `site_order[]`, lượt lỗi chưa ack, P3/P4 của site, đích khớp; `ERR-UPG-423-01` toàn máy; `plan run` mục P2/P5 gọi `migrate install/switch` |
+| `FR-UPG-ACK-001` | Xong | `test_m5_migrate.sh` | `migrate ack`: `binding_now`, `switch_lock_released`, `next_allowed_sites` |
+| `FR-UPG-RMV-001` | Xong | `test_m5_install.sh` | 14 ngày không dùng (site, tiến trình CLI, mtime log/pool, lượt chuyển cuối), `--reason` làm xác nhận thứ hai, lượt chuyển liên quan `rollback_available = false` |
+| `FR-CLI-CMD-003` | Xong | `test_m5_migrate.sh` | `migrate` + bí danh `upgrade`, `switch-site`, `healthcheck`, `rollback-site`; `command.subcommand` |
+| `FR-SCAN-DRF-001` | Xong | `test_m5_migrate.sh` | `scan` → `drift_warnings[]` (`ERR-SCAN-409-01`) so nhánh + endpoint với lượt `PASSED` gần nhất; cảnh báo cửa sổ health check bị gián đoạn |
+
+Kết quả chạy: xem mục 6.
+
+## 6. Kết quả kiểm thử
+- `test_m5_migrate.sh`: 140 kiểm tra trên Nginx 1.24 + PHP-FPM 8.3 (Ubuntu) và 8.4 (ondrej) thật, trong mount namespace riêng (`/etc`, `/var/lib`, `/var/log`, `/run` là overlay; host không đổi).
+- `test_m5_install.sh`: install/remove-old PHP (apt-get stub, apt-cache/update-alternatives/php-fpm thật) và Node.js (tarball giả lập).
+- `test_m5_migrate.py`: FastCGI client (máy chủ FastCGI giả lập), `plan-gate`, T-CHK-13, `cli_action` P2/P5.
+- Chạy thật ngoài test: `migrate install --runtime php --target 8.4 --add-repo --yes` trên container Ubuntu 24.04 (không có `add-apt-repository` dùng được → tool tự thêm PPA, kiểm fingerprint khoá qua Launchpad API + keyserver).
+
+## 7. Chưa thử trên máy thật
+- systemd thật: mọi reload/restart đi qua `service` (container không có systemd); Node.js PB-017 (drop-in unit, `systemctl daemon-reload`, `MainPID`) chưa chạy lần nào.
+- Apache (`proxy_fcgi`, `apachectl -S`) chưa chạy thật; chỉ Nginx.
+- Panel (cPanel, Plesk, aaPanel, CyberPanel, DirectAdmin), Compose, pm2, `mod_php` → FPM: chưa có trong bản này (`ERR-ENV-422-01` / `ERR-SCN-412-02`).
+- RHEL/Remi/Alpine (PB-002..004): `migrate install` từ chối.
+- Máy có HTTPS thật (chứng chỉ, `--insecure` khi chứng chỉ lỗi): chỉ thử HTTP.
+- Gỡ gói thật bằng `apt-get remove` (test dùng stub).

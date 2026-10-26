@@ -12,7 +12,7 @@
 need_root
 reexec_in_mount_ns "$@"
 
-T=$(new_tmp); trap 'feeds_cleanup; umount /etc 2>/dev/null; rm -rf "$T"' EXIT
+T=$(new_tmp); trap 'feeds_cleanup; umount /var/log 2>/dev/null; umount /etc 2>/dev/null; rm -rf "$T"' EXIT
 # shellcheck disable=SC2034  # FX is read by the stubs
 STUB=$T/stub CALLS=$T/calls FX=$T/fx; stubs_init; dpkg_stubs; curl_stub; apt_stub
 SD=/var/lib/php-quickpatch; CAT=$QP_ROOT/share/php-quickpatch/catalog
@@ -148,6 +148,7 @@ assert_eq "TC-SCAN-002 KQ3: restriction PB-000 = mitigation only" "$(json_get "$
 
 # --- FR-SCAN-MAP-001: Nginx/Apache + FPM, mod_php (fake /etc in this namespace) ---
 cp -a /etc "$T/etc" && mount --bind "$T/etc" /etc
+mount -t tmpfs tmpfs /var/log           # no FPM log of the host (eg /var/log/php8.4-fpm.log) in the expectations
 mkdir -p /etc/php/8.2/fpm/pool.d /etc/php/8.4/fpm/pool.d /etc/nginx/sites-available /etc/apache2/sites-available \
   /etc/apache2/conf-enabled /etc/apache2/mods-enabled
 printf '[www]\nuser = www-data\nlisten = /run/php/php8.2-fpm.sock\n' >/etc/php/8.2/fpm/pool.d/www.conf
@@ -265,7 +266,7 @@ stub apachectl 'case "$1" in -M) echo " php_module (shared)";; -S) printf "     
 qp scan --offline --only php,sites --json --path "$P" >"$J" 2>/dev/null
 assert_eq "PB-006: mod_php site (apache_mod_php, branch from mods-enabled)" "$(site b.test binding_kind) $(site b.test pb_id) $(site b.test current_branch)" \
   "['apache_mod_php'] ['PB-006'] ['8.2']"
-umount /etc; rm -f "$STUB/pgrep" "$STUB/apachectl" "$STUB/nginx"; unset QP_PHP_BINS
+umount /var/log; umount /etc; rm -f "$STUB/pgrep" "$STUB/apachectl" "$STUB/nginx"; unset QP_PHP_BINS
 
 # --- FR-ASMT-RANK-001: reason codes, order by R then object_ref (TC-ASMT-011/013) --
 fake_php "$B/r1/bin/php" 7.4.33; fake_php "$B/r2/bin/php" 8.2.34; fake_php "$B/r3/bin/php" 8.5.12

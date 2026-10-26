@@ -1,8 +1,44 @@
 # Changelog
 
-## Unreleased — CR-01
+## 2.0.0-alpha.5 — 2026-10-26 (Phase 1, milestone M5 and CR-01)
+
+Development build of v2 (not a release).
 
 ### Added
+- `migrate` (bash, no Python needed; `share/php-quickpatch/lib/{migrate,hc,pb,install}.sh`)
+  and the aliases `upgrade`, `switch-site`, `healthcheck`, `rollback-site` (`qp.migrate/1`):
+  - `migrate install --runtime php --target X.Y [--from X.Y] [--add-repo]`: preconditions
+    (disk, RAM, root, OS support, package of the target), side-by-side install with apt
+    without the `phpX.Y` meta package, `ppa:ondrej/php` / packages.sury.org as a SEMI step
+    (PPA key fingerprint checked when `add-apt-repository` is unusable), the defaults of
+    `php`/`php-fpm.sock` pinned and checked, extensions of the old branch, custom `conf.d`
+    ini and non-default `php.ini` values copied (removed directives dropped, mitigation file
+    never copied), `phpX.Y-fpm` started and checked. `--runtime node --target N`: official
+    tarball into `/opt/node-N` (SHASUMS256.txt, glibc check);
+  - `migrate switch SITE --target X.Y (--plan ID | --no-plan --reason TEXT)`: steps
+    C1-C12 for Nginx/Apache + PHP-FPM (PB-005): own pool `qp-<site_key>` and socket,
+    FastCGI trial run of the home page, health check baseline, manifest of the binding,
+    edit, `nginx -t`/`apachectl configtest`, graceful reload, check that requests reach
+    the new pool, then the 600 s health check window (HC-C0..C9) and automatic rollback;
+    `--no-auto-rollback` keeps a failed site (HC_FAILED_KEPT); Node.js apps of systemd units
+    (PB-017 drop-in);
+  - `migrate rollback SITE [RUN_ID] [--purge-pool]` (R1-R7); `rollback RUN_ID` of a switch run
+    does the same with `--purge-pool`;
+  - `migrate healthcheck SITE [--baseline-only]`, `migrate hc-urls SITE --set URL...`,
+    `migrate status [SITE]`, `migrate ack RUN_ID --reason TEXT`;
+  - `migrate remove-old --runtime php|node --from X.Y|N --reason TEXT`: only after 14 days
+    without use; switch runs from that branch lose their rollback.
+- Site lock per switch (`switches/<site_key>.lock`): other write commands wait for the health
+  check window (ERR-ENV-409-01); an unacknowledged ROLLBACK_FAILED blocks every switch
+  (ERR-UPG-423-01).
+- Plans: `plan run` of the P2 "install side by side" and P5 "switch site" items runs
+  `migrate install` / `migrate switch` (catalog 2026.10.26-1); the order of `site_order[]`,
+  failed runs and the P3/P4 items of the site are checked before every switch.
+- `scan` reports `drift_warnings[]` (ERR-SCAN-409-01) when a site no longer uses the binding
+  of the tool's last PASSED switch, and warns about interrupted health checks.
+- FastCGI client for the trial run and the pool check (`qp-feeds.py fcgi`, standard library).
+
+### Added (CR-01)
 - `compat --path DIR --target N [--current N] [--node-bin PATH] [--report FILE.html|.md]
   [--lang en|vi] [--offline] [--json]` (`qp.compat/1`): Node.js compatibility of
   project directories that do not run on this machine (AWS Lambda repositories,

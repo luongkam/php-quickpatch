@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRS = os.path.join(ROOT, 'docs/php-quickpatch/srs')
 OUT = os.path.join(ROOT, 'share/php-quickpatch/catalog')
 DATA_AS_OF = '2026-10-22'
-CATALOG_VERSION = '2026.10.25-1'
+CATALOG_VERSION = '2026.10.26-1'
 FILES = ['scenarios.json', 'checklists.json', 'playbooks.json', 'bc_rules.json', 'mitigations.json',
          'framework_php.tsv', 'catalog.json']
 
@@ -193,7 +193,7 @@ def checklist_rows(header, rows, sid, runtime):
             'optional': bool(re.match(r'\((?:Tuỳ|tuỳ) chọn\)', action)),
             'refs': refs_of(mech), 'expand': upgrade and bool(refs_of(mech)) and re.search(r'^Như ', mech) is not None,
             'depends_on': [], 'verified': not VAR_UNVERIFIED.search(mech + ' ' + action),
-            'cli_action': cli_action(runtime, action, exec_type),
+            'cli_action': cli_action(runtime, action, exec_type, c[1].strip()),
         }
         if not re.match(r'^P[1-7]$', item['phase']):
             raise SystemExit('bad phase %r in %s' % (item['phase'], chk))
@@ -212,9 +212,19 @@ PATCH_FLOW = ('vá cùng', 'vá trong kho', 'mitigation', 'restart', 'xác nhậ
               'chụp baseline health check trước khi vá', 'rà dependency')
 
 
-def cli_action(runtime, action, exec_type):
+MIGRATE_INSTALL = 'migrate install --runtime %s --target $NEW --plan $PLAN_ID'
+MIGRATE_SWITCH = 'migrate switch $SITE --target $NEW --plan $PLAN_ID'
+
+
+def cli_action(runtime, action, exec_type, phase=None):
     """Whitelisted CLI action of an item the tool runs itself (FR-PLAN-CHK-002); None = guided."""
     a = action.lower()
+    if phase == 'P2' and exec_type == 'SEMI' and 'nvm' not in a and \
+            (('song song' in a and not a.startswith(('cài công cụ phụ trợ', 'cài pm2'))) or 'cài prefix mới' in a):
+        return MIGRATE_INSTALL % runtime            # FR-UPG-INST-001 (side-by-side install, PB-001 / PB-015)
+    if phase == 'P5' and exec_type == 'SEMI' and 'chuyển' in a and not any(x in a for x in ('npm ci', 'máy mới', 'prefix mới')) and \
+            ('canary' in a or 'từng site' in a or 'từng ứng dụng' in a):
+        return MIGRATE_SWITCH                       # FR-UPG-SWT-001 / FR-UPG-SEQ-001
     if exec_type == 'AUTO' and a.startswith(('vá cùng nhánh', 'vá cùng major', 'vá cùng dòng', 'vá trong kho')):
         return 'fix --only %s' % runtime
     if exec_type == 'AUTO' and a.startswith('mitigation'):

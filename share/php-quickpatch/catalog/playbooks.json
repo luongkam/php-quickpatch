@@ -1,6 +1,6 @@
 {
  "schema": "qp.catalog/1",
- "catalog_version": "2026.10.25-1",
+ "catalog_version": "2026.10.26-1",
  "playbooks": [
   {
    "pb_id": "PB-001",

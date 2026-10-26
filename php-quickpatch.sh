@@ -13,7 +13,7 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH
   exit 2
 fi
 
-QP_VERSION="2.0.0-alpha.4"
+QP_VERSION="2.0.0-alpha.5"
 
 # --- Advisory data ----------------------------------------------------------
 # Patched versions, CVEs and lifecycle come from the normalized feeds bundle
@@ -40,6 +40,7 @@ ONLY="php,node,composer,npm,wp,docker,webshell,sites"
 SCAN_PATHS=()
 SCHEMA_ARG=""
 PASS_ARGS=()
+MIG_SUB=""
 ARGV_ORIG=("$@")
 
 # --- State ----------------------------------------------------------------
@@ -189,6 +190,15 @@ Usage:
                                           Node.js compatibility of project
                                           directories (Lambda, repos) with a
                                           target branch, and a report
+  php-quickpatch.sh migrate SUBCOMMAND ... side-by-side upgrade, one site at a time
+      install --runtime php|node --target X.Y|N [--from X.Y] [--add-repo] [--plan ID]
+      switch SITE --target X.Y|N (--plan ID | --no-plan --reason TEXT)
+             [--hc-url URL]... [--no-auto-rollback --reason TEXT] [--hc-skip]
+      rollback SITE [RUN_ID] [--purge-pool]    healthcheck SITE [--baseline-only]
+      ack RUN_ID --reason TEXT    status [SITE]    hc-urls SITE --set URL...
+      remove-old --runtime php|node --from X.Y|N --reason TEXT
+      aliases: upgrade = migrate install, switch-site = migrate switch,
+               healthcheck = migrate healthcheck, rollback-site = migrate rollback
   php-quickpatch.sh feeds|assess|plan|report|audit|serve ...
                                           need Python 3.6+ (see docs)
 Options:
@@ -231,6 +241,7 @@ host_json() {
 # emit_envelope EXIT_CODE RESULT_JSON: print the --json document on fd 3.
 emit_envelope() {
   local code=$1 result=${2:-null} a argv=() name=$MODE sub=null
+  [ "$MODE" = migrate ] && [ -n "$MIG_SUB" ] && { _js "$MIG_SUB"; sub=$REPLY; }
   for a in ${ARGV_ORIG[@]+"${ARGV_ORIG[@]}"}; do redact "$a"; argv+=("$REPLY"); done
   schema_of "$MODE"; local schema=$REPLY
   [ "$MODE" = rollback ] && name=rollback
@@ -1236,9 +1247,14 @@ php_bin_for() {
   REPLY=$best
 }
 
-# add_site ID PB KIND REFS ROOT NAMES(space) ENDPOINT BRANCH LOGS(space) SCHEME POOL_USER
+# add_site ID PB KIND REFS ROOT NAMES(space) ENDPOINT BRANCH LOGS(space) SCHEME POOL_USER LISTEN(space)
+# The fields are also kept in S_* arrays keyed by site_id for migrate (M5).
+declare -A S_KEY=() S_PB=() S_KIND=() S_REFS=() S_ROOT=() S_NAMES=() S_EP=() S_BRANCH=() S_BIN=() S_RID=() \
+  S_OWNER=() S_LOGS=() S_SCHEME=() S_LISTEN=() S_POOLFILE=() S_POOLUSER=() S_UNIT=()
+# shellcheck disable=SC2034  # the S_* arrays are read by lib/*.sh (migrate)
 add_site() {
-  local id=$1 pb=$2 kind=$3 refs=$4 root=$5 names=$6 ep=$7 b=$8 logs=$9 scheme=${10} puser=${11:-} bin="" rid="" owner key
+  local id=$1 pb=$2 kind=$3 refs=$4 root=$5 names=$6 ep=$7 b=$8 logs=$9 scheme=${10} puser=${11:-} listen=${12:-} \
+    bin="" rid="" owner key
   [ -n "${SITE_SEEN[$id]:-}" ] && return 0
   SITE_SEEN[$id]=1
   if [ -n "$b" ]; then php_bin_for "$b"; bin=$REPLY; fi
@@ -1246,19 +1262,23 @@ add_site() {
   owner=""; [ -n "$root" ] && [ -d "$root" ] && owner=$(stat -c %U "$root" 2>/dev/null)
   owner=${owner:-${puser:-unknown}}
   site_key "$id"; key=$REPLY
-  local n urls=() lg=() jn ju jl
+  local n urls=() lg=() li=() jn ju jl jli
   for n in $names; do urls+=("$scheme://$n/"); break; done
-  read -r -a lg <<<"$logs"
+  read -r -a lg <<<"$logs"; read -r -a li <<<"$listen"
   jas $names; jn=$REPLY; jas ${urls[@]+"${urls[@]}"}; ju=$REPLY; jas ${lg[@]+"${lg[@]}"}; jl=$REPLY
+  jas ${li[@]+"${li[@]}"}; jli=$REPLY
   jo site_id=s:"$id" site_key=s:"$key" pb_id=s:"$pb" server_names=j:"$jn" docroot=S:"$root" owner_user=s:"$owner" \
      binding_kind=s:"$kind" binding_ref=s:"$refs" current_branch=S:"$b" current_bin=S:"$bin" runtime_id=S:"$rid" \
-     runtime_endpoint=S:"$ep" log_sources=j:"$jl" hc_urls=j:"$ju" hc_mode=s:full
+     runtime_endpoint=S:"$ep" log_sources=j:"$jl" hc_urls=j:"$ju" hc_mode=s:full listen=j:"$jli"
   J_SITES+=("$REPLY")
+  S_KEY[$id]=$key; S_PB[$id]=$pb; S_KIND[$id]=$kind; S_REFS[$id]=$refs; S_ROOT[$id]=$root; S_NAMES[$id]=$names
+  S_EP[$id]=$ep; S_BRANCH[$id]=$b; S_BIN[$id]=$bin; S_RID[$id]=$rid; S_OWNER[$id]=$owner; S_LOGS[$id]=$logs
+  S_SCHEME[$id]=$scheme; S_LISTEN[$id]=$listen; S_POOLUSER[$id]=$puser; S_POOLFILE[$id]=${SITE_POOLFILE:-}
 }
 
-# site_endpoint ID REFS ROOT NAMES EP LOGS SCHEME KIND PB: resolve EP to a pool and record the site.
+# site_endpoint ID REFS ROOT NAMES EP LOGS SCHEME KIND PB LISTEN: resolve EP to a pool and record the site.
 site_endpoint() {
-  local id=$1 refs=$2 root=$3 names=$4 ep=$5 logs=$6 scheme=$7 kind=$8 pb=$9 b="" f puser="" el=""
+  local id=$1 refs=$2 root=$3 names=$4 ep=$5 logs=$6 scheme=$7 kind=$8 pb=$9 listen=${10:-} b="" f="" puser="" el=""
   if [ -L "$ep" ]; then
     warn "site $id uses the unversioned socket $ep -> $(readlink -f "$ep")"
     add_warning "" "site $id points to a socket without a version number ($ep)" "site:$id"
@@ -1269,7 +1289,9 @@ site_endpoint() {
     [ -f "/var/log/php$b-fpm.log" ] && logs+=" /var/log/php$b-fpm.log"
   fi
   [[ $ep == /* ]] && ep="unix:$ep"
-  add_site "$id" "$pb" "$kind" "$refs" "$root" "$names" "$ep" "$b" "$logs" "$scheme" "$puser"
+  SITE_POOLFILE=$f
+  add_site "$id" "$pb" "$kind" "$refs" "$root" "$names" "$ep" "$b" "$logs" "$scheme" "$puser" "$listen"
+  SITE_POOLFILE=""
 }
 
 nginx_sites() {
@@ -1306,14 +1328,16 @@ nginx_sites() {
         else if (d == "error_log") print "E\t" srv "\t" w[2]
       } else if (d == "fastcgi_pass") print "P\t" file "\t" w[2] "\t" file ":" ln
     }' <<<"$out")
-  declare -A s_file=() s_names=() s_root=() s_ssl=() s_fcgi=() s_ref=() s_err=() ups=() snip=()
+  declare -A s_file=() s_names=() s_root=() s_ssl=() s_fcgi=() s_ref=() s_err=() ups=() snip=() s_listen=()
   local t a b c d id
   while IFS=$'\t' read -r t a b c d; do
     case $t in
       S) s_file[$a]="$b:$c" ;;
       N) s_names[$a]=$b ;;
       R) s_root[$a]=$b ;;
-      L) [[ $b == *443* || $b == *ssl* ]] && s_ssl[$a]=1 ;;
+      L) [[ $b == *443* || $b == *ssl* ]] && s_ssl[$a]=1
+         local lv=${b%% *}; [[ $b == *" ssl"* ]] && lv+="/ssl"; [[ $b == *default_server* ]] && lv+="/default"
+         s_listen[$a]+="${s_listen[$a]:+ }$lv" ;;
       F) s_fcgi[$a]=$b; s_ref[$a]=$c ;;
       I) [ -z "${s_fcgi[$a]:-}" ] && s_fcgi[$a]="include:$b" && s_ref[$a]="$c" ;;
       E) s_err[$a]=$b ;;
@@ -1321,7 +1345,7 @@ nginx_sites() {
       P) snip[$a]="$b"$'\t'"$c" ;;
     esac
   done <<<"$recs"
-  declare -A merged_ref=() merged_names=() first=()
+  declare -A merged_ref=() merged_names=() first=() merged_listen=()
   local order=() k ep names main
   for k in $(printf '%s\n' "${!s_file[@]}" | sort -n); do
     ep=${s_fcgi[$k]:-}
@@ -1338,6 +1362,7 @@ nginx_sites() {
     names=${s_names[$k]:-_}; main=${names%% *}; main=${main,,}; [ "$main" = _ ] && main=default
     if [ -z "${first[$main]:-}" ]; then first[$main]=$k; order+=("$main"); merged_ref[$main]=${s_file[$k]}; merged_names[$main]=${names,,}
     else merged_ref[$main]+=",${s_file[$k]}"; fi
+    merged_listen[$main]+="${merged_listen[$main]:+ }${s_listen[$k]:-80}"
     merged_ref[$main]+=",${s_ref[$k]}"
     [ -n "${s_ssl[$k]:-}" ] && s_ssl[${first[$main]}]=1
     s_fcgi[${first[$main]}]=$ep
@@ -1346,7 +1371,7 @@ nginx_sites() {
     k=${first[$main]}
     local refs; refs=$(tr ',' '\n' <<<"${merged_ref[$main]}" | awk 'NF && !s[$0]++' | paste -sd,)
     site_endpoint "$main" "$refs" "${s_root[$k]:-}" "${merged_names[$main]//_/}" "${s_fcgi[$k]#unix:}" "${s_err[$k]:-}" \
-      "$( [ -n "${s_ssl[$k]:-}" ] && echo https || echo http)" nginx_fastcgi PB-005
+      "$( [ -n "${s_ssl[$k]:-}" ] && echo https || echo http)" nginx_fastcgi PB-005 "${merged_listen[$main]}"
     # §2.3 conflict rule: an Apache file for the same site that Apache does not load is only evidence.
     local af; for af in /etc/apache2/sites-available/*.conf /etc/httpd/conf.d/*.conf; do
       [ -f "$af" ] && grep -qiE "^\s*Server(Name|Alias)\s+.*\b${main//./\\.}\b" "$af" && evidence 6 PB-005 "site $main: $af (Apache, not loaded); Nginx binding used"
@@ -1356,7 +1381,8 @@ nginx_sites() {
 
 apache_sites() {
   [ -n "$APACHE_CTL" ] || return 0
-  local out line name f l seen=" " glob_ep="" glob_ref="" modphp_b=""
+  local out line name f l seen=" " glob_ep="" glob_ref="" modphp_b="" grp=""
+  declare -A vlisten=()
   out=$(probe 10 "$APACHE_CTL" -S 2>&1) || true
   for f in /etc/apache2/conf-enabled/php*-fpm.conf /etc/httpd/conf.d/php*-fpm.conf; do
     [ -f "$f" ] || continue
@@ -1365,8 +1391,11 @@ apache_sites() {
   done
   for f in /etc/apache2/mods-enabled/php*.load; do [ -f "$f" ] && { modphp_b=${f##*/php}; modphp_b=${modphp_b%.load}; }; done
   while IFS= read -r line; do
+    [[ $line =~ ^([^ ]+:[0-9]+)\ +is\ a\ NameVirtualHost ]] && { grp=${BASH_REMATCH[1]}; continue; }
+    [[ $line =~ ^([^ ]+:[0-9]+)\ +([^ ]+)\ \((/[^:]+):([0-9]+)\) ]] && grp=${BASH_REMATCH[1]}
     [[ $line =~ (namevhost|default\ server|[0-9*]:[0-9]+)\ +([^ ]+)\ \((/[^:]+):([0-9]+)\) ]] || continue
     name=${BASH_REMATCH[2],,}; f=${BASH_REMATCH[3]}; l=${BASH_REMATCH[4]}
+    vlisten["$f:$l"]+="${vlisten["$f:$l"]:+ }$grp"
     [[ $seen == *" $f:$l "* ]] && continue
     seen+="$f:$l "
     local blk sn al root ep="" ref="" err="" ssl=http kind=apache_proxy_fcgi pb=PB-005 b=""
@@ -1384,9 +1413,9 @@ apache_sites() {
     [[ $l == 443 || $line == *443* || $blk == *SSLEngine* ]] && ssl=https
     sn=${sn,,}; [ -n "$sn" ] || sn=$name
     if [ "$kind" = apache_mod_php ]; then
-      add_site "$sn" "$pb" "$kind" "$f:$l" "$root" "$sn ${al,,}" "" "$b" "$err" "$ssl"
+      add_site "$sn" "$pb" "$kind" "$f:$l" "$root" "$sn ${al,,}" "" "$b" "$err" "$ssl" "" "${vlisten["$f:$l"]:-}"
     else
-      site_endpoint "$sn" "$f:$l${ref:+,$ref}" "$root" "$sn ${al,,}" "$ep" "$err" "$ssl" "$kind" "$pb"
+      site_endpoint "$sn" "$f:$l${ref:+,$ref}" "$root" "$sn ${al,,}" "$ep" "$err" "$ssl" "$kind" "$pb" "${vlisten["$f:$l"]:-}"
     fi
   done <<<"$out"
 }
@@ -1429,6 +1458,7 @@ inventory_sites() {
 # node_apps BIN RID BRANCH: systemd units whose ExecStart runs BIN (PB-017). REPLY = JSON array of apps;
 # each app is also a site (binding_kind systemd_execstart, docroot = WorkingDirectory) for the
 # compatibility scan of the plan (FR-CMPT-NPM-*). NODE_APP_IDS = their site ids.
+# shellcheck disable=SC2034  # the S_* arrays are read by lib/*.sh (migrate)
 node_apps() {
   local bin=$1 rid=${2:-} b=${3:-} f u apps=() user wd id
   NODE_APP_IDS=()
@@ -1445,6 +1475,9 @@ node_apps() {
          binding_kind=s:systemd_execstart binding_ref=s:"$f" current_branch=S:"$b" current_bin=s:"$bin" runtime_id=S:"$rid" \
          runtime_endpoint=j:null log_sources=j:"[\"journald:$u\"]" hc_urls=j:"[]" hc_mode=s:full
       J_SITES+=("$REPLY"); NODE_APP_IDS+=("$id")
+      S_KEY[$id]=${REPLY#*\"site_key\":\"}; S_KEY[$id]=${S_KEY[$id]%%\"*}; S_PB[$id]=PB-017; S_KIND[$id]=systemd_execstart
+      S_REFS[$id]=$f; S_ROOT[$id]=$wd; S_NAMES[$id]=""; S_EP[$id]=""; S_BRANCH[$id]=$b; S_BIN[$id]=$bin; S_RID[$id]=$rid
+      S_OWNER[$id]=${user:-root}; S_LOGS[$id]="journal:$u"; S_SCHEME[$id]=http; S_LISTEN[$id]=""; S_UNIT[$id]=$u
     done
     (( ${#apps[@]} )) && add_unique PB_NODE PB-017
   fi
@@ -2559,6 +2592,10 @@ do_rollback() {
   r=$(unsafe_reason "$dir" dir) && state_dir_fail "$dir" "$r"
   r=$(unsafe_reason "$dir/manifest" file) && state_dir_fail "$dir/manifest" "$r"
   RUN_ID=${dir##*/}
+  if [ -f "$dir/switch.vars" ] && grep -q $'^switch\t' "$dir/manifest" 2>/dev/null; then
+    # a site switch run: R1-R7 of migrate rollback with --purge-pool (states.md T-SW-15)
+    mig_libs; MODE=migrate; rollback_switch_run "$dir"; finish 2
+  fi
   head_ "Rolling back $(basename "$dir")$( ((DRY_RUN)) && echo ' (dry-run)')"
   (( DRY_RUN )) || audit_intent rollback_run
   local action a b seq=0 st
@@ -2574,7 +2611,12 @@ do_rollback() {
     else
       case $action in
         copy)    cp -a "$b" "$a" && note "restored $a" || st=failed ;;
-        created) rm -f "$a" && note "removed $a" || st=failed; RESTART_PHP=1 ;;
+        created) if [[ $a =~ ^/opt/node-[0-9]+$ ]] && [ -d "$a" ] && [ ! -L "$a" ]; then rm -rf "$a" && note "removed $a" || st=failed
+                 else rm -f "$a" && note "removed $a" || st=failed; RESTART_PHP=1; fi ;;
+        link)    if [[ $a == alt:* ]]; then
+                   if [ "$b" = auto ]; then update-alternatives --auto "${a#alt:}" >/dev/null 2>&1; else update-alternatives --set "${a#alt:}" "$b" >/dev/null 2>&1; fi \
+                     && note "alternative ${a#alt:} -> $b" || st=failed
+                 else ln -sfn "$b" "$a" && note "link $a -> $b" || st=failed; fi ;;
         untar)   if tar -xzf "$a" -C "$b"; then note "restored $b from ${a##*/}"; [ -e "$b/bin/node" ] && RESTART_NODE_PREFIXES+=("$b"); else st=failed; fi ;;
         docker-created)
           if ! docker inspect "$a" >/dev/null 2>&1; then warn "container $a no longer exists; skipped removing $b"; st=skipped
@@ -2764,11 +2806,11 @@ scan_result_json() {
   local sites; jarr J_SITES; sites=$REPLY
   # FR-PLAN-GEN-001: SHA-256 of the site bindings + runtime versions.
   fp=$( { printf '%s\n' ${J_SITES[@]+"${J_SITES[@]}"} | sort; printf '%s\n' ${J_RUNTIMES[@]+"${J_RUNTIMES[@]}"} | grep -o '"bin":"[^"]*"\|"version_raw":"[^"]*"'; } | sha256sum | cut -c1-64)
-  local dls; jarr J_DEADLINES; dls=$REPLY
+  local dls dw; jarr J_DEADLINES; dls=$REPLY; jarr J_DRIFT; dw=$REPLY
   env_json; local envj=$REPLY rk="" line
   while IFS=$'\t' read -r _ _ line; do [ -n "$line" ] && rk+="${rk:+,}$line"; done < <(printf '%s\n' ${RANKING[@]+"${RANKING[@]}"} | sort -t$'\t' -k1,1n -k2,2n -k3,3)
   jo scan_fingerprint=s:"$fp" environment=j:"$envj" runtimes=j:"$rt" sites=j:"$sites" projects=j:"$pr" containers=j:"$ct" \
-     dependency_findings=j:"$dp" wordpress_findings=j:"$wp" webshell_findings=j:"$ws" drift_warnings=j:"[]" \
+     dependency_findings=j:"$dp" wordpress_findings=j:"$wp" webshell_findings=j:"$ws" drift_warnings=j:"$dw" \
      ranking=j:"[$rk]" plan_deadlines=j:"$dls" summary=j:"$summary"
   SCAN_FP=$fp
 }
@@ -2867,7 +2909,10 @@ parse_args() {
         local a; for a in "$@"; do [ "$a" = --json ] && JSON=1; done
         return ;;
       migrate|upgrade|switch-site|healthcheck|rollback-site)
-        MODE=migrate; shift; local a; for a in "$@"; do [ "$a" = --json ] && JSON=1; done
+        MODE=migrate
+        case $1 in upgrade) MIG_SUB=install ;; switch-site) MIG_SUB=switch ;; healthcheck) MIG_SUB=healthcheck ;;
+                   rollback-site) MIG_SUB=rollback ;; *) MIG_SUB=${2:-}; [ $# -ge 2 ] && shift ;; esac
+        shift; local a; for a in "$@"; do [ "$a" = --json ] && JSON=1; done
         PASS_ARGS=("$@"); return ;;
       --path) [ $# -ge 2 ] || arg_error ""; SCAN_PATHS+=("$(readlink -f "$2")"); shift ;;
       --only) [ $# -ge 2 ] || arg_error ""; ONLY=$2; shift ;;
@@ -2888,6 +2933,39 @@ parse_args() {
 
 want() { [[ ",$ONLY," == *",$1,"* ]]; }
 
+# FR-SCAN-DRF-001: a site whose binding differs from the tool's last PASSED switch was changed outside
+# the tool (configuration management, panel, hand edit). Compared on branch + runtime endpoint.
+J_DRIFT=()
+drift_check() {
+  local idx="$STATE_DIR/switches/index.tsv" site run st exp_b exp_ep act now t9 key
+  [ -f "$idx" ] || return 0
+  while IFS=$'\t' read -r site run st; do
+    [ -n "${S_KIND[$site]:-}" ] || continue
+    local vars="$STATE_DIR/backups/$run/switch.vars"
+    [ -f "$vars" ] && [ ! -L "$vars" ] || continue
+    case $st in
+      PASSED) exp_b=$(sed -n 's/^to_branch=//p' "$vars"); exp_ep=$(sed -n 's/^new_ep=//p' "$vars") ;;
+      HC_RUNNING)                                   # interrupted window (DOC-SRS-QP-ENV-002 §6.4 item 2)
+        key=$(sed -n 's/^site_key=//p' "$vars"); t9=$(sed -n 's/^t_c9=//p' "$vars"); now=$(date +%s)
+        if [ -n "$t9" ] && iso_epoch "$t9" && (( now - REPLY > 900 )) && flock -n "$STATE_DIR/switches/$key.lock" true 2>/dev/null; then
+          warn "health check of $site was interrupted (run $run); run: $0 migrate healthcheck $site"
+          add_warning "" "health check of $site was interrupted (run $run); run migrate healthcheck $site" "site:$site"
+        fi
+        continue ;;
+      *) continue ;;
+    esac
+    [ -n "$exp_b" ] || continue
+    if [ "${S_BRANCH[$site]}" != "$exp_b" ] || { [ -n "$exp_ep" ] && [ "${S_EP[$site]}" != "$exp_ep" ]; }; then
+      act="PHP ${S_BRANCH[$site]:-?} (${S_EP[$site]:-?})"
+      msg ERR-SCAN-409-01 "Site {site} uses {actual}, which differs from {expected} set by the tool's last switch." \
+        site="$site" actual="$act" expected="PHP $exp_b ($exp_ep)"
+      warn "$REPLY"; add_warning ERR-SCAN-409-01 "$REPLY" "site:$site"
+      jo site_id=s:"$site" expected=s:"PHP $exp_b ($exp_ep)" actual=s:"$act" code=s:ERR-SCAN-409-01; J_DRIFT+=("$REPLY")
+    fi
+  done < <(awk -F'\t' '/^#/ || NF < 6 || $11 ~ /^ack:/ { next } { st[$3] = $6; run[$3] = $2 } END { for (s in st) print s "\t" run[s] "\t" st[s] }' "$idx" | sort)
+  return 0
+}
+
 # BR-ENV-013: a write command never runs while a site switch holds its lock.
 check_switch_locks() {
   local f
@@ -2900,6 +2978,17 @@ check_switch_locks() {
   done
 }
 
+# mig_libs: the migrate libraries (lib/migrate.sh, hc.sh, pb.sh), sourced at global scope.
+mig_libs() {
+  local lib
+  for lib in migrate hc pb install; do
+    [ -n "$SHARE_DIR" ] && [ -f "$SHARE_DIR/lib/$lib.sh" ] || \
+      fatal ERR-CLI-424-01 "{command} is not installed ({file} missing)." command=migrate file="$SHARE_DIR/lib/$lib.sh"
+    # shellcheck source=/dev/null
+    . "$SHARE_DIR/lib/$lib.sh"
+  done
+}
+
 main() {
   parse_args "$@"
   if (( JSON )); then exec 3>&1 1>&2; else exec 3>/dev/null; fi
@@ -2907,7 +2996,6 @@ main() {
   case $MODE in
     schema) cmd_schema ;;
     feeds|assess|plan|compat|report|audit|serve) run_python ;;
-    migrate) fatal ERR-CLI-400-01 "{arg} is not available in this build yet (milestone M5)." arg=migrate ;;
   esac
   select_state_dir
   LOG="$STATE_DIR/php-quickpatch.log"
@@ -2916,6 +3004,10 @@ main() {
   catalog_open
   WORK_DIR=$(mktemp -d) || exit 2
   trap 'flock -u 9 2>/dev/null; rm -rf "$WORK_DIR"' EXIT
+  if [ "$MODE" = migrate ]; then
+    mig_libs
+    migrate_main ${PASS_ARGS[@]+"${PASS_ARGS[@]}"}
+  fi
   exec 9>"$STATE_DIR/.lock"
   local kind=-x; { (( DRY_RUN )) || [ "$MODE" = scan ]; } && kind=-s
   if ! flock "$kind" -n 9; then
@@ -2937,7 +3029,7 @@ main() {
   want php && check_php
   want node && check_node
   env_after_runtimes
-  want sites && inventory_sites
+  want sites && { inventory_sites; drift_check; }
   want composer && check_composer
   want npm && check_npm
   want wp && check_wordpress
