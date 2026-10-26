@@ -1,0 +1,991 @@
+{
+ "schema": "qp.catalog/1",
+ "catalog_version": "2026.10.26-1",
+ "playbooks": [
+  {
+   "pb_id": "PB-001",
+   "environment": "Debian/Ubuntu: gói distro + kho Ondřej Surý (`packages.sury.org`, `ppa:ondrej/php`)",
+   "layer": "provider",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "os_release",
+     "value": "debian"
+    },
+    {
+     "type": "exec",
+     "value": "apt-get"
+    }
+   ],
+   "detect_note": "`ID`/`ID_LIKE` chứa `debian`; `apt-get`; `/usr/bin/php[0-9].[0-9]` thuộc gói `php<X.Y>-cli`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`ID`/`ID_LIKE` chứa `debian`; `apt-get`; `/usr/bin/php[0-9].[0-9]` thuộc gói `php<X.Y>-cli`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#2-pb-001--debianubuntu"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#2-pb-001--debianubuntu"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "AUTO khi kho đã có nhánh đích; SEMI khi phải thêm kho (PRD `Q-03`)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#2-pb-001--debianubuntu"
+     }
+    ],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-002",
+   "environment": "RHEL/Alma/Rocky 8–9: AppStream module `php:X.Y`; RHEL 10: gói AppStream không module",
+   "layer": "provider",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "os_release",
+     "value": "rhel"
+    },
+    {
+     "type": "exec",
+     "value": "dnf|yum"
+    }
+   ],
+   "detect_note": "`ID_LIKE` chứa `rhel`; `/usr/bin/php` thuộc gói `php-cli` không có tiền tố SCL",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`ID_LIKE` chứa `rhel`; `/usr/bin/php` thuộc gói `php-cli` không có tiền tố SCL",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#3-pb-002--rhelalmarocky-appstream"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#3-pb-002--rhelalmarocky-appstream"
+     }
+    ],
+    "install": [],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-003",
+   "environment": "RHEL/Alma/Rocky + Remi SCL `phpXY`",
+   "layer": "provider",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "rpm -q remi-release"
+    },
+    {
+     "type": "file",
+     "value": "/etc/yum.repos.d/remi*.repo"
+    }
+   ],
+   "detect_note": "`rpm -q remi-release` exit 0; binary `/opt/remi/php*/root/usr/bin/php` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`rpm -q remi-release` exit 0; binary `/opt/remi/php*/root/usr/bin/php` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#4-pb-003--rhelalmarocky--remi-scl"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#4-pb-003--rhelalmarocky--remi-scl"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "AUTO khi kho Remi đã có; SEMI khi phải thêm kho",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#4-pb-003--rhelalmarocky--remi-scl"
+     }
+    ],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-004",
+   "environment": "Alpine (`apk`, gói `phpXY` theo nhánh)",
+   "layer": "provider",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "os_release",
+     "value": "alpine"
+    },
+    {
+     "type": "exec",
+     "value": "apk"
+    }
+   ],
+   "detect_note": "`ID=alpine`; `apk`; `/usr/bin/php[0-9][0-9]`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`ID=alpine`; `apk`; `/usr/bin/php[0-9][0-9]`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#5-pb-004--alpine-linux"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#5-pb-004--alpine-linux"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "AUTO khi nhánh đích có trong kho `community` của bản Alpine đang chạy",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#5-pb-004--alpine-linux"
+     }
+    ],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-005",
+   "environment": "Web server Nginx hoặc Apache + PHP-FPM (pool, socket/cổng)",
+   "layer": "binding",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "pgrep -f 'nginx: master'"
+    },
+    {
+     "type": "cmd_exit0",
+     "value": "apachectl -M | grep proxy_fcgi_module"
+    }
+   ],
+   "detect_note": "Tiến trình `nginx: master` đang chạy; hoặc vhost Apache có `SetHandler \"proxy:`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "Tiến trình `nginx: master` đang chạy; hoặc vhost Apache có `SetHandler \"proxy:`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#6-pb-005--nginx-hoặc-apache--php-fpm"
+     }
+    ],
+    "patch": [],
+    "install": [
+     {
+      "cmd": "Tạo pool đích: AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#6-pb-005--nginx-hoặc-apache--php-fpm"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#6-pb-005--nginx-hoặc-apache--php-fpm"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#6-pb-005--nginx-hoặc-apache--php-fpm"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-006",
+   "environment": "Apache `mod_php` (rủi ro cao, chuyển sang PHP-FPM trước)",
+   "layer": "binding",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "apachectl -M | grep -E 'php[0-9]*_module'"
+    },
+    {
+     "type": "file",
+     "value": "/etc/apache2/mods-enabled/php*.load"
+    }
+   ],
+   "detect_note": "`apachectl -M` có `php[0-9]*_module` (v0.1 `php_sapis_note`)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`apachectl -M` có `php[0-9]*_module` (v0.1 `php_sapis_note`)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#7-pb-006--apache-mod_php"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO (qua PB provider)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#7-pb-006--apache-mod_php"
+     }
+    ],
+    "install": [],
+    "switch": [
+     {
+      "cmd": "SEMI, 2 bước: `mod_php` → FPM của `$OLD`, rồi PB-005",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#7-pb-006--apache-mod_php"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-os.md#7-pb-006--apache-mod_php"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-007",
+   "environment": "cPanel/WHM EasyApache 4 (`ea-phpXY`, MultiPHP Manager)",
+   "layer": "panel",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "exec",
+     "value": "/usr/local/cpanel/cpanel"
+    }
+   ],
+   "detect_note": "`-x /usr/local/cpanel/cpanel` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`-x /usr/local/cpanel/cpanel` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#2-pb-007--cpanelwhm-easyapache-4"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#2-pb-007--cpanelwhm-easyapache-4"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#2-pb-007--cpanelwhm-easyapache-4"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (`whmapi1 php_set_vhost_versions`)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#2-pb-007--cpanelwhm-easyapache-4"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#2-pb-007--cpanelwhm-easyapache-4"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-008",
+   "environment": "CloudLinux alt-php + PHP Selector",
+   "layer": "panel_overlay",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "exec",
+     "value": "selectorctl"
+    },
+    {
+     "type": "file",
+     "value": "/etc/cl.selector/selector.conf"
+    }
+   ],
+   "detect_note": "`selectorctl`; `/etc/cl.selector/selector.conf`; `/opt/alt/php*/usr/bin/php` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`selectorctl`; `/etc/cl.selector/selector.conf`; `/opt/alt/php*/usr/bin/php` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#3-pb-008--cloudlinux-alt-php--php-selector"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#3-pb-008--cloudlinux-alt-php--php-selector"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#3-pb-008--cloudlinux-alt-php--php-selector"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (`selectorctl --set-user-current`, phạm vi **người dùng**)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#3-pb-008--cloudlinux-alt-php--php-selector"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#3-pb-008--cloudlinux-alt-php--php-selector"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-009",
+   "environment": "Plesk (`plesk-phpXY`, handler theo domain)",
+   "layer": "panel",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "dir",
+     "value": "/usr/local/psa"
+    }
+   ],
+   "detect_note": "`-d /usr/local/psa` (v0.1); `/opt/plesk/php/*/bin/php`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`-d /usr/local/psa` (v0.1); `/opt/plesk/php/*/bin/php`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#4-pb-009--plesk"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#4-pb-009--plesk"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#4-pb-009--plesk"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (`plesk bin site -u … -php_handler_id`)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#4-pb-009--plesk"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#4-pb-009--plesk"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-010",
+   "environment": "aaPanel (`/www/server/php/XY`, cấu hình theo site)",
+   "layer": "panel",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "dir",
+     "value": "/www/server/panel"
+    }
+   ],
+   "detect_note": "`-d /www/server/panel` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`-d /www/server/panel` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#5-pb-010--aapanel"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "MANUAL + mitigation AUTO",
+      "exec_type": "MANUAL",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#5-pb-010--aapanel"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "MANUAL (App Store); SEMI (script cài của panel, chưa chạy thử)",
+      "exec_type": "MANUAL",
+      "verified": false,
+      "source_ref": "environment-playbooks-panels.md#5-pb-010--aapanel"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (sửa vhost theo đúng thuật toán `SetPHPVersion` của panel)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#5-pb-010--aapanel"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#5-pb-010--aapanel"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-011",
+   "environment": "CyberPanel / OpenLiteSpeed / LiteSpeed Enterprise (`lsphpXY`)",
+   "layer": "panel",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "dir",
+     "value": "/usr/local/CyberCP"
+    },
+    {
+     "type": "exec",
+     "value": "/usr/local/lsws/bin/lswsctrl"
+    }
+   ],
+   "detect_note": "`-d /usr/local/CyberCP` (v0.1); không panel: `-x /usr/local/lsws/bin/lswsctrl`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`-d /usr/local/CyberCP` (v0.1); không panel: `-x /usr/local/lsws/bin/lswsctrl`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#6-pb-011--cyberpanel--openlitespeed--litespeed"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#6-pb-011--cyberpanel--openlitespeed--litespeed"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#6-pb-011--cyberpanel--openlitespeed--litespeed"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (`cyberpanel changePHP`; không panel: sửa vhost)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#6-pb-011--cyberpanel--openlitespeed--litespeed"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#6-pb-011--cyberpanel--openlitespeed--litespeed"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-012",
+   "environment": "DirectAdmin CustomBuild (`php1_release`..`php9_release`, chọn theo domain)",
+   "layer": "panel",
+   "runtime": "php",
+   "detect_rules": [
+    {
+     "type": "dir",
+     "value": "/usr/local/directadmin"
+    }
+   ],
+   "detect_note": "`-d /usr/local/directadmin` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`-d /usr/local/directadmin` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#7-pb-012--directadmin-custombuild"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "SEMI (biên dịch lại)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#7-pb-012--directadmin-custombuild"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#7-pb-012--directadmin-custombuild"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (`php1_select=N` + `da build rewrite_confs`)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#7-pb-012--directadmin-custombuild"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-panels.md#7-pb-012--directadmin-custombuild"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-013",
+   "environment": "Docker / Compose (`php:X.Y-fpm`, `php:X.Y-apache`, `node:N`)",
+   "layer": "provider",
+   "runtime": "both",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "docker info"
+    }
+   ],
+   "detect_note": "`docker info` exit 0 + Dockerfile/compose dùng image `php`/`node` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`docker info` exit 0 + Dockerfile/compose dùng image `php`/`node` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#2-pb-013--docker--compose"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#2-pb-013--docker--compose"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI (dịch vụ mới song song)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#2-pb-013--docker--compose"
+     }
+    ],
+    "switch": [
+     {
+      "cmd": "SEMI (đổi upstream reverse proxy)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#2-pb-013--docker--compose"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#2-pb-013--docker--compose"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-014",
+   "environment": "Node.js từ NodeSource",
+   "layer": "provider",
+   "runtime": "node",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "apt-cache policy nodejs | grep nodesource"
+    }
+   ],
+   "detect_note": "Gói `nodejs` có nguồn `deb.nodesource.com`/`rpm.nodesource.com`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "Gói `nodejs` có nguồn `deb.nodesource.com`/`rpm.nodesource.com`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#3-pb-014--nodesource"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#3-pb-014--nodesource"
+     }
+    ],
+    "install": [],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-015",
+   "environment": "Node.js tarball theo prefix (`/opt/node-v…`, `/usr/local`)",
+   "layer": "provider",
+   "runtime": "node",
+   "detect_rules": [
+    {
+     "type": "dir",
+     "value": "$PREFIX/lib/node_modules/npm"
+    }
+   ],
+   "detect_note": "Không có gói sở hữu, có thư mục `npm` dưới `$PREFIX/lib` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "Không có gói sở hữu, có thư mục `npm` dưới `$PREFIX/lib` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#4-pb-015--tarball-theo-prefix"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#4-pb-015--tarball-theo-prefix"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#4-pb-015--tarball-theo-prefix"
+     }
+    ],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-016",
+   "environment": "nvm theo người dùng",
+   "layer": "provider",
+   "runtime": "node",
+   "detect_rules": [
+    {
+     "type": "file",
+     "value": "*/.nvm/versions/node/*"
+    }
+   ],
+   "detect_note": "Đường dẫn `*/.nvm/versions/node/*` (v0.1)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "Đường dẫn `*/.nvm/versions/node/*` (v0.1)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#5-pb-016--nvm"
+     }
+    ],
+    "patch": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#5-pb-016--nvm"
+     }
+    ],
+    "install": [
+     {
+      "cmd": "SEMI",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#5-pb-016--nvm"
+     }
+    ],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": false,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-017",
+   "environment": "Ứng dụng Node.js chạy bằng systemd",
+   "layer": "binding",
+   "runtime": "node",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "systemctl cat <unit> | grep ExecStart"
+    }
+   ],
+   "detect_note": "Unit có `ExecStart` chứa đường dẫn binary Node.js (v0.1 `restart_node_services`)",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "Unit có `ExecStart` chứa đường dẫn binary Node.js (v0.1 `restart_node_services`)",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#6-pb-017--systemd"
+     }
+    ],
+    "patch": [],
+    "install": [],
+    "switch": [
+     {
+      "cmd": "SEMI (drop-in)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#6-pb-017--systemd"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#6-pb-017--systemd"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-018",
+   "environment": "Ứng dụng Node.js chạy bằng pm2",
+   "layer": "binding",
+   "runtime": "node",
+   "detect_rules": [
+    {
+     "type": "cmd_exit0",
+     "value": "pm2 jlist"
+    }
+   ],
+   "detect_note": "`pm2 pid` exit 0 (v0.1); `pm2 jlist`",
+   "actions": {
+    "inventory": [
+     {
+      "cmd": "`pm2 pid` exit 0 (v0.1); `pm2 jlist`",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#7-pb-018--pm2"
+     }
+    ],
+    "patch": [],
+    "install": [],
+    "switch": [
+     {
+      "cmd": "SEMI (`interpreter`)",
+      "exec_type": "SEMI",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#7-pb-018--pm2"
+     }
+    ],
+    "healthcheck_inputs": [],
+    "rollback": [
+     {
+      "cmd": "AUTO",
+      "exec_type": "AUTO",
+      "verified": true,
+      "source_ref": "environment-playbooks-container-node.md#7-pb-018--pm2"
+     }
+    ],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": false,
+   "switch_budget_s": 30
+  },
+  {
+   "pb_id": "PB-000",
+   "environment": "Không xác định (PHP không khớp bước 2–7 của §2.3)",
+   "layer": "provider",
+   "runtime": "php",
+   "detect_rules": [],
+   "detect_note": "—",
+   "actions": {
+    "inventory": [],
+    "patch": [
+     {
+      "cmd": "Chỉ mitigation ini (v0.1)",
+      "exec_type": "MANUAL",
+      "verified": true,
+      "source_ref": "§2.3 bước 9"
+     }
+    ],
+    "install": [],
+    "switch": [],
+    "healthcheck_inputs": [],
+    "rollback": [],
+    "reload": []
+   },
+   "backup_paths": [],
+   "requires_root": true,
+   "switch_budget_s": 30
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"id": "GHSA-bbbb-0001", "modified": "2026-10-01T00:00:00Z", "summary": "test advisory GHSA-bbbb-0001", "aliases": [], "database_specific": {"severity": "MODERATE"}, "affected": [{"package": {"ecosystem": "npm", "name": "lodash"}, "ranges": [{"type": "SEMVER", "events": [{"introduced": "0"}, {"fixed": "4.17.21"}]}]}]}

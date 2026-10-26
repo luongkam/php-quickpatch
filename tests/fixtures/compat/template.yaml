@@ -1,0 +1,12 @@
+Resources:
+  ResetPassword:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/reset/
+      Runtime: nodejs18.x
+      Handler: index.handler
+  Verify:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs18.x
+      Handler: functions/verify/index.handler

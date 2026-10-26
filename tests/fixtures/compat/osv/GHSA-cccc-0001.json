@@ -1,0 +1,1 @@
+{"id": "GHSA-cccc-0001", "modified": "2026-10-01T00:00:00Z", "summary": "test advisory GHSA-cccc-0001", "aliases": [], "database_specific": {"severity": "LOW"}, "affected": [{"package": {"ecosystem": "npm", "name": "aws-sdk"}, "ranges": [{"type": "SEMVER", "events": [{"introduced": "2.0.0"}]}]}]}

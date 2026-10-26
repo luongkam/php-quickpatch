@@ -1,0 +1,1231 @@
+{
+ "schema_version": "1.2.1",
+ "generated_at": "2026-10-24T00:08:55+00:00",
+ "last_modified": "2026-10-16T00:08:37+00:00",
+ "result": {
+  "name": "wordpress",
+  "aliases": [],
+  "label": "WordPress",
+  "category": "server-app",
+  "tags": [
+   "php-runtime",
+   "server-app"
+  ],
+  "versionCommand": "wp core version",
+  "identifiers": [
+   {
+    "type": "repology",
+    "id": "wordpress"
+   },
+   {
+    "type": "purl",
+    "id": "pkg:docker/library/wordpress"
+   },
+   {
+    "type": "purl",
+    "id": "pkg:docker/bitnami/wordpress"
+   },
+   {
+    "type": "purl",
+    "id": "pkg:docker/bitnami/wordpress-nginx"
+   },
+   {
+    "type": "cpe",
+    "id": "cpe:2.3:a:wordpress:wordpress"
+   },
+   {
+    "type": "cpe",
+    "id": "cpe:/a:wordpress:wordpress"
+   }
+  ],
+  "labels": {
+   "eoas": "Active Support",
+   "discontinued": null,
+   "eol": "Security Support",
+   "eoes": null
+  },
+  "links": {
+   "icon": "https://cdn.jsdelivr.net/npm/simple-icons/icons/wordpress.svg",
+   "html": "https://endoflife.date/wordpress",
+   "releasePolicy": "https://codex.wordpress.org/Supported_Versions"
+  },
+  "releases": [
+   {
+    "name": "7.1",
+    "codename": null,
+    "label": "7.1",
+    "releaseDate": "2026-08-19",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": false,
+    "eoasFrom": null,
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "7.1.3",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-7-1-3/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.4 - 8.5"
+    }
+   },
+   {
+    "name": "7.0",
+    "codename": null,
+    "label": "7.0",
+    "releaseDate": "2026-05-20",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2026-08-19",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "7.0.7",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-7-0-7/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.4 - 8.5"
+    }
+   },
+   {
+    "name": "6.9",
+    "codename": null,
+    "label": "6.9",
+    "releaseDate": "2025-12-02",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2026-05-20",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.9.10",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-9-10/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.2.24 - 8.5"
+    }
+   },
+   {
+    "name": "6.8",
+    "codename": null,
+    "label": "6.8",
+    "releaseDate": "2025-04-15",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2025-12-02",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.8.11",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-8-11/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.2.24 - 8.4"
+    }
+   },
+   {
+    "name": "6.7",
+    "codename": null,
+    "label": "6.7",
+    "releaseDate": "2024-11-12",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2025-04-15",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.7.10",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-7-10/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.2.24 - 8.4"
+    }
+   },
+   {
+    "name": "6.6",
+    "codename": null,
+    "label": "6.6",
+    "releaseDate": "2024-07-16",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2024-11-12",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.6.10",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-6-10/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.2.24 - 8.3"
+    }
+   },
+   {
+    "name": "6.5",
+    "codename": null,
+    "label": "6.5",
+    "releaseDate": "2024-04-02",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2024-07-16",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.5.13",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-5-13/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.0 - 8.3"
+    }
+   },
+   {
+    "name": "6.4",
+    "codename": null,
+    "label": "6.4",
+    "releaseDate": "2023-11-07",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2024-04-02",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.4.13",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-4-13/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.0 - 8.3"
+    }
+   },
+   {
+    "name": "6.3",
+    "codename": null,
+    "label": "6.3",
+    "releaseDate": "2023-08-08",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2023-11-07",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.3.13",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-3-13/"
+    },
+    "custom": {
+     "supportedPHPVersions": "7.0 - 8.2"
+    }
+   },
+   {
+    "name": "6.2",
+    "codename": null,
+    "label": "6.2",
+    "releaseDate": "2023-03-29",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2023-08-08",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.2.14",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-2-14/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.2"
+    }
+   },
+   {
+    "name": "6.1",
+    "codename": null,
+    "label": "6.1",
+    "releaseDate": "2022-11-02",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2023-03-29",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.1.15",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-1-15/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.2"
+    }
+   },
+   {
+    "name": "6.0",
+    "codename": null,
+    "label": "6.0",
+    "releaseDate": "2022-05-24",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2022-11-01",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "6.0.17",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-6-0-17/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.1"
+    }
+   },
+   {
+    "name": "5.9",
+    "codename": null,
+    "label": "5.9",
+    "releaseDate": "2022-01-25",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2022-05-24",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.9.19",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-9-19/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.1"
+    }
+   },
+   {
+    "name": "5.8",
+    "codename": null,
+    "label": "5.8",
+    "releaseDate": "2021-07-20",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2022-01-25",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.8.18",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-8-18/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.0"
+    }
+   },
+   {
+    "name": "5.7",
+    "codename": null,
+    "label": "5.7",
+    "releaseDate": "2021-03-09",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2021-07-20",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.7.20",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-7-20/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.0"
+    }
+   },
+   {
+    "name": "5.6",
+    "codename": null,
+    "label": "5.6",
+    "releaseDate": "2020-12-08",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2021-03-09",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.6.22",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-6-22/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 8.0"
+    }
+   },
+   {
+    "name": "5.5",
+    "codename": null,
+    "label": "5.5",
+    "releaseDate": "2020-08-11",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2020-12-08",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.5.23",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-5-23/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 7.4"
+    }
+   },
+   {
+    "name": "5.4",
+    "codename": null,
+    "label": "5.4",
+    "releaseDate": "2020-03-31",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2020-08-11",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.4.24",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-4-24/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 7.4"
+    }
+   },
+   {
+    "name": "5.3",
+    "codename": null,
+    "label": "5.3",
+    "releaseDate": "2019-11-12",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2020-03-31",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.3.26",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-3-26/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 7.4"
+    }
+   },
+   {
+    "name": "5.2",
+    "codename": null,
+    "label": "5.2",
+    "releaseDate": "2019-05-07",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2019-11-12",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.2.29",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-2-29/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.6.20 - 7.3"
+    }
+   },
+   {
+    "name": "5.1",
+    "codename": null,
+    "label": "5.1",
+    "releaseDate": "2019-02-21",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2019-05-07",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.1.27",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-1-27/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.3"
+    }
+   },
+   {
+    "name": "5.0",
+    "codename": null,
+    "label": "5.0",
+    "releaseDate": "2018-12-06",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2019-02-21",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "5.0.30",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-5-0-30/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.3"
+    }
+   },
+   {
+    "name": "4.9",
+    "codename": null,
+    "label": "4.9",
+    "releaseDate": "2017-11-16",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2018-12-06",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "4.9.34",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-9-34/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.2"
+    }
+   },
+   {
+    "name": "4.8",
+    "codename": null,
+    "label": "4.8",
+    "releaseDate": "2017-06-08",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2017-11-16",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "4.8.33",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-8-33/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.1"
+    }
+   },
+   {
+    "name": "4.7",
+    "codename": null,
+    "label": "4.7",
+    "releaseDate": "2016-12-06",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2017-06-08",
+    "isEol": false,
+    "eolFrom": null,
+    "isMaintained": true,
+    "latest": {
+     "name": "4.7.38",
+     "date": "2026-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-7-38/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.1"
+    }
+   },
+   {
+    "name": "4.6",
+    "codename": null,
+    "label": "4.6",
+    "releaseDate": "2016-08-16",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2016-12-06",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.6.30",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-6-30/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.0"
+    }
+   },
+   {
+    "name": "4.5",
+    "codename": null,
+    "label": "4.5",
+    "releaseDate": "2016-04-12",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2016-08-16",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.5.33",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-5-33/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.0"
+    }
+   },
+   {
+    "name": "4.4",
+    "codename": null,
+    "label": "4.4",
+    "releaseDate": "2015-12-09",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2016-04-12",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.4.34",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-4-34/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 7.0"
+    }
+   },
+   {
+    "name": "4.3",
+    "codename": null,
+    "label": "4.3",
+    "releaseDate": "2015-08-18",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2015-12-09",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.3.35",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-3-35/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.6"
+    }
+   },
+   {
+    "name": "4.2",
+    "codename": null,
+    "label": "4.2",
+    "releaseDate": "2015-04-23",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2015-08-18",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.2.39",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-2-39/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.6"
+    }
+   },
+   {
+    "name": "4.1",
+    "codename": null,
+    "label": "4.1",
+    "releaseDate": "2014-12-18",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2015-04-23",
+    "isEol": true,
+    "eolFrom": "2025-07-31",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.1.42",
+     "date": "2025-07-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-1-42/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.6"
+    }
+   },
+   {
+    "name": "4.0",
+    "codename": null,
+    "label": "4.0",
+    "releaseDate": "2014-09-04",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2014-12-18",
+    "isEol": true,
+    "eolFrom": "2022-12-01",
+    "isMaintained": false,
+    "latest": {
+     "name": "4.0.38",
+     "date": "2022-11-30",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-4-0-38/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.5"
+    }
+   },
+   {
+    "name": "3.9",
+    "codename": null,
+    "label": "3.9",
+    "releaseDate": "2014-04-16",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2014-09-04",
+    "isEol": true,
+    "eolFrom": "2022-12-01",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.9.40",
+     "date": "2022-11-30",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-9-40/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.5"
+    }
+   },
+   {
+    "name": "3.8",
+    "codename": null,
+    "label": "3.8",
+    "releaseDate": "2013-12-12",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2014-04-16",
+    "isEol": true,
+    "eolFrom": "2022-12-01",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.8.41",
+     "date": "2022-11-30",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-8-41/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.5"
+    }
+   },
+   {
+    "name": "3.7",
+    "codename": null,
+    "label": "3.7",
+    "releaseDate": "2013-10-24",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2013-12-12",
+    "isEol": true,
+    "eolFrom": "2022-12-01",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.7.41",
+     "date": "2022-11-30",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-7-41/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4 - 5.5"
+    }
+   },
+   {
+    "name": "3.6",
+    "codename": null,
+    "label": "3.6",
+    "releaseDate": "2013-08-01",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2013-10-24",
+    "isEol": true,
+    "eolFrom": "2013-10-24",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.6.1",
+     "date": "2013-09-11",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-6-1/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4+"
+    }
+   },
+   {
+    "name": "3.5",
+    "codename": null,
+    "label": "3.5",
+    "releaseDate": "2012-12-11",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2013-08-01",
+    "isEol": true,
+    "eolFrom": "2013-08-01",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.5.2",
+     "date": "2013-06-21",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-5-2/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4+"
+    }
+   },
+   {
+    "name": "3.4",
+    "codename": null,
+    "label": "3.4",
+    "releaseDate": "2012-06-13",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2012-12-11",
+    "isEol": true,
+    "eolFrom": "2012-12-11",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.4.2",
+     "date": "2012-09-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-4-2/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4+"
+    }
+   },
+   {
+    "name": "3.3",
+    "codename": null,
+    "label": "3.3",
+    "releaseDate": "2011-12-12",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2012-06-13",
+    "isEol": true,
+    "eolFrom": "2012-06-13",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.3.3",
+     "date": "2012-06-27",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-3-3/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4+"
+    }
+   },
+   {
+    "name": "3.2",
+    "codename": null,
+    "label": "3.2",
+    "releaseDate": "2011-07-04",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2011-12-12",
+    "isEol": true,
+    "eolFrom": "2011-12-12",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.2.1",
+     "date": "2011-07-12",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-2-1/"
+    },
+    "custom": {
+     "supportedPHPVersions": "5.2.4+"
+    }
+   },
+   {
+    "name": "3.1",
+    "codename": null,
+    "label": "3.1",
+    "releaseDate": "2011-02-23",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2011-07-04",
+    "isEol": true,
+    "eolFrom": "2011-07-04",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.1.4",
+     "date": "2011-06-29",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-1-4/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "3.0",
+    "codename": null,
+    "label": "3.0",
+    "releaseDate": "2010-06-17",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2011-02-23",
+    "isEol": true,
+    "eolFrom": "2011-02-23",
+    "isMaintained": false,
+    "latest": {
+     "name": "3.0.6",
+     "date": "2011-04-26",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-3-0-6/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.9",
+    "codename": null,
+    "label": "2.9",
+    "releaseDate": "2009-12-18",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2010-06-17",
+    "isEol": true,
+    "eolFrom": "2010-06-17",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.9.2",
+     "date": "2010-02-15",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-9-2/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.8",
+    "codename": null,
+    "label": "2.8",
+    "releaseDate": "2009-09-10",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2009-12-18",
+    "isEol": true,
+    "eolFrom": "2009-12-18",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.8.6",
+     "date": "2009-11-12",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-8-6/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.7",
+    "codename": null,
+    "label": "2.7",
+    "releaseDate": "2008-12-10",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2009-09-10",
+    "isEol": true,
+    "eolFrom": "2009-09-10",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.7.1",
+     "date": "2009-02-10",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-7-1/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.6",
+    "codename": null,
+    "label": "2.6",
+    "releaseDate": "2008-07-14",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2008-12-10",
+    "isEol": true,
+    "eolFrom": "2008-12-10",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.6.5",
+     "date": "2008-11-25",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-6-5/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.5",
+    "codename": null,
+    "label": "2.5",
+    "releaseDate": "2008-03-29",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2008-07-14",
+    "isEol": true,
+    "eolFrom": "2008-07-14",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.5.1",
+     "date": "2008-04-25",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-5-1/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.3+"
+    }
+   },
+   {
+    "name": "2.3",
+    "codename": null,
+    "label": "2.3",
+    "releaseDate": "2007-09-24",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2008-03-29",
+    "isEol": true,
+    "eolFrom": "2008-03-29",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.3.3",
+     "date": "2008-02-05",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-3-3/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.2+"
+    }
+   },
+   {
+    "name": "2.2",
+    "codename": null,
+    "label": "2.2",
+    "releaseDate": "2007-05-15",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2007-09-24",
+    "isEol": true,
+    "eolFrom": "2007-09-24",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.2.3",
+     "date": "2007-09-07",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-2-3/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.2+"
+    }
+   },
+   {
+    "name": "2.1",
+    "codename": null,
+    "label": "2.1",
+    "releaseDate": "2007-01-22",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2007-09-24",
+    "isEol": true,
+    "eolFrom": "2007-09-24",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.1.3",
+     "date": "2007-04-03",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-1-3/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.2+"
+    }
+   },
+   {
+    "name": "2.0",
+    "codename": null,
+    "label": "2.0",
+    "releaseDate": "2005-12-26",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2007-08-05",
+    "isEol": true,
+    "eolFrom": "2007-08-05",
+    "isMaintained": false,
+    "latest": {
+     "name": "2.0.11",
+     "date": "2007-08-05",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-2-0-11/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.2+"
+    }
+   },
+   {
+    "name": "1.5",
+    "codename": null,
+    "label": "1.5",
+    "releaseDate": "2005-02-17",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2005-12-26",
+    "isEol": true,
+    "eolFrom": "2005-12-26",
+    "isMaintained": false,
+    "latest": {
+     "name": "1.5.2",
+     "date": "2005-08-20",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-1-5-2/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.1+"
+    }
+   },
+   {
+    "name": "1.2",
+    "codename": null,
+    "label": "1.2",
+    "releaseDate": "2004-05-22",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2005-02-17",
+    "isEol": true,
+    "eolFrom": "2005-02-17",
+    "isMaintained": false,
+    "latest": {
+     "name": "1.2.1",
+     "date": "2004-10-06",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-1-2-1/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.1+"
+    }
+   },
+   {
+    "name": "1.0",
+    "codename": null,
+    "label": "1.0",
+    "releaseDate": "2004-01-03",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2004-05-22",
+    "isEol": true,
+    "eolFrom": "2004-05-22",
+    "isMaintained": false,
+    "latest": {
+     "name": "1.0.2",
+     "date": "2004-03-11",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-1-0-2/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.1+"
+    }
+   },
+   {
+    "name": "0.72",
+    "codename": null,
+    "label": "0.72",
+    "releaseDate": "2003-10-11",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2004-01-03",
+    "isEol": true,
+    "eolFrom": "2004-01-03",
+    "isMaintained": false,
+    "latest": {
+     "name": "0.72",
+     "date": "2003-10-11",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-0-72/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.1+"
+    }
+   },
+   {
+    "name": "0.71",
+    "codename": null,
+    "label": "0.71",
+    "releaseDate": "2003-06-09",
+    "isLts": false,
+    "ltsFrom": null,
+    "isEoas": true,
+    "eoasFrom": "2003-10-11",
+    "isEol": true,
+    "eolFrom": "2003-10-11",
+    "isMaintained": false,
+    "latest": {
+     "name": "0.711",
+     "date": "2003-06-25",
+     "link": "https://wordpress.org/documentation/wordpress-version/version-0-711/"
+    },
+    "custom": {
+     "supportedPHPVersions": "4.1+"
+    }
+   }
+  ]
+ }
+}

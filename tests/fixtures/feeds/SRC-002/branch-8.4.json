@@ -1,0 +1,41 @@
+{
+ "8.4.27": {
+  "tags": [
+   "security"
+  ],
+  "date": "21 Oct 2026"
+ },
+ "8.4.26": {
+  "tags": [
+   "security"
+  ],
+  "date": "24 Sep 2026",
+  "museum": false
+ },
+ "8.4.25": {
+  "tags": [
+   ""
+  ],
+  "date": "27 Aug 2026",
+  "museum": false
+ },
+ "8.4.24": {
+  "tags": [
+   "security"
+  ],
+  "date": "30 Jul 2026",
+  "museum": false
+ },
+ "8.4.23": {
+  "tags": [
+   "security"
+  ],
+  "date": "02 Jul 2026",
+  "museum": false
+ },
+ "8.4.22": {
+  "tags": [],
+  "date": "04 Jun 2026",
+  "museum": false
+ }
+}

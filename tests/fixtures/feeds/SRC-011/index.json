@@ -1,0 +1,114 @@
+{
+ "163": {
+  "cve": [
+   "CVE-2026-21637"
+  ],
+  "vulnerable": "20.x || 22.x || 24.x || 25.x",
+  "patched": "^20.20.2 || ^22.22.2 || ^24.14.1 || ^25.8.2",
+  "ref": "https://nodejs.org/en/blog/vulnerability/march-2026-security-releases",
+  "description": "Incomplete fix for CVE-2026-21637: loadSNI() in _tls_wrap.js lacks try/catch leading to Remote DoS",
+  "overview": "A flaw in Node.js TLS error handling leaves `SNICallback` invocations unprotected against synchronous exceptions, while the equivalent ALPN and PSK callbacks were already addressed in CVE-2026-21637. This represents an incomplete fix of that prior vulnerability.\n\nWhen an `SNICallback` throws synchronously on unexpected input the exception bypasses TLS error handlers and propagates as an uncaught exception, crashing the Node.js process.\n\n* This vulnerability affects all Node.js versions that received the CVE-2026-21637 fix, including **20.x, 22.x, 24.x, and 25.x**, on any TLS server where `SNICallback` may throw on unexpected `servername` input.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "high"
+ },
+ "164": {
+  "cve": [
+   "CVE-2026-21710"
+  ],
+  "vulnerable": "20.x || 22.x || 24.x || 25.x",
+  "patched": "^20.20.2 || ^22.22.2 || ^24.14.1 || ^25.8.2",
+  "ref": "https://nodejs.org/en/blog/vulnerability/march-2026-security-releases",
+  "description": "Denial of Service via `__proto__` header name in `req.headersDistinct` (Uncaught `TypeError` crashes Node.js process)",
+  "overview": "A flaw in Node.js HTTP request handling causes an uncaught `TypeError` when a request is received with a header named `__proto__` and the application accesses `req.headersDistinct`.\n\nWhen this occurs, `dest[\"__proto__\"]` resolves to `Object.prototype` rather than `undefined`, causing `.push()` to be called on a non-array. This exception is thrown synchronously inside a property getter and cannot be intercepted by `error` event listeners, meaning it cannot be handled without wrapping every `req.headersDistinct` access in a `try/catch`.\n\n* This vulnerability affects all Node.js HTTP servers on **20.x, 22.x, 24.x, and v25.x** ",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "high"
+ },
+ "189": {
+  "cve": [
+   "CVE-2026-58040"
+  ],
+  "vulnerable": "22.x || 24.x || 26.x",
+  "patched": "^22.23.2 || ^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "HTTPS Agent TLS session reuse skips hostname verification across identity policies (incomplete fix of CVE-2026-48934)",
+  "overview": "An incomplete fix has been identified in Node.js: HTTPS Agent TLS session reuse skips hostname verification across identity policies (incomplete fix of CVE-2026-48934).\n\nThis vulnerability affects Node.js **22.x**, **24.x**, and **26.x**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "medium"
+ },
+ "190": {
+  "cve": [
+   "CVE-2026-58041"
+  ],
+  "vulnerable": "24.x || 26.x",
+  "patched": "^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "node:sqlite SQLTagStore Iterator Replay Lets Attacker Re-Execute Victim-Bound Writes Indefinitely",
+  "overview": "A flaw in Node.js node:sqlite allows a stale StatementSyncIterator created through DatabaseSync#createTagStore() to continue executing a cached prepared statement after it has been reset and rebound with new parameters. SQLTagStore resets cached statements using sqlite3_reset() directly, bypassing the iterator invalidation mechanism introduced for StatementSync in recent releases\n\nThis vulnerability affects Node.js **22.x**, **24.x**, and **26.x**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "medium"
+ },
+ "191": {
+  "cve": [
+   "CVE-2026-58042"
+  ],
+  "vulnerable": "22.x || 24.x || 26.x",
+  "patched": "^22.23.2 || ^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "dns.resolveAny() Aborts the Node.js Process When a DNS Response Contains More Than 256 A Records",
+  "overview": "A flaw in Node.js can cause dns.resolveAny() Aborts the Node.js Process When a DNS Response Contains More Than 256 A Records.\n\nRepeated triggering of this condition can lead to denial of service.\n\nThis vulnerability affects Node.js **26.x**, **24.x**, and **22.x**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "medium"
+ },
+ "192": {
+  "cve": [
+   "CVE-2026-58043"
+  ],
+  "vulnerable": "22.x || 24.x || 26.x",
+  "patched": "^22.23.2 || ^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "Permission Model: --allow-fs-read/--allow-fs-write radix-tree prefix-boundary over-grant",
+  "overview": "A flaw in Node.js Permission Model enforcement can over-grant filesystem access across radix-tree prefix boundaries.\n\nUnder `--permission`, an attacker who is granted access to one path can abuse boundary handling to read from or write to paths outside the intended filesystem allowlist.\n\nThis vulnerability affects Node.js **main**, **22.x**, **24.x**, and **26.x**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "high"
+ },
+ "193": {
+  "cve": [
+   "CVE-2026-58044"
+  ],
+  "vulnerable": "22.x || 24.x || 26.x",
+  "patched": "^22.23.2 || ^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "HTTP Request Smuggling via Silent Header Truncation in Node.js HTTP Parser",
+  "overview": "A flaw in Node.js HTTP client can cause a request desynchronization for Node.js-based forwarding proxies that rebuild outbound headers from the visible `IncomingMessage` headers while piping the original body to a reused backend connection.\n\nNode.js can omit headers beyond `maxHeadersCount` / `maxHeaderPairs` from `req.headers`, `req.rawHeaders`, and `req.headersDistinct`, while still using those omitted headers internally for HTTP message framing. In particular, `Content-Length` can be hidden from userland while the request body is still delivered.\n\nThis vulnerability affects all supported release lines: **Node.js 22**, **Node.js 24**, and **Node.js 26**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "low"
+ },
+ "194": {
+  "cve": [
+   "CVE-2026-58045"
+  ],
+  "vulnerable": "22.x || 24.x || 26.x",
+  "patched": "^22.23.2 || ^24.18.1 || ^26.5.1",
+  "ref": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+  "description": "Reachable assertion in node:zlib sync API crashes the entire process via spoofed TypedArray byteLength (all 11 *Sync functions affected)",
+  "overview": "A flaw in Node.js allows a spoofed `TypedArray` `byteLength` to trigger a reachable assertion in the synchronous `node:zlib` APIs, causing the entire process to crash. All 11 synchronous zlib functions are affected.\n\nRepeated exploitation of this condition can result in a denial of service.\n\nThis vulnerability affects Node.js **22.x**, **24.x**, and **26.x**.",
+  "affectedEnvironments": [
+   "all"
+  ],
+  "severity": "medium"
+ }
+}
