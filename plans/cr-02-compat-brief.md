@@ -1,6 +1,6 @@
 # CR-02 — Báo cáo `compat --path` trả lời trực tiếp mối lo của khách
 
-Yêu cầu (PO, 2026-10-26): báo cáo CR-01 thiên về kỹ thuật, chưa trả lời câu khách hỏi (vd khách eKYC: Lambda Node.js 18 hết hỗ trợ, thư viện cũ có lỗ hổng): **giờ đang có rủi ro bảo mật gì, quét xong có đảm bảo không, checklist là gì**, kèm effort và thời điểm triển khai.
+Yêu cầu (PO, 2026-10-26): báo cáo CR-01 thiên về kỹ thuật, chưa trả lời câu khách hỏi (vd một khách dùng Lambda Node.js 18 đã hết hỗ trợ, thư viện cũ có lỗ hổng): **giờ đang có rủi ro bảo mật gì, quét xong có đảm bảo không, checklist là gì**, kèm effort và thời điểm triển khai.
 
 ## Thay đổi
 Phần đầu báo cáo (HTML/Markdown, vi/en) là "Trả lời cho khách hàng" (`qplib/compat/brief.py`), sau đó mới đến phần kỹ thuật cũ:

@@ -116,9 +116,11 @@ for h in "### 1. Hệ thống đang có rủi ro bảo mật gì?" "### 2. Có n
          "### 5. Quét xong thì có đảm bảo an toàn không?" "## Checklist thực hiện"; do
   assert_contains "CR-02: report answers '$h'" "$(cat "$T/report.md")" "$h"
 done
-assert_contains "CR-02: Lambda nodejs18.x update already blocked -> critical risk" "$(cat "$T/report.md")" \
-  "| **Nghiêm trọng** | Runtime AWS Lambda nodejs18.x"
-assert_contains "CR-02: not safe now, short reasons" "$(cat "$T/report.md")" "CHƯA AN TOÀN: runtime AWS Lambda nodejs18.x đã bị AWS ngừng hỗ trợ; Node.js 18 đã hết hỗ trợ"
+assert_contains "CR-02/03: Lambda nodejs18.x deprecated -> high risk, AWS block dates" "$(cat "$T/report.md")" \
+  "| **Cao** | Runtime AWS Lambda nodejs18.x (Amazon Linux 2): AWS ngừng hỗ trợ từ 2025-09-01 (416 ngày trước): không còn vá bảo mật, không còn hỗ trợ kỹ thuật. AWS chặn tạo function từ 2027-07-29 và chặn cập nhật từ 2027-08-31"
+assert_contains "CR-02: not safe now, short reasons" "$(cat "$T/report.md")" "CHƯA AN TOÀN: Node.js 18 đã hết hỗ trợ; runtime AWS Lambda nodejs18.x đã bị AWS ngừng hỗ trợ"
+assert_contains "CR-03: logic and AWS configuration listed as not assessed" "$(cat "$T/report.md")" "| **Chưa đánh giá** | Logic ứng dụng của"
+assert_contains "CR-03: what the customer has to provide" "$(cat "$T/report.md")" "### Cần khách cung cấp hoặc xác nhận"
 assert_contains "CR-02: residual risk names the package without a fix" "$(cat "$T/report.md")" "aws-sdk 2.1000.0: chưa có bản sửa"
 assert_contains "CR-02: checklist line per declaration, on the recommended branch" "$(cat "$T/report.md")" \
   "- [ ] template.yaml:6 — Runtime: nodejs18.x → Runtime: nodejs24.x"
@@ -126,7 +128,7 @@ assert_contains "CR-02: checklist line per vulnerable package" "$(cat "$T/report
 assert_contains "CR-02: schedule gives production dates" "$(cat "$T/report.md")" "Có thể triển khai production trong khoảng 2026-10-"
 qp compat --path "$R" --target 22 --json >"$J" 2>/dev/null
 assert_eq "CR-02: result.brief risk levels (sorted)" "$(json_get "$J" '[r["level"] for r in d["result"]["brief"]["risks"]]')" \
-  "['critical', 'high', 'high', 'high', 'medium']"
+  "['high', 'high', 'high', 'high', 'medium', 'unassessed', 'unassessed']"
 assert_eq "CR-02: result.brief final target = recommended branch" "$(json_get "$J" 'd["result"]["brief"]["final_target"]')" 24
 check "CR-02: --json with brief valid against qp.compat/1" schema_ok "$J"
 

@@ -18,7 +18,8 @@ from . import deps, scan as S, semver
 MAX_DEPTH = 6
 TEXT_MAX = 512 * 1024
 SKIP = S.SKIP_DIRS | {'.serverless', '.aws-sam', 'cdk.out', 'dist', 'build', 'coverage', '.terraform'}
-DECL_FILES = re.compile(r'(\.ya?ml|\.json|\.tf|\.toml|\.[cm]?[jt]s|Dockerfile[^/]*|\.nvmrc|\.node-version|\.tool-versions)$')
+DECL_FILES = re.compile(r'(\.ya?ml|\.json|\.tf|\.toml|\.[cm]?[jt]s|Dockerfile[^/]*|\.nvmrc|\.node-version|\.tool-versions|'
+                        r'\.sh|Makefile)$')
 # Where a Node.js version is declared, besides package.json engines (kept apart: FR-CMPT-NPM-001).
 DECL = [
     ('lambda_runtime', re.compile(r'\bnodejs(\d+)\.x\b')),
@@ -36,6 +37,186 @@ KNOWN = {
                                  '18 trở lên chỉ có sẵn v3'},
                 'code': re.compile(r'''(?:require\s*\(\s*|from\s+)['"]aws-sdk(?:/[\w/-]+)?['"]''')},
 }
+
+
+# How a project is deployed (CR-03): Lambda functions updated by scripts (no IaC: the runtime is set in AWS),
+# static sites (Next.js `output: "export"` synced to S3).
+LAMBDA_CMD = re.compile(r'\baws\s+lambda\s+(update-function-code|create-function|update-function-configuration)\b')
+FN_LITERAL = re.compile(r'--function-name[=\s]+["\']?([A-Za-z0-9_-]+)')
+FN_VAR = re.compile(r'--function-name[=\s]+["\']?\$\{?([A-Za-z_][A-Za-z0-9_]*)')
+REGION = re.compile(r'--region[=\s]+["\']?([a-z]{2}-[a-z]+-\d)')
+NPM_INSTALL = re.compile(r'\bnpm\s+(install|i)\b(?![^\n]*--omit=dev)(?![^\n]*--production)')
+NPM_CI = re.compile(r'\bnpm\s+ci\b')
+S3_SYNC = re.compile(r'\baws\s+s3\s+(sync|cp)\b[^\n]*s3://["\']?\$?\{?([\w.$-]+)')
+NEXT_EXPORT = re.compile(r'output\s*:\s*["\']export["\']')
+
+
+def deploy_info(root, nested=()):
+    """{kind: lambda|static_site|None, functions[], scripts[], region, npm_install, static_export, buckets[]}."""
+    info = {'kind': None, 'functions': [], 'scripts': [], 'region': None, 'npm_install': False, 'static_export': False,
+            'buckets': []}
+    for fn in os.listdir(root) if os.path.isdir(root) else []:
+        if fn.startswith('next.config.'):
+            t = _text(os.path.join(root, fn)) or ''
+            if NEXT_EXPORT.search(t):
+                info['static_export'] = True
+    for dp, dns, fns in os.walk(root):
+        dns[:] = sorted(d for d in dns if d not in SKIP and not d.startswith('.') and os.path.join(dp, d) not in nested)
+        for f in sorted(fns):
+            if not (f.endswith('.sh') or f == 'Makefile'):
+                continue
+            path = os.path.join(dp, f)
+            text = _text(path) or ''
+            rel = os.path.relpath(path, root)
+            lam = LAMBDA_CMD.search(text)
+            s3 = S3_SYNC.search(text)
+            if not lam and not s3:
+                continue
+            info['scripts'].append(rel)
+            if lam:
+                info['kind'] = 'lambda'
+                names = FN_LITERAL.findall(text)
+                for var in FN_VAR.findall(text):
+                    names += re.findall(r'\b%s=["\']?([A-Za-z0-9_-]+)' % re.escape(var), text)
+                for n in names:
+                    if n not in info['functions']:
+                        info['functions'].append(n)
+                m = REGION.search(text)
+                info['region'] = info['region'] or (m.group(1) if m else None)
+                if NPM_INSTALL.search(text) and not NPM_CI.search(text):
+                    info['npm_install'] = True
+            elif s3 and info['kind'] is None:
+                info['kind'] = 'static_site'
+                for v in S3_SYNC.findall(text):
+                    var = v[1].lstrip('$').strip('{}')
+                    vals = re.findall(r'\b%s=["\']?([\w.-]+)' % re.escape(var), text)
+                    for b in vals or [v[1]]:
+                        if b not in info['buckets']:
+                            info['buckets'].append(b)
+    if info['kind'] is None and info['static_export']:
+        info['kind'] = 'static_site'
+    return info
+
+
+# AWS SDK v2 -> v3: package of every v2 service client (sizes the migration, FR-CMPT-NPM-002 style).
+SDK_V3 = {'DynamoDB.DocumentClient': '@aws-sdk/lib-dynamodb', 'DynamoDB': '@aws-sdk/client-dynamodb',
+          'SES': '@aws-sdk/client-ses', 'SESV2': '@aws-sdk/client-sesv2', 'S3': '@aws-sdk/client-s3',
+          'SQS': '@aws-sdk/client-sqs', 'SNS': '@aws-sdk/client-sns', 'Lambda': '@aws-sdk/client-lambda',
+          'SecretsManager': '@aws-sdk/client-secrets-manager', 'SSM': '@aws-sdk/client-ssm',
+          'CognitoIdentityServiceProvider': '@aws-sdk/client-cognito-identity-provider', 'KMS': '@aws-sdk/client-kms'}
+SDK_NEW = re.compile(r'new\s+AWS\.([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)?)\s*\(')
+SDK_PROMISE = re.compile(r'\.promise\s*\(\s*\)')
+# Credentials that a browser bundle ships to every visitor (public env prefixes of Next.js, Vite, CRA, Nuxt).
+CLIENT_SECRET = re.compile(r'(?:process\.env|import\.meta\.env)\.((?:NEXT_PUBLIC|VITE|REACT_APP|NUXT_PUBLIC)_[A-Z0-9_]*'
+                           r'(?:PASS(?:WORD)?|SECRET|TOKEN|PRIVATE|API_?KEY|CREDENTIAL|AUTH)[A-Z0-9_]*)')
+ENV_VAR = re.compile(r'process\.env\.([A-Z_][A-Z0-9_]*)|process\.env\[["\']([A-Z_][A-Z0-9_]*)["\']\]')
+IAC_NAMES = ('serverless.yml', 'serverless.yaml', 'template.yaml', 'template.yml', 'samconfig.toml', '*.tf',
+             'cdk.json', 'cdk.out')
+
+
+def code_facts(root, files):
+    """SDK v2 usage by service, credentials in a browser bundle, environment variables read by the code."""
+    services, promise, secrets, env = {}, 0, [], set()
+    for path in files:
+        text = _text(path)
+        if not text:
+            continue
+        rel = os.path.relpath(path, root)
+        for n, line in enumerate(text.split('\n'), 1):
+            for m in SDK_NEW.finditer(line):
+                s = services.setdefault(m.group(1), {'service': m.group(1), 'package': SDK_V3.get(m.group(1)) or
+                                                     '@aws-sdk/client-%s' % m.group(1).split('.')[0].lower(), 'sites': []})
+                s['sites'].append({'file': rel, 'line': n})
+            promise += len(SDK_PROMISE.findall(line))
+            for m in CLIENT_SECRET.finditer(line):
+                secrets.append({'file': rel, 'line': n, 'name': m.group(1)})
+            for m in ENV_VAR.finditer(line):
+                env.add(m.group(1) or m.group(2))
+    return {'sdk_v2_services': sorted(services.values(), key=lambda s: s['service']), 'sdk_v2_promise_calls': promise,
+            'client_secrets': secrets, 'env_vars': sorted(env)}
+
+
+def ignored_iac(paths):
+    """IaC files that a .gitignore of the scanned paths keeps out of the repository (ask the customer for them)."""
+    import fnmatch
+    out = []
+    for root in paths:
+        for dp, dns, fns in os.walk(os.path.realpath(root)):
+            dns[:] = [d for d in dns if d not in SKIP and not d.startswith('.')]
+            if '.gitignore' in fns:
+                for line in (_text(os.path.join(dp, '.gitignore')) or '').split('\n'):
+                    pat = line.strip().lstrip('/')
+                    if pat and not pat.startswith('#') and any(fnmatch.fnmatch(n, pat) or pat == n for n in IAC_NAMES):
+                        out.append({'gitignore': os.path.relpath(os.path.join(dp, '.gitignore'), os.path.realpath(root)),
+                                    'pattern': pat})
+    return out
+
+
+def fix_trial(work, root, lockname, fs, offline, timeout=300):
+    """`npm audit fix --package-lock-only` on a copy of package.json + lockfile, then OSV again on the new lockfile:
+    which findings the automatic fix removes and which remain (needs npm and the network)."""
+    import shutil
+    import subprocess
+    npm = shutil.which('npm')
+    if offline or not npm:
+        return {'ran': False, 'reason': 'offline' if offline else 'npm not found'}
+    d = os.path.join(work, 'fix-trial', re.sub(r'[^\w.-]', '_', os.path.basename(root)))
+    shutil.rmtree(d, ignore_errors=True)
+    os.makedirs(d)
+    for f in ('package.json', lockname, '.npmrc'):
+        if os.path.isfile(os.path.join(root, f)):
+            shutil.copy2(os.path.join(root, f), os.path.join(d, f))
+    try:
+        env = dict(os.environ, npm_config_fetch_retries='0', npm_config_fetch_timeout='60000', npm_config_audit='true')
+        p = subprocess.run([npm, 'audit', 'fix', '--package-lock-only', '--ignore-scripts', '--no-fund'], cwd=d,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, env=env)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return {'ran': False, 'reason': str(e)[:200]}
+    _, pkgs = lock_packages(d)
+    if not pkgs:
+        return {'ran': False, 'reason': 'npm audit fix: %s' % p.stdout.decode('utf-8', 'replace')[-200:]}
+    vul, meta = vulnerabilities(fs, os.path.join(d, lockname), pkgs, offline)
+    if vul is None:
+        return {'ran': False, 'reason': (meta or {}).get('error') or 'OSV'}
+    return {'ran': True, 'exit_code': p.returncode,
+            'remaining': [{'package': v['package'], 'version': v['version'], 'severity': v['severity'], 'dev': v['dev']}
+                          for v in vul]}
+
+
+def lock_parents(root):
+    """{package: set(direct dependencies that pull it in)} from package-lock v2/v3 (empty for v1)."""
+    lock = deps.read_json(os.path.join(root, 'package-lock.json')) or deps.read_json(os.path.join(root, 'npm-shrinkwrap.json'))
+    pk = (lock or {}).get('packages')
+    if not isinstance(pk, dict):
+        return {}
+    up = {}
+    rootp = pk.get('') or {}
+    direct = set()
+    for k in ('dependencies', 'devDependencies', 'optionalDependencies'):
+        direct |= set((rootp.get(k) or {}).keys())
+    for key, p in pk.items():
+        if not key or not isinstance(p, dict):
+            continue
+        name = key.split('node_modules/')[-1]
+        for k in ('dependencies', 'optionalDependencies', 'peerDependencies'):
+            for child in (p.get(k) or {}):
+                up.setdefault(child, set()).add(name)
+    out = {}
+    for name in up:
+        seen, todo, found = set(), [name], set()
+        while todo:
+            n = todo.pop()
+            for par in up.get(n, ()):
+                if par in seen:
+                    continue
+                seen.add(par)
+                if par in direct:
+                    found.add(par)
+                else:
+                    todo.append(par)
+        out[name] = found
+    out['__direct__'] = direct
+    return out
 
 
 def find_projects(paths, budget=None):
@@ -331,6 +512,7 @@ def scan_project(ctx, root, target, current_opt, node_bin, projects, decl, share
            'native_addons': [], 'vulnerabilities': None, 'vuln_meta': None, 'deprecated': [],
            'deprecated_unknown': [], 'parts': {}, 'errors': [], 'notes': []}
     res['declarations'] = decl
+    res['deploy'] = deploy_info(root, [p for p in projects if p != root and p.startswith(root.rstrip('/') + '/')])
     eng = (pj.get('engines') or {}).get('node') if isinstance(pj.get('engines'), dict) else None
     res['engines'] = eng
     # current branch: --current, else the most common declaration, else engines lower bound.
@@ -398,6 +580,10 @@ def scan_project(ctx, root, target, current_opt, node_bin, projects, decl, share
         res['parts']['vulnerabilities'] = 'pending'
     else:
         vul, meta = vulnerabilities(ctx['fs'], os.path.join(root, lockname), pkgs, ctx['offline'])
+        par = lock_parents(root)
+        for v in vul or []:
+            v['direct'] = v['package'] in direct or v['package'] in par.get('__direct__', ())
+            v['via'] = [] if v['direct'] else sorted(par.get(v['package'], ()))
         res['vulnerabilities'], res['vuln_meta'] = vul, meta
         if vul is None:
             res['parts']['vulnerabilities'] = 'pending'
@@ -407,6 +593,13 @@ def scan_project(ctx, root, target, current_opt, node_bin, projects, decl, share
             res['parts']['vulnerabilities'] = 'done'
     res['deprecated'], res['deprecated_unknown'] = deprecated(root, pkgs, ctx['feeds_dir'], ctx['offline'], lang,
                                                               files)
+    res.update(code_facts(root, files))
+    for d in res['deprecated']:
+        if d['package'] == 'aws-sdk':
+            d['services'] = res['sdk_v2_services']
+            d['promise_calls'] = res['sdk_v2_promise_calls']
+    if lockname and res['vulnerabilities']:
+        res['fix_trial'] = fix_trial(ctx['work'], root, lockname, ctx['fs'], ctx['offline'])
     if [u for u in unknown + res['deprecated_unknown'] if 'offline' in u.get('reason', '')
             or 'HTTP' in u.get('reason', '') or 'registry' in u.get('reason', '')]:
         res['errors'].append({'code': 'ERR-FEED-503-01', 'message': errors.message(
@@ -599,4 +792,5 @@ def run(state_dir, paths, target, current=None, node_bin=None, offline=False, la
             'shared_declarations': shared,
             'target_branch': target, 'target_patch': patch, 'target_patch_source': patch_src,
             'current_branch': cur, 'node_bin': node_bin, 'offline': offline, 'catalog_version': cat.version,
-            'lifecycle': lc, 'summary': summary, 'projects': results, 'artifacts_dir': out_dir}
+            'lifecycle': lc, 'summary': summary, 'projects': results, 'artifacts_dir': out_dir,
+            'ignored_iac': ignored_iac(paths)}

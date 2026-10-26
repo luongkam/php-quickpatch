@@ -325,7 +325,7 @@ padding:10px 14px;min-width:150px;flex:1}.card b{display:block;font-size:22px}.c
 color:var(--fg)}.msg.warn{background:#fff8c5;border-color:var(--warn);color:var(--fg)}.msg.bad{background:#ffebe9;
 border-color:var(--bad);color:var(--fg)}.sev-critical,.sev-high{color:var(--bad);font-weight:600}.sev-medium{color:var(--warn)}
 ul{margin:4px 0 8px;padding-left:20px}.wrap{overflow-x:auto}.lv-critical{background:#82071e}.lv-high{background:var(--bad)}
-.lv-medium{background:var(--warn)}.lv-low{background:#57606a}.lv-info{background:#0969da}
+.lv-medium{background:var(--warn)}.lv-low{background:#57606a}.lv-info{background:#0969da}.lv-unassessed{background:#8250df}
 @media print{main{max-width:none}h2{break-after:avoid}table{break-inside:auto}}
 """
 

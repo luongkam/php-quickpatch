@@ -35,12 +35,15 @@ LAMBDA = {'file': 'template.yaml', 'line': 6, 'kind': 'lambda_runtime', 'text': 
 
 class BriefTest(unittest.TestCase):
     def test_lambda_risk_levels_by_date(self):
-        res = result([project('reset', vulns=[], decls=[LAMBDA])], today='2026-10-22')
-        r = B.build(res, 'en')['risks']
-        self.assertEqual((r[0]['level'], r[0]['key']), ('critical', 'r_lambda_blocked'))
-        res = result([project('reset', vulns=[], decls=[LAMBDA])], today='2025-10-01')
-        keys = {x['key']: x['level'] for x in B.build(res, 'en')['risks']}
-        self.assertEqual(keys['r_lambda_deprecated'], 'high')
+        """AWS table: nodejs18.x deprecated 2025-09-01, block create 2027-07-29, block update 2027-08-31."""
+        keys = lambda today: {x['key']: x['level'] for x in B.build(        # noqa: E731
+            result([project('reset', vulns=[], decls=[LAMBDA])], today=today), 'en')['risks']}
+        self.assertEqual(keys('2026-10-22')['r_lambda_deprecated'], 'high')
+        self.assertEqual(keys('2027-09-01')['r_lambda_blocked'], 'critical')
+        self.assertNotIn('r_lambda_deprecated', keys('2025-08-01'))
+        r = next(x for x in B.build(result([project('reset', vulns=[], decls=[LAMBDA])], today='2026-10-22'), 'vi')['risks']
+                 if x['key'] == 'r_lambda_deprecated')
+        self.assertIn('Amazon Linux 2) đã hết vòng đời từ 2026-06-30', B._risk_text(r, 'vi'))
 
     def test_runtime_eol_counts_unpatched(self):
         res = result([project('reset', vulns=[])])
@@ -67,10 +70,14 @@ class BriefTest(unittest.TestCase):
         work = [{'kind': 'runtime_declarations', 'count': 2, 'size': 'S'},
                 {'kind': 'regression_test', 'count': 1, 'size': 'S'}]
         b = B.build(result([project('a', vulns=[], work=work)], today='2026-10-23'), 'en')   # a Friday
-        self.assertEqual(b['effort']['hours'], [5.0, 10.0])         # 0.5+0.25x2 + 4 ; 1+0.5x2 + 8
-        self.assertEqual(b['effort']['days'], [1, 2])
+        self.assertEqual(b['effort']['hours'], [3.0, 6.0])          # 0.5+0.25x2 + 2 ; 1+0.5x2 + 4 (small project)
+        self.assertEqual(b['effort']['days'], [1, 1])
         self.assertEqual(b['schedule']['prod_from'], '2026-10-27')  # 3 working days from Friday
-        self.assertEqual(b['schedule']['prod_to'], '2026-10-29')
+        self.assertEqual(b['schedule']['prod_to'], '2026-10-28')
+        work[1:1] = []
+        big = project('a', vulns=[], work=work)
+        big['files_scanned'] = 200
+        self.assertEqual(B.build(result([big], today='2026-10-23'), 'en')['effort']['hours'], [5.0, 10.0])
 
     def test_workdays(self):
         self.assertEqual(B._workdays(datetime.date(2026, 10, 24), 1), datetime.date(2026, 10, 26))   # Saturday
@@ -92,8 +99,99 @@ class BriefTest(unittest.TestCase):
 
     def test_json_form(self):
         j = B.to_json(B.build(result([project('a', vulns=[])]), 'en'))
-        self.assertEqual(sorted(j), ['assurance', 'checklist', 'effort', 'final_target', 'risks', 'schedule',
+        self.assertEqual(sorted(j), ['ask', 'assurance', 'checklist', 'effort', 'final_target', 'risks', 'schedule',
                                      'schedule_window'])
+
+
+class LambdaRepoShapeTest(unittest.TestCase):
+    """CR-03: a Lambda repository without IaC (deploy.sh + aws lambda update-function-code), a Next.js static export,
+    credentials in NEXT_PUBLIC_*, indirect vulnerabilities, a gitignored serverless.yml (shape of a real Lambda case)."""
+
+    def setUp(self):
+        import json as J
+        import tempfile
+        self.tmp = tempfile.mkdtemp()
+        r = self.root = os.path.join(self.tmp, 'repo')
+        for d in ('backend/verify/src', 'frontend/src'):
+            os.makedirs(os.path.join(r, d))
+        open(os.path.join(r, 'backend/.gitignore'), 'w').write('node_modules\nserverless.yml\n')
+        open(os.path.join(r, 'backend/verify/deploy.sh'), 'w').write(
+            'STAGE=$1\nif [ "$STAGE" == "dev" ]; then\n  FUNCTION_NAME="dev_verify"\nelse\n  FUNCTION_NAME="prod_verify"\nfi\n'
+            'npm install\nzip -r f.zip .\naws lambda update-function-code --function-name "$FUNCTION_NAME" '
+            '--zip-file fileb://f.zip --region ap-northeast-1\n')
+        J.dump({'name': 'verify', 'dependencies': {'axios': '^1.7.9', 'aws-sdk': '^2.1692.0'}},
+               open(os.path.join(r, 'backend/verify/package.json'), 'w'))
+        J.dump({'lockfileVersion': 3, 'packages': {
+            '': {'dependencies': {'axios': '^1.7.9', 'aws-sdk': '^2.1692.0'}},
+            'node_modules/axios': {'version': '1.7.9', 'dependencies': {'form-data': '^4.0.0', 'follow-redirects': '^1'}},
+            'node_modules/form-data': {'version': '4.0.1'}, 'node_modules/follow-redirects': {'version': '1.15.9'},
+            'node_modules/aws-sdk': {'version': '2.1692.0', 'dependencies': {'uuid': '8.0.0'}},
+            'node_modules/uuid': {'version': '8.0.0'}}}, open(os.path.join(r, 'backend/verify/package-lock.json'), 'w'))
+        open(os.path.join(r, 'backend/verify/src/db.js'), 'w').write(
+            "const AWS = require('aws-sdk');\nconst db = new AWS.DynamoDB.DocumentClient();\n"
+            "const ses = new AWS.SES();\nexports.get = (k) => db.get({TableName: process.env.USER_INFO_TABLE, Key: k}).promise();\n")
+        open(os.path.join(r, 'frontend/next.config.ts'), 'w').write('export default { output: "export" };\n')
+        open(os.path.join(r, 'frontend/deploy.sh'), 'w').write('npm run build\naws s3 sync out s3://$B --delete\nB=prod-front\n')
+        open(os.path.join(r, 'frontend/src/api.ts'), 'w').write(
+            'const p = process.env.NEXT_PUBLIC_API_PASSWORD || "admin";\nconst u = process.env.NEXT_PUBLIC_API_URL;\n')
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp)
+
+    def test_deploy_info(self):
+        from qplib.compat import project as P
+        v = P.deploy_info(os.path.join(self.root, 'backend/verify'))
+        self.assertEqual((v['kind'], v['functions'], v['region'], v['npm_install']),
+                         ('lambda', ['dev_verify', 'prod_verify'], 'ap-northeast-1', True))
+        f = P.deploy_info(os.path.join(self.root, 'frontend'))
+        self.assertEqual((f['kind'], f['static_export']), ('static_site', True))
+
+    def test_code_facts_and_parents(self):
+        from qplib.compat import project as P
+        d = os.path.join(self.root, 'backend/verify')
+        c = P.code_facts(d, [os.path.join(d, 'src/db.js')])
+        self.assertEqual([(s['service'], s['package'], len(s['sites'])) for s in c['sdk_v2_services']],
+                         [('DynamoDB.DocumentClient', '@aws-sdk/lib-dynamodb', 1), ('SES', '@aws-sdk/client-ses', 1)])
+        self.assertEqual((c['sdk_v2_promise_calls'], c['env_vars']), (1, ['USER_INFO_TABLE']))
+        fe = os.path.join(self.root, 'frontend')
+        s = P.code_facts(fe, [os.path.join(fe, 'src/api.ts')])['client_secrets']
+        self.assertEqual([(x['name'], x['line']) for x in s], [('NEXT_PUBLIC_API_PASSWORD', 1)])   # API_URL is not a secret
+        par = P.lock_parents(d)
+        self.assertEqual((sorted(par['form-data']), sorted(par['uuid'])), (['axios'], ['aws-sdk']))
+        self.assertEqual(P.ignored_iac([self.root]), [{'gitignore': 'backend/.gitignore', 'pattern': 'serverless.yml'}])
+
+    def test_brief_without_iac(self):
+        from qplib.compat import project as P
+        vd = os.path.join(self.root, 'backend/verify')
+        p = project('verify', vulns=[
+            {'package': 'form-data', 'version': '4.0.1', 'severity': 'critical', 'advisories': ['GHSA-f'], 'dev': False,
+             'fix_version': '4.0.6', 'major_bump': False, 'direct': False, 'via': ['axios']}])
+        p['path'] = vd
+        p['deploy'] = P.deploy_info(vd)
+        fe = project('frontend', vulns=[
+            {'package': 'next', 'version': '15.0.3', 'severity': 'critical', 'advisories': ['GHSA-n'], 'dev': False,
+             'fix_version': '15.5.28', 'major_bump': False, 'direct': True, 'via': []}])
+        fe['path'] = os.path.join(self.root, 'frontend')
+        fe['deploy'] = P.deploy_info(fe['path'])
+        fe['client_secrets'] = [{'file': 'src/api.ts', 'line': 1, 'name': 'NEXT_PUBLIC_API_PASSWORD'}]
+        res = result([p, fe])
+        res['ignored_iac'] = P.ignored_iac([self.root])
+        res['current_branch'] = None
+        b = B.build(res, 'vi')
+        keys = {r['key']: r['level'] for r in b['risks']}
+        self.assertEqual(keys['r_runtime_unknown'], 'high')               # runtime not in the repository
+        self.assertEqual(keys['r_static'], 'medium')                      # static export: lower than critical
+        self.assertEqual(keys['r_client_secret'], 'high')
+        self.assertEqual(keys['r_manual_logic'], 'unassessed')
+        self.assertEqual([k for k, _ in b['ask']][:3], ['ask_runtime', 'ask_iac', 'ask_gateway'])
+        via = next(c for c in b['checklist'] if c['key'] == 'k_vuln_via')
+        self.assertEqual(via['args']['via'], 'axios')
+        res['current_branch'] = '18'
+        b = B.build(res, 'vi')
+        self.assertIn('r_lambda_deprecated', [r['key'] for r in b['risks']])
+        self.assertEqual([c['args']['fn'] for c in b['checklist'] if c['key'] == 'k_fn_runtime'], ['dev_verify', 'prod_verify'])
+        self.assertIn('k_npm_ci', [c['key'] for c in b['checklist']])
 
 
 if __name__ == '__main__':

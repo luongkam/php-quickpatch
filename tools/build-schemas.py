@@ -301,7 +301,8 @@ DECLARATION = obj({'file': S, 'line': I, 'kind': enum('lambda_runtime', 'cdk_run
                    'text': S, 'branch': S, 'code_uri': SN, 'project': SN, 'to_change': B},
                   required=['file', 'line', 'kind', 'branch', 'to_change'])
 VULN = obj({'package': S, 'version': S, 'advisories': arr(S), 'severity': S, 'in_kev': B, 'is_malware': B,
-            'fixed_versions': arr(S), 'dev': B, 'fix_version': SN, 'major_bump': BN, 'unfixed_advisories': arr(S)},
+            'fixed_versions': arr(S), 'dev': B, 'fix_version': SN, 'major_bump': BN, 'unfixed_advisories': arr(S),
+            'direct': B, 'via': arr(S)},
            required=['package', 'version', 'advisories', 'severity', 'fix_version', 'dev'])
 BRANCH_INFO = obj({'branch': S, 'status': S, 'eol_date': SN, 'days_to_eol': IN, 'latest': SN, 'lts': BN,
                    'unpatched': {'type': ['object', 'null']}},
@@ -317,6 +318,8 @@ COMPAT_PROJECT = obj({
                                                       required=['file', 'line', 'rule_id', 'level'])),
     'native_addons': arr(obj({'package': S, 'load_ok': BN}, required=['package', 'load_ok'])),
     'parts': {'type': 'object'}, 'verdict': VERDICT,
+    'deploy': obj({'kind': enum('lambda', 'static_site', nullable=True), 'functions': arr(S), 'scripts': arr(S),
+                   'region': SN, 'npm_install': B, 'static_export': B, 'buckets': arr(S)}, required=['kind']),
     'work_items': arr(obj({'kind': S, 'count': I, 'size': enum('S', 'M', 'L')}, required=['kind', 'count', 'size'])),
     'errors': arr(ANY), 'notes': arr(ANY)},
     required=['path', 'name', 'current_branch', 'target_branch', 'declarations', 'vulnerabilities', 'deprecated',
@@ -330,7 +333,8 @@ COMPAT_RESULT = obj({
     'summary': obj({'projects': I, 'by_status': {'type': 'object'}, 'vulnerable_packages': I, 'runtime_changes': I,
                     'deprecated': I, 'errors': I}),
     'projects': arr(COMPAT_PROJECT), 'shared_declarations': arr(DECLARATION), 'reports': arr(S),
-    'brief': obj({'risks': arr(obj({'level': enum('critical', 'high', 'medium', 'low', 'info'), 'area': S, 'key': S},
+    'brief': obj({'risks': arr(obj({'level': enum('critical', 'high', 'medium', 'low', 'info', 'unassessed'), 'area': S,
+                                    'key': S, 'detect': enum('scan', 'manual')},
                                    required=['level', 'area', 'key'])),
                   'effort': {'type': 'object'}, 'schedule': arr(ANY), 'assurance': {'type': 'object'},
                   'checklist': arr(obj({'phase': S, 'key': S, 'status': enum('todo', 'not_needed', 'check')},

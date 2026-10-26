@@ -38,6 +38,30 @@ Development build of v2 (not a release).
   of the tool's last PASSED switch, and warns about interrupted health checks.
 - FastCGI client for the trial run and the pool check (`qp-feeds.py fcgi`, standard library).
 
+### Added (CR-03)
+- `compat --path` reads how projects are deployed:
+  - Lambda functions from deploy scripts (`aws lambda update-function-code`, function names set
+    through variables, region), and the use of `npm install` instead of `npm ci`;
+  - static sites (Next.js `output: "export"` synced to S3).
+- The runtime of Lambda functions without infrastructure code is reported as unknown, with the AWS
+  command to read it. With `--current N` the Lambda risk uses the AWS deprecation dates.
+- Vulnerabilities name the direct dependency that pulls them in.
+- `npm audit fix` is tried on a copy and the lockfile is checked again, to show which findings an
+  automatic fix removes.
+- AWS SDK v2 usage is sized per client and `.promise()` call. Credentials read from public build
+  variables (`NEXT_PUBLIC_*`, `VITE_*`, `REACT_APP_*`) are reported, and so are IaC files kept out by
+  `.gitignore` and the environment variables read by the code.
+- The report:
+  - lists the risks a scan cannot rate (application logic, AWS configuration) as "Not assessed";
+  - shows the coverage of the scan;
+  - adds "What the customer has to provide" and a per-function checklist.
+
+### Fixed (CR-03)
+- AWS Lambda runtime dates follow the AWS table: nodejs18.x block function create 2027-07-29 and
+  block function update 2027-08-31. They were wrong in CR-02, which reported the update as already
+  blocked.
+- A version deprecated on npm is no longer reported as "package abandoned by its authors".
+
 ### Added (CR-02)
 - The `compat --path` report opens with "Answers for the customer": current security risks
   ranked by level (out-of-support Node.js branch with its unfixed vulnerabilities, AWS Lambda

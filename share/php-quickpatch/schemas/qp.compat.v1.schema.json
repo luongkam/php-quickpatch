@@ -663,6 +663,15 @@
                                   "items": {
                                     "type": "string"
                                   }
+                                },
+                                "direct": {
+                                  "type": "boolean"
+                                },
+                                "via": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
                                 }
                               },
                               "required": [
@@ -849,6 +858,51 @@
                           "pending_parts"
                         ]
                       },
+                      "deploy": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "enum": [
+                              "lambda",
+                              "static_site",
+                              null
+                            ]
+                          },
+                          "functions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "scripts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "region": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "npm_install": {
+                            "type": "boolean"
+                          },
+                          "static_export": {
+                            "type": "boolean"
+                          },
+                          "buckets": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      },
                       "work_items": {
                         "type": "array",
                         "items": {
@@ -971,7 +1025,8 @@
                               "high",
                               "medium",
                               "low",
-                              "info"
+                              "info",
+                              "unassessed"
                             ]
                           },
                           "area": {
@@ -979,6 +1034,12 @@
                           },
                           "key": {
                             "type": "string"
+                          },
+                          "detect": {
+                            "enum": [
+                              "scan",
+                              "manual"
+                            ]
                           }
                         },
                         "required": [
