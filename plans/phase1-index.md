@@ -77,6 +77,6 @@ Phân bổ FR → mốc do script sinh từ `srs/functional-requirements.md` và
 | M5 | Xong (một phần) | `7b68d7c` | 22 FR: 18 xong (PHP: Debian/Ubuntu + Nginx), 1 một phần (Node.js systemd PB-017 chưa chạy được), 3 chưa (panel, `mod_php` → FPM, Compose) — xem phase1-m5-migrate.md §5 |
 | CR-02 | Xong | `de0bcc9` | Báo cáo `compat --path` trả lời khách: rủi ro, effort, lịch, phạm vi bảo đảm, checklist; [cr-02-compat-brief.md](cr-02-compat-brief.md) |
 | CR-03 | Xong | `9959bbb` | `compat --path` theo tình huống Lambda thật: Lambda từ deploy.sh, ngày AWS đúng, dependency gián tiếp, thử `npm audit fix`, SDK v3, credential frontend, "Chưa đánh giá", cần khách cung cấp; [cr-03-compat-real-case.md](cr-03-compat-real-case.md) |
-| CR-04 | Xong | (commit này) | 2 tài liệu chuẩn tư vấn sinh từ phần mềm: Security Posture Assessment & Remediation Plan, Runtime Compatibility Assessment & Migration Plan; `report security\|compatibility`; [cr-04-enterprise-reports.md](cr-04-enterprise-reports.md) |
+| CR-04 | Xong | `0ef9882` | 2 tài liệu chuẩn tư vấn sinh từ phần mềm: Security Posture Assessment & Remediation Plan, Runtime Compatibility Assessment & Migration Plan; `report security\|compatibility`; [cr-04-enterprise-reports.md](cr-04-enterprise-reports.md) |
 | M6 | Chưa bắt đầu | | |
 | M7 | Chưa bắt đầu | | |
