@@ -402,6 +402,12 @@
                             "boolean",
                             "null"
                           ]
+                        },
+                        "unpatched": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
                         }
                       },
                       "required": [
@@ -444,6 +450,12 @@
                             "boolean",
                             "null"
                           ]
+                        },
+                        "unpatched": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
                         }
                       },
                       "required": [
@@ -452,6 +464,12 @@
                       ]
                     },
                     "recommended": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "recommended_eol": {
                       "type": [
                         "string",
                         "null"
@@ -938,6 +956,82 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "brief": {
+                  "type": "object",
+                  "properties": {
+                    "risks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "level": {
+                            "enum": [
+                              "critical",
+                              "high",
+                              "medium",
+                              "low",
+                              "info"
+                            ]
+                          },
+                          "area": {
+                            "type": "string"
+                          },
+                          "key": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "level",
+                          "area",
+                          "key"
+                        ]
+                      }
+                    },
+                    "effort": {
+                      "type": "object"
+                    },
+                    "schedule": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "assurance": {
+                      "type": "object"
+                    },
+                    "checklist": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "phase": {
+                            "type": "string"
+                          },
+                          "key": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "todo",
+                              "not_needed",
+                              "check"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "phase",
+                          "key",
+                          "status"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "risks",
+                    "effort",
+                    "schedule",
+                    "assurance",
+                    "checklist"
+                  ]
                 }
               },
               "required": [

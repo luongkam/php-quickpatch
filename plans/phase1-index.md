@@ -74,6 +74,7 @@ Phân bổ FR → mốc do script sinh từ `srs/functional-requirements.md` và
 | M3 | Xong | `c27baa1` | 25 FR: 15 xong, 9 một phần, 1 chưa (`FR-PLAN-DEP-001` cần M4); phần còn lại thuộc M4 (quét tương thích), M5 (baseline, chuyển site), M6 (job) |
 | M4 | Xong | `02341fd` | 14 FR: 11 xong, 3 một phần (native addon build thật, PECL/RHEL, chạy file mã hoá mẫu tự động); thêm `FR-PLAN-GEN-002`, `FR-PLAN-DEP-001` của M3 xong |
 | CR-01 | Xong | `ac41c67` | `compat --path` + báo cáo HTML/MD; ngoài FR Phase 1, [cr-01-compat-path.md](cr-01-compat-path.md) |
-| M5 | Xong (một phần) | (commit M5) | 22 FR: 18 xong (PHP: Debian/Ubuntu + Nginx), 1 một phần (Node.js systemd PB-017 chưa chạy được), 3 chưa (panel, `mod_php` → FPM, Compose) — xem phase1-m5-migrate.md §5 |
+| M5 | Xong (một phần) | `7b68d7c` | 22 FR: 18 xong (PHP: Debian/Ubuntu + Nginx), 1 một phần (Node.js systemd PB-017 chưa chạy được), 3 chưa (panel, `mod_php` → FPM, Compose) — xem phase1-m5-migrate.md §5 |
+| CR-02 | Xong | (commit CR-02) | Báo cáo `compat --path` trả lời khách: rủi ro, effort, lịch, phạm vi bảo đảm, checklist; [cr-02-compat-brief.md](cr-02-compat-brief.md) |
 | M6 | Chưa bắt đầu | | |
 | M7 | Chưa bắt đầu | | |

@@ -95,17 +95,40 @@ check "CR-01: --report written" test -s "$T/report.html"
 RD=$(json_get "$J" "d['result']['artifacts_dir']")
 check "CR-01: report.html, report.md and result.json kept in STATE_DIR/reports" test -s "$RD/report.html" -a -s "$RD/report.md" -a -s "$RD/result.json"
 assert_eq "CR-01: report is escaped (no script from the code), self-contained" \
-  "$(grep -c '<script' "$T/report.html") $(grep -c 'https\?://[^"]*\.\(css\|js\)' "$T/report.html") $(grep -c '&lt;script&gt;' "$T/report.html")" "0 0 1"
+  "$(grep -c '<script' "$T/report.html") $(grep -c '<link\|src="http\|@import' "$T/report.html") $(grep -c '&lt;script&gt;' "$T/report.html")" "0 0 1"
 assert_contains "CR-01: report names the recommended branch" "$(cat "$T/report.html")" "Node.js 24 is recommended"
 assert_contains "CR-01: report suggests the new Lambda runtime" "$(cat "$T/report.html")" "Runtime: nodejs22.x"
 check "CR-01: no request to the real registries" test -z "$(grep -E 'registry\.npmjs|osv\.dev' "$T/err")"
 
 # --- Vietnamese text mode and Markdown ------------------------------------------------------
 out=$(qp compat --path "$R" --target 22 --lang vi --report "$T/report.md" 2>/dev/null); rc=$?
+if [ -n "${QP_KEEP_REPORTS:-}" ]; then                 # sample reports for a reviewer
+  qp compat --path "$R" --target 22 --lang vi --report "$QP_KEEP_REPORTS/compat-vi.html" >/dev/null 2>&1
+  cp "$T/report.md" "$QP_KEEP_REPORTS/compat-vi.md"; cp "$T/report.html" "$QP_KEEP_REPORTS/compat-en.html"
+fi
 assert_eq "CR-01: text mode exit 1" "$rc" "1"
 assert_contains "CR-01: Vietnamese summary" "$out" "Báo cáo tương thích Node.js 18 -> 22"
 assert_contains "CR-01: Vietnamese lifecycle advice" "$out" "Khuyến nghị Node.js 24."
 assert_contains "CR-01: Markdown report in Vietnamese" "$(cat "$T/report.md")" "## Khối lượng việc"
+# --- CR-02: answers for the customer at the top of the report ----------------------------------
+for h in "### 1. Hệ thống đang có rủi ro bảo mật gì?" "### 2. Có nâng cấp được không? Có ảnh hưởng gì?" \
+         "### 3. Cần sửa những gì, effort bao nhiêu?" "### 4. Khi nào có thể triển khai?" \
+         "### 5. Quét xong thì có đảm bảo an toàn không?" "## Checklist thực hiện"; do
+  assert_contains "CR-02: report answers '$h'" "$(cat "$T/report.md")" "$h"
+done
+assert_contains "CR-02: Lambda nodejs18.x update already blocked -> critical risk" "$(cat "$T/report.md")" \
+  "| **Nghiêm trọng** | Runtime AWS Lambda nodejs18.x"
+assert_contains "CR-02: not safe now, short reasons" "$(cat "$T/report.md")" "CHƯA AN TOÀN: runtime AWS Lambda nodejs18.x đã bị AWS ngừng hỗ trợ; Node.js 18 đã hết hỗ trợ"
+assert_contains "CR-02: residual risk names the package without a fix" "$(cat "$T/report.md")" "aws-sdk 2.1000.0: chưa có bản sửa"
+assert_contains "CR-02: checklist line per declaration, on the recommended branch" "$(cat "$T/report.md")" \
+  "- [ ] template.yaml:6 — Runtime: nodejs18.x → Runtime: nodejs24.x"
+assert_contains "CR-02: checklist line per vulnerable package" "$(cat "$T/report.md")" "- [ ] Nâng axios 0.21.1 → 0.28.0 (high)"
+assert_contains "CR-02: schedule gives production dates" "$(cat "$T/report.md")" "Có thể triển khai production trong khoảng 2026-10-"
+qp compat --path "$R" --target 22 --json >"$J" 2>/dev/null
+assert_eq "CR-02: result.brief risk levels (sorted)" "$(json_get "$J" '[r["level"] for r in d["result"]["brief"]["risks"]]')" \
+  "['critical', 'high', 'high', 'high', 'medium']"
+assert_eq "CR-02: result.brief final target = recommended branch" "$(json_get "$J" 'd["result"]["brief"]["final_target"]')" 24
+check "CR-02: --json with brief valid against qp.compat/1" schema_ok "$J"
 
 # --- target 24 with a Node.js 24 binary for the native addon ---------------------------------
 fake_node "$T/n24" 24.22.1 137

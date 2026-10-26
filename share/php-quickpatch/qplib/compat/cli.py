@@ -9,7 +9,7 @@ import re
 import subprocess
 
 from .. import assess as A, errors
-from . import project as P, report as RP
+from . import brief as BR, project as P, report as RP
 
 
 def node_major(binary):
@@ -70,6 +70,7 @@ def run(env, argv, Args, warnings, state_dir):
         for x in p['errors']:
             env.error(x['code'], x['message'], 'project:%s' % p['path'])
     d = res['artifacts_dir']
+    res['brief'] = BR.to_json(BR.build(res, lang))          # answers for the customer (CR-02)
     res['reports'] = [RP.write(res, os.path.join(d, 'report.html'), lang),
                       RP.write(res, os.path.join(d, 'report.md'), lang)]
     if out_file:

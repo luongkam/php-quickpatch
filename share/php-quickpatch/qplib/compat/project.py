@@ -271,6 +271,15 @@ def lifecycle(fs, today, current, target, min_days=365):
             ev = A.Evaluator(b, today)
             table = A.branch_table(ev, 'node')
             bundle_id = getattr(b, 'bundle_id', None) or os.path.basename(getattr(b, 'path', '') or '')
+            exposure = {}
+            for r in table:                    # vulnerabilities left in the newest release of the current branch
+                if r['branch'] == current and r['latest']:
+                    try:
+                        e = ev.version('node', r['latest'])['exposure']
+                        exposure = {'version': r['latest'], 'critical': e['n_crit'], 'high': e['n_high'],
+                                    'medium': e['n_med'], 'low': e['n_low'], 'kev': e['n_kev']}
+                    except (LookupError, KeyError):
+                        exposure = {}
     except LookupError:
         return None
     rows = {r['branch']: r for r in table}
@@ -288,8 +297,12 @@ def lifecycle(fs, today, current, target, min_days=365):
     good = [r for r in table if r['branch'].isdigit() and int(r['branch']) % 2 == 0 and r['status'] in A.LTS_NODE
             and (r['lc'].get('eol_date') or '') >= cut]
     rec = good[-1]['branch'] if good else None
-    return {'today': today, 'bundle_id': bundle_id, 'current': info(current) if current else None,
+    cur_info = info(current) if current else None
+    if cur_info is not None:
+        cur_info['unpatched'] = exposure or None
+    return {'today': today, 'bundle_id': bundle_id, 'current': cur_info,
             'target': info(target), 'recommended': rec, 'min_eol': cut,
+            'recommended_eol': (rows[rec]['lc'].get('eol_date') or None) if rec in rows else None,
             'target_ok': bool(rows.get(target)) and rows[target]['status'] in A.LTS_NODE
             and (rows[target]['lc'].get('eol_date') or '') >= cut}
 

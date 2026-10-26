@@ -303,7 +303,8 @@ DECLARATION = obj({'file': S, 'line': I, 'kind': enum('lambda_runtime', 'cdk_run
 VULN = obj({'package': S, 'version': S, 'advisories': arr(S), 'severity': S, 'in_kev': B, 'is_malware': B,
             'fixed_versions': arr(S), 'dev': B, 'fix_version': SN, 'major_bump': BN, 'unfixed_advisories': arr(S)},
            required=['package', 'version', 'advisories', 'severity', 'fix_version', 'dev'])
-BRANCH_INFO = obj({'branch': S, 'status': S, 'eol_date': SN, 'days_to_eol': IN, 'latest': SN, 'lts': BN},
+BRANCH_INFO = obj({'branch': S, 'status': S, 'eol_date': SN, 'days_to_eol': IN, 'latest': SN, 'lts': BN,
+                   'unpatched': {'type': ['object', 'null']}},
                   required=['branch', 'status'], nullable=True)
 COMPAT_PROJECT = obj({
     'path': S, 'name': S, 'current_branch': SN, 'current_source': SN, 'target_branch': S, 'lockfile': SN,
@@ -324,11 +325,17 @@ COMPAT_RESULT = obj({
     'run_id': S, 'runtime': enum('node'), 'paths': arr(S), 'target_branch': S, 'target_patch': S,
     'current_branch': SN, 'catalog_version': SN,
     'lifecycle': obj({'today': S, 'bundle_id': SN, 'current': BRANCH_INFO, 'target': BRANCH_INFO,
-                      'recommended': SN, 'min_eol': S, 'target_ok': B}, required=['target', 'recommended', 'target_ok'],
+                      'recommended': SN, 'recommended_eol': SN, 'min_eol': S, 'target_ok': B}, required=['target', 'recommended', 'target_ok'],
                      nullable=True),
     'summary': obj({'projects': I, 'by_status': {'type': 'object'}, 'vulnerable_packages': I, 'runtime_changes': I,
                     'deprecated': I, 'errors': I}),
-    'projects': arr(COMPAT_PROJECT), 'shared_declarations': arr(DECLARATION), 'reports': arr(S)},
+    'projects': arr(COMPAT_PROJECT), 'shared_declarations': arr(DECLARATION), 'reports': arr(S),
+    'brief': obj({'risks': arr(obj({'level': enum('critical', 'high', 'medium', 'low', 'info'), 'area': S, 'key': S},
+                                   required=['level', 'area', 'key'])),
+                  'effort': {'type': 'object'}, 'schedule': arr(ANY), 'assurance': {'type': 'object'},
+                  'checklist': arr(obj({'phase': S, 'key': S, 'status': enum('todo', 'not_needed', 'check')},
+                                       required=['phase', 'key', 'status']))},
+                 required=['risks', 'effort', 'schedule', 'assurance', 'checklist'])},
     required=['run_id', 'runtime', 'paths', 'target_branch', 'lifecycle', 'summary', 'projects', 'reports'],
     nullable=True)
 

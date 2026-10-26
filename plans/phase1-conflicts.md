@@ -36,6 +36,7 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | C-28 | M5 | Nhiều tiêu chí vi phạm trong cùng 1 vòng: `rollback_reason` là 1 mã (`HC-C0..C9`) nhưng tài liệu HC không nói chọn mã nào; mã 5xx luôn vi phạm cả `HC-C1` | DOC-SRS-QP-ENV-002 §6, states.md `T-SW-11` | `rollback_reason` = `HC-C2` khi có, ngược lại mã nhỏ nhất; mọi tiêu chí vẫn có trong `hc.violations[]` | A | Áp dụng |
 | C-29 | M5 | `rollback <run_id>` của lượt có dòng `switch` (states.md `T-SW-15`): api-spec-cli-json §8 chỉ mô tả `qp.fix/1` cho `rollback` | states.md, api-spec-cli-json §8, §9 | Chạy R1–R7 của `migrate rollback --purge-pool`; xuất `qp.migrate/1` (`command.name = migrate`, `subcommand = rollback`) | A | Áp dụng |
 | C-30 | M5 | `BR-PLAN-006`: `scan_fingerprint` gồm `site_binding`; mỗi lượt chuyển `PASSED` đổi gán site → lần `scan` kế tiếp làm kế hoạch `stale` (`SCAN_CHANGED`) và `FR-UPG-SEQ-001` từ chối site kế tiếp (`ERR-PLAN-410-01`) | BR-PLAN-006, FR-UPG-SEQ-001 | Giữ đúng thiết kế (kiểm `stale` trước mỗi lượt chuyển); người vận hành không chạy `scan` giữa các lượt chuyển hoặc tạo lại kế hoạch. Đề xuất PO: loại phần gán của các site đã chuyển bởi chính kế hoạch khỏi so sánh | C | Chờ PO |
+| C-31 | CR-02 | Phần "Trả lời cho khách hàng" (rủi ro, effort, lịch, phạm vi bảo đảm, checklist) của báo cáo `compat --path` không có trong FR | PO yêu cầu 2026-10-26 | Thêm vào báo cáo, không đổi lệnh; mô tả ở [cr-02-compat-brief.md](cr-02-compat-brief.md) | C | PO đã yêu cầu; chờ cập nhật SRS |
 
 ## Giả định khi triển khai M2 (không đổi hành vi so với thiết kế)
 

@@ -38,6 +38,15 @@ Development build of v2 (not a release).
   of the tool's last PASSED switch, and warns about interrupted health checks.
 - FastCGI client for the trial run and the pool check (`qp-feeds.py fcgi`, standard library).
 
+### Added (CR-02)
+- The `compat --path` report opens with "Answers for the customer": current security risks
+  ranked by level (out-of-support Node.js branch with its unfixed vulnerabilities, AWS Lambda
+  runtime deprecation and blocked updates, vulnerable production packages, out-of-support
+  libraries), can it be upgraded and what it affects (recommended target when the requested one
+  is out of support soon), work items with a first effort estimate in hours, a schedule with
+  production dates, what a clean scan guarantees and what it does not cover, residual risk, and a
+  checklist to tick. `--json` adds `result.brief`.
+
 ### Added (CR-01)
 - `compat --path DIR --target N [--current N] [--node-bin PATH] [--report FILE.html|.md]
   [--lang en|vi] [--offline] [--json]` (`qp.compat/1`): Node.js compatibility of

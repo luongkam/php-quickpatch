@@ -7,6 +7,7 @@ import html
 import os
 
 from .. import VERSION
+from . import brief as BR
 
 T = {
     'title': {'en': 'Node.js compatibility report', 'vi': 'Báo cáo tương thích Node.js'},
@@ -14,7 +15,7 @@ T = {
     'tool': {'en': 'Tool', 'vi': 'Công cụ'},
     'paths': {'en': 'Scanned paths', 'vi': 'Thư mục quét'},
     'data': {'en': 'Data', 'vi': 'Dữ liệu'},
-    'summary': {'en': 'Summary', 'vi': 'Tóm tắt'},
+    'summary': {'en': 'Technical summary', 'vi': 'Tóm tắt kỹ thuật'},
     'overall': {'en': 'Overall result', 'vi': 'Kết luận chung'},
     'projects': {'en': 'Projects', 'vi': 'Dự án'},
     'project': {'en': 'Project', 'vi': 'Dự án'},
@@ -323,7 +324,8 @@ padding:10px 14px;min-width:150px;flex:1}.card b{display:block;font-size:22px}.c
 .msg{padding:8px 12px;border-radius:6px;margin:6px 0;border-left:4px solid}.msg.ok{background:#dafbe1;border-color:var(--ok);
 color:var(--fg)}.msg.warn{background:#fff8c5;border-color:var(--warn);color:var(--fg)}.msg.bad{background:#ffebe9;
 border-color:var(--bad);color:var(--fg)}.sev-critical,.sev-high{color:var(--bad);font-weight:600}.sev-medium{color:var(--warn)}
-ul{margin:4px 0 8px;padding-left:20px}.wrap{overflow-x:auto}
+ul{margin:4px 0 8px;padding-left:20px}.wrap{overflow-x:auto}.lv-critical{background:#82071e}.lv-high{background:var(--bad)}
+.lv-medium{background:var(--warn)}.lv-low{background:#57606a}.lv-info{background:#0969da}
 @media print{main{max-width:none}h2{break-after:avoid}table{break-inside:auto}}
 """
 
@@ -367,6 +369,7 @@ def render_html(res, lang='en'):
              '%s: %s</p>' % (e(L('generated')), e(res['generated_at']), e(L('tool')), e(VERSION),
                              e(res['catalog_version']), e(lc.get('bundle_id') or '-'), e(L('paths')),
                              ', '.join('<code>%s</code>' % e(p) for p in res['paths'])))
+    o.append(BR.html_section(res, BR.build(res, lang), lang))
     # summary
     o.append('<h2>%s</h2>' % e(L('summary')))
     o.append('<p>%s: %s</p><ul>%s</ul><p class="meta">%s</p>' % (
@@ -526,6 +529,7 @@ def render_md(res, lang='en'):
          '%s %s · php-quickpatch %s · catalog `%s` · bundle `%s`  ' % (L('generated'), res['generated_at'], VERSION,
                                                                      res['catalog_version'], lc.get('bundle_id') or '-'),
          '%s: %s\n' % (L('paths'), ', '.join('`%s`' % md(p) for p in res['paths'])),
+         BR.md_section(res, BR.build(res, lang), lang, md),
          '## %s\n' % L('summary'),
          '%s: **%s**\n' % (L('overall'), t(overall(res), lang))]
     o.extend('- %s' % md(c) for c in conclusions(res, lang))
