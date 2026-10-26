@@ -32,6 +32,7 @@ Loại: **A** = chỉ khác câu chữ/số đếm, không đổi hành vi; **B*
 | C-24 | M4 | `plan waive` với hit không thuộc site: FR-CLI-CMD-002 liệt kê `ERR-PLAN-404-01`; api-spec-plans §4.2 ghi `ERR-CON-422-01` (`details.field = hit_ids`) cho hit không thuộc site hoặc không ở mức `error` | FR-CLI-CMD-002, api-spec-plans §4.2 | `ERR-CON-422-01` cho hit sai; `ERR-PLAN-404-01` cho kế hoạch/site không có. Test M3 đổi kỳ vọng theo | A | Áp dụng |
 | C-25 | M4 | TC-CMPT-012 kỳ vọng `Parse error` cho file hỏng trên 8.5; với PHP 8 một số lỗi cú pháp cũ (vd `$s{0}`) là `Fatal error` lúc biên dịch | TC-CMPT-012 | Nhận cả `Parse error` và `Fatal error` của `php -l` là lỗi cú pháp (hit `php-l`, mức `error`); fixture dùng `function match()` (Parse error từ 8.0) | A | Áp dụng |
 | C-26 | M4 | Mục "Mẫu quét" của luật BC trong DOC-SRS-QP-SCN-PHP-8X là mô tả, không phải regex chạy được | version-scenarios-php-8x | Regex soạn tay trong `tools/build-catalog.py` (`SCAN`), kiểm biên dịch khi build; phát hiện ngữ nghĩa (vd so sánh lỏng chuỗi–số) vẫn để PHPCompatibility/test | B | Áp dụng |
+| C-27 | CR-01 | Lệnh `compat --path` (quét thư mục dự án Node.js với nhánh đích + báo cáo) không có trong FR Phase 1 | PO yêu cầu 2026-10-26 | Thêm lệnh mới, không đổi lệnh có sẵn; mô tả ở [cr-01-compat-path.md](cr-01-compat-path.md). Cần PO bổ sung FR/AC/TC vào SRS nếu giữ cho bản phát hành | C | PO đã yêu cầu; chờ cập nhật SRS |
 
 ## Giả định khi triển khai M2 (không đổi hành vi so với thiết kế)
 

@@ -272,6 +272,46 @@ REPORT_RESULT = obj({'report_type': enum('assess', 'evidence'), 'format': enum('
 
 SCHEMA_RESULT = obj({'command': S, 'schema_file': S, 'schema': {'type': 'object'}}, nullable=True)
 
+# CR-01: `compat --path DIR --target N` (Node.js project directories, outside the SRS command list).
+VERDICT = obj({'status': enum('PASS', 'FAIL', 'PENDING'), 'errors': I, 'warnings': I, 'blockers': I,
+               'vulnerable_packages': I, 'by_severity': {'type': 'object'}, 'malware': I, 'deprecated': I,
+               'runtime_changes': I, 'pending_parts': arr(S)})
+DECLARATION = obj({'file': S, 'line': I, 'kind': enum('lambda_runtime', 'cdk_runtime', 'container_image',
+                                                      'ci_node_version', 'tool_versions', 'version_file'),
+                   'text': S, 'branch': S, 'code_uri': SN, 'project': SN, 'to_change': B},
+                  required=['file', 'line', 'kind', 'branch', 'to_change'])
+VULN = obj({'package': S, 'version': S, 'advisories': arr(S), 'severity': S, 'in_kev': B, 'is_malware': B,
+            'fixed_versions': arr(S), 'dev': B, 'fix_version': SN, 'major_bump': BN, 'unfixed_advisories': arr(S)},
+           required=['package', 'version', 'advisories', 'severity', 'fix_version', 'dev'])
+BRANCH_INFO = obj({'branch': S, 'status': S, 'eol_date': SN, 'days_to_eol': IN, 'latest': SN, 'lts': BN},
+                  required=['branch', 'status'], nullable=True)
+COMPAT_PROJECT = obj({
+    'path': S, 'name': S, 'current_branch': SN, 'current_source': SN, 'target_branch': S, 'lockfile': SN,
+    'packages': I, 'declarations': arr(DECLARATION), 'vulnerabilities': {'anyOf': [{'type': 'null'}, arr(VULN)]},
+    'deprecated': arr(obj({'package': S, 'version': SN, 'source': enum('npm', 'catalog'), 'message': S,
+                           'replacement': SN, 'call_sites': arr(obj({'file': S, 'line': I}))},
+                          required=['package', 'source', 'message'])),
+    'npm_engine_violations': arr(ANY), 'hits': arr(obj({'hit_id': S, 'file': S, 'line': I, 'rule_id': S,
+                                                       'level': enum('error', 'warning'), 'snippet': S},
+                                                      required=['file', 'line', 'rule_id', 'level'])),
+    'native_addons': arr(obj({'package': S, 'load_ok': BN}, required=['package', 'load_ok'])),
+    'parts': {'type': 'object'}, 'verdict': VERDICT,
+    'work_items': arr(obj({'kind': S, 'count': I, 'size': enum('S', 'M', 'L')}, required=['kind', 'count', 'size'])),
+    'errors': arr(ANY), 'notes': arr(ANY)},
+    required=['path', 'name', 'current_branch', 'target_branch', 'declarations', 'vulnerabilities', 'deprecated',
+              'hits', 'native_addons', 'verdict', 'work_items'])
+COMPAT_RESULT = obj({
+    'run_id': S, 'runtime': enum('node'), 'paths': arr(S), 'target_branch': S, 'target_patch': S,
+    'current_branch': SN, 'catalog_version': SN,
+    'lifecycle': obj({'today': S, 'bundle_id': SN, 'current': BRANCH_INFO, 'target': BRANCH_INFO,
+                      'recommended': SN, 'min_eol': S, 'target_ok': B}, required=['target', 'recommended', 'target_ok'],
+                     nullable=True),
+    'summary': obj({'projects': I, 'by_status': {'type': 'object'}, 'vulnerable_packages': I, 'runtime_changes': I,
+                    'deprecated': I, 'errors': I}),
+    'projects': arr(COMPAT_PROJECT), 'shared_declarations': arr(DECLARATION), 'reports': arr(S)},
+    required=['run_id', 'runtime', 'paths', 'target_branch', 'lifecycle', 'summary', 'projects', 'reports'],
+    nullable=True)
+
 COMMANDS = {
     'scan': ('qp.scan/1', SCAN_RESULT, 'Output of `php-quickpatch.sh scan --json` (DOC-API-QP-005 §5)'),
     'fix': ('qp.fix/1', FIX_RESULT, 'Output of `fix --json` and `rollback --json` (DOC-API-QP-005 §8)'),
@@ -288,6 +328,7 @@ COMMANDS = {
     'audit': ('qp.audit/1', AUDIT_RESULT, 'Output of `audit list|verify --json` (FR-JOB-AUD-002, FR-JOB-AUD-003)'),
     'report': ('qp.report/1', REPORT_RESULT, 'Output of `report assess|evidence --json` (FR-RPT-ASMT-001, FR-RPT-AUD-001)'),
     'schema': ('qp.schema/1', SCHEMA_RESULT, 'Output of `schema <command> --json`'),
+    'compat': ('qp.compat/1', COMPAT_RESULT, 'Output of `compat --path DIR --target N --json` (CR-01)'),
 }
 
 

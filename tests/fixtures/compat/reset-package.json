@@ -1,0 +1,13 @@
+{
+ "name": "reset",
+ "version": "1.0.0",
+ "dependencies": {
+  "aws-sdk": "^2.1000.0",
+  "axios": "^0.21.1",
+  "request": "^2.88.2",
+  "old-engines": "^1.0.0"
+ },
+ "devDependencies": {
+  "jest": "^26.0.0"
+ }
+}

@@ -192,7 +192,7 @@ def library_check(fs, ecosystem, lockfile, packages, offline=False, kev_ids=(), 
     findings = []
     kev = set(kev_ids)
     for r in cached['results']:
-        ids, sev_best, score_best, in_kev, fixed, mal = [], 'low', 0.0, False, [], False
+        ids, sev_best, score_best, in_kev, fixed, mal, by_adv = [], 'low', 0.0, False, [], False, {}
         for v in r['vulns']:
             vid = v['id']
             ids.append(vid)
@@ -208,12 +208,14 @@ def library_check(fs, ecosystem, lockfile, packages, offline=False, kev_ids=(), 
                 sev_best, score_best = sev, score
             if any(a in kev for a in doc.get('aliases') or []):
                 in_kev = True
-            for f in _fixed_versions(doc, ecosystem, r['name']):
+            by_adv[vid] = {'fixed': _fixed_versions(doc, ecosystem, r['name']), 'severity': sev,
+                           'summary': (doc.get('summary') or '')[:200], 'aliases': doc.get('aliases') or []}
+            for f in by_adv[vid]['fixed']:
                 if f not in fixed:
                     fixed.append(f)
         findings.append({'package': r['name'], 'version': r['version'], 'advisories': ids,
                          'severity': 'critical' if mal else (sev_best if ids else 'low'), 'in_kev': in_kev,
-                         'is_malware': mal, 'fixed_versions': fixed})
+                         'is_malware': mal, 'fixed_versions': fixed, 'by_advisory': by_adv})
     return findings, {'lock_sha256': lock_sha, 'origin': origin, 'age_h': int((age or 0) // 3600)}
 
 

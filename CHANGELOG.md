@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — CR-01
+
+### Added
+- `compat --path DIR --target N [--current N] [--node-bin PATH] [--report FILE.html|.md]
+  [--lang en|vi] [--offline] [--json]` (`qp.compat/1`): Node.js compatibility of
+  project directories that do not run on this machine (AWS Lambda repositories,
+  container sources): Node.js version declarations to change (SAM/CloudFormation,
+  CDK, Dockerfile, CI, `.nvmrc`), `engines.node` of dependencies, catalog
+  breaking-change rules of (current, target], native addons (with `--node-bin`),
+  known vulnerabilities from OSV with the version that fixes every advisory,
+  deprecated packages and the AWS SDK v2 migration, lifecycle and recommended
+  branch. Read only for the scanned paths.
+- HTML (self-contained, escaped, no script) and Markdown report in English or
+  Vietnamese, always kept in `STATE_DIR/reports/compat-<run_id>/` with
+  `result.json`.
+- OSV library check keeps the fixed versions of each advisory (`by_advisory`).
+
 ## 2.0.0-alpha.4 — 2026-10-25 (Phase 1, milestone M4)
 
 Development build of v2 (not a release).

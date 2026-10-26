@@ -91,7 +91,7 @@ def cmd_audit(env, argv, warn):
 
 NOT_YET = {'report': 'M7'}
 SCHEMAS = {'audit': 'qp.audit/1', 'assess': 'qp.assess/1', 'plan': 'qp.plan/1', 'report': 'qp.report/1',
-           'feeds': 'qp.feeds/1'}
+           'feeds': 'qp.feeds/1', 'compat': 'qp.compat/1'}
 
 
 def main(argv):
@@ -119,6 +119,9 @@ def main(argv):
         elif command == 'assess':
             from qplib import assess
             code, result = assess.run(env, rest, Args, warnings, statedir.select(warnings))
+        elif command == 'compat':
+            from qplib.compat import cli as compat_cli
+            code, result = compat_cli.run(env, rest, Args, warnings, statedir.select(warnings))
         elif command == 'plan':
             from qplib import plan
             code, result = plan.run(env, rest, Args, warnings, statedir.select(warnings))

@@ -9,7 +9,8 @@ request, to script failures:
     {"SRC-006": {"status": 503}, "SRC-004": {"status": 429, "retry_after": 1, "times": 1},
      "SRC-009": {"file": "/abs/other.json"}, "SRC-002": {"delay": 3}, "SRC-012": {"body": "not json"}}
 OSV querybatch answers from STATE_DIR/osv.vulns ("name version ID,ID" lines),
-like the curl stub of tests/bash/stubs.sh.
+like the curl stub of tests/bash/stubs.sh; /NPM/<name> serves STATE_DIR/npm/<name>.json
+(npm registry metadata, "/" of a scoped name as "~").
 """
 import email.utils
 import hashlib
@@ -170,6 +171,13 @@ def route(src, rest, qs, body, ctl=None):
             return 200, osv_batch(body, (ctl or {}).get('page_size')), {}
         if rest.startswith('vulns/'):
             return 200, osv_vuln(rest[6:]), {}
+    if src == 'NPM':                       # npm registry stand-in: STATE_DIR/npm/<name with / as ~>.json
+        name = urllib.parse.unquote(rest).replace('/', '~')
+        pth = os.path.join(STATE, 'npm', name + '.json')
+        if os.path.isfile(pth):
+            with open(pth, 'rb') as f:
+                return 200, f.read(), {}
+        return 404, b'{"error":"Not found"}', {}
     if src == 'SRC-005':
         return 200, read('SRC-005/%s.json' % rest), {}
     return 404, b'{"message":"Not Found"}', {}

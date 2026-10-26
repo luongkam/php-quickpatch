@@ -184,6 +184,11 @@ Usage:
   php-quickpatch.sh rollback [ID]        undo file changes of a fix run
                                           (latest run when ID is omitted)
   php-quickpatch.sh schema COMMAND       print the JSON Schema of COMMAND's --json
+  php-quickpatch.sh compat --path DIR --target N [--current N] [--node-bin PATH]
+                         [--report FILE.html|FILE.md] [--lang en|vi] [--offline]
+                                          Node.js compatibility of project
+                                          directories (Lambda, repos) with a
+                                          target branch, and a report
   php-quickpatch.sh feeds|assess|plan|report|audit|serve ...
                                           need Python 3.6+ (see docs)
 Options:
@@ -2855,7 +2860,7 @@ parse_args() {
       scan|fix) MODE=$1 ;;
       rollback) MODE=rollback; if [ $# -gt 1 ] && [[ $2 != -* ]]; then ROLLBACK_ID=$2; shift; fi ;;
       schema) MODE=schema; [ $# -ge 2 ] || arg_error ""; SCHEMA_ARG=$2; shift ;;
-      feeds|assess|plan|report|audit|serve|sync|snapshot)
+      feeds|assess|plan|compat|report|audit|serve|sync|snapshot)
         MODE=$1; [ "$MODE" = sync ] && { MODE=feeds; PASS_ARGS=(update); }
         [ "$MODE" = snapshot ] && MODE=feeds
         shift; PASS_ARGS+=("$@")
@@ -2901,7 +2906,7 @@ main() {
   has flock || fatal ERR-CLI-424-02 "Bash 4.3+, flock and curl are required (found: {detail})." detail="bash $BASH_VERSION, flock no, curl $(has curl && echo yes || echo no)"
   case $MODE in
     schema) cmd_schema ;;
-    feeds|assess|plan|report|audit|serve) run_python ;;
+    feeds|assess|plan|compat|report|audit|serve) run_python ;;
     migrate) fatal ERR-CLI-400-01 "{arg} is not available in this build yet (milestone M5)." arg=migrate ;;
   esac
   select_state_dir
